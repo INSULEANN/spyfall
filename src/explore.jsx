@@ -1,7 +1,8 @@
 // เกม "ออกสำรวจ" — เกมแนวแฝงตัว/ทีมลับ: คณะนักสำรวจต้องผ่านด่านให้ได้ 3 ด่าน ขณะที่หนอนบ่อนไส้คอยก่อวินาศ
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { play as sfx } from './sfx.js';
 
 export const STAGES = [
   { name: 'ป่าทึบ', icon: '🌲' },
@@ -140,15 +141,28 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
 
   const turnKey = `${r.stage}-${r.phase}-${r.leader}-${r.rejects}`;
   useEffect(() => { setSel([]); }, [turnKey]);
-  useEffect(() => { if (!sound || res) return; if ((r.phase === 'pick' && amLeader) || (r.phase === 'mission' && inTeam) || r.phase === 'approve') beep(r.phase === 'mission' ? 520 : 880, .15); }, [turnKey]);
-  useEffect(() => { if (r.lastMission && sound) beep(r.lastMission.ok ? 980 : 220, .25); }, [hist.length]);
+  // เสียงตามเหตุการณ์ในห้อง (ทุกเครื่องได้ยินพร้อมกัน) — เทียบกับสถานะก่อนหน้า ไม่เล่นตอนเพิ่งเปิดหน้า
+  const prev = useRef(null);
+  useEffect(() => {
+    const lv = r.lastVote; const s = { phase: r.phase, turn: turnKey, vote: lv ? `${lv.stage}-${lv.attempt}-${lv.approved}` : '', hist: hist.length, res: !!res };
+    const p = prev.current; prev.current = s; if (!p || !sound) return;
+    if (s.res && !p.res) { if (room.result?.reason === 'hunt') sfx(sound, room.result.winner === 'bad' ? 'sabotage' : 'stageOk'); setTimeout(() => sfx(sound, room.result?.winner === info.side ? 'win' : 'lose'), 600); return; }
+    let delay = 0;
+    if (s.hist > p.hist) { sfx(sound, r.lastMission?.ok ? 'stageOk' : 'sabotage'); delay = 1100; }
+    else if (s.vote !== p.vote && lv) { sfx(sound, lv.approved ? 'approved' : 'rejected'); delay = 600; }
+    if (s.turn !== p.turn) {
+      const next = r.phase === 'approve' ? 'propose' : r.phase === 'mission' ? 'march' : r.phase === 'hunt' ? 'tension' : r.phase === 'pick' && amLeader ? 'yourTurn' : null;
+      if (next) setTimeout(() => sfx(sound, next), delay);
+      if (r.phase === 'mission' && inTeam) setTimeout(() => sfx(sound, 'yourTurn'), delay + 900);
+    }
+  });
 
-  const toggle = id => { if (!amLeader || r.phase !== 'pick') return; setSel(s => s.includes(id) ? s.filter(x => x !== id) : s.length >= size ? s : [...s, id]); };
+  const toggle = id => { if (!amLeader || r.phase !== 'pick') return; sfx(sound, 'click'); setSel(s => s.includes(id) ? s.filter(x => x !== id) : s.length >= size ? s : [...s, id]); };
   async function propose() { if (sel.length !== size) { msg(`เลือกให้ครบ ${size} คน`); return; } await tx(cur => proposeTeam(cur, myId, sel)); }
-  async function approve(yes) { await tx(cur => castApprove(cur, myId, yes)); if (sound) beep(yes ? 760 : 420, .1); }
-  async function play(sab) { await tx(cur => playCard(cur, myId, sab)); if (sound) beep(600, .1); }
+  async function approve(yes) { sfx(sound, 'vote'); await tx(cur => castApprove(cur, myId, yes)); }
+  async function play(sab) { sfx(sound, 'click'); await tx(cur => playCard(cur, myId, sab)); }
   const seen = Object.keys(r.roles || {}).filter(id => r.roles[id] === 'traitor'); // ผู้ถือตะเกียงเห็นโจร ยกเว้นจอมแฝงตัว
-  async function hunt(id) { await tx(cur => huntLantern(cur, myId, id)); if (sound) beep(700, .08); }
+  async function hunt(id) { sfx(sound, 'vote'); await tx(cur => huntLantern(cur, myId, id)); }
   const huntVotes = r.huntVotes || {};
   async function hostSkipHunt() { if (!confirm('ฝ่ายโจรหลุดหมดแล้ว? จบเกมให้นักสำรวจชนะ')) return; await tx(cur => skipHunt(cur)); }
   async function hostForce(kind) { if (!confirm(kind === 'approve' ? 'สรุปโหวตเลย? คนที่ยังไม่โหวตนับเป็นไม่เห็นด้วย' : 'เปิดผลเลย? สมาชิกที่ยังไม่ส่งนับเป็นสำรวจต่อ')) return; await tx(cur => kind === 'approve' ? resolveApprove(cur, true) : resolveMission(cur, true)); }

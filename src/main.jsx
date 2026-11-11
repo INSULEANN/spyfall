@@ -12,7 +12,7 @@ import { ExploreGame, makeExploreRound, teamSizes, traitorCount, needFails, EXPL
 import { WolfGame, makeWolfRound, wolfCount, WOLF_MIN, WOLF_SCORE } from './werewolf.jsx';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.10';
+const APP_VERSION = '1.11';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน

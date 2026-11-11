@@ -1,7 +1,8 @@
 // เกม "แวร์วูฟ" — กลางคืนหมาป่าแอบกัดชาวบ้าน กลางวันทุกคนโหวตประหารคนที่สงสัย (ระบบเป็นผู้ดำเนินเกมให้)
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { play as sfx } from './sfx.js';
 
 export const WOLF_MIN = 5;
 export const WOLF_SCORE = { village: 1, wolf: 2 }; // แต้มต่อคนของฝ่ายที่ชนะ
@@ -121,10 +122,27 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   const seeAll = !meAlive || res; // คนตายดูเกมได้ทั้งหมด (ห้ามบอกคนที่ยังเล่น!)
   const showRoleOf = id => seeAll || (r.reveal && !alive[id]) || id === myId || (myRole === 'wolf' && r.roles[id] === 'wolf');
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), cur => { if (!cur || cur.status !== 'playing' || cur.round?.kind !== 'wolf') return; return f(cur); });
-  const act = (kind, t) => tx(cur => nightAct(cur, myId, kind, t));
-  const vote = t => tx(cur => dayVote(cur, myId, t));
-  const phaseKey = `${r.day}-${r.phase}`;
-  useEffect(() => { if (sound && !res) beep(r.phase === 'night' ? 300 : 880, .2); }, [phaseKey]);
+  const act = (kind, t) => { sfx(sound, 'click'); return tx(cur => nightAct(cur, myId, kind, t)); };
+  const vote = t => { sfx(sound, 'vote'); return tx(cur => dayVote(cur, myId, t)); };
+  // เสียงตามเหตุการณ์ในหมู่บ้าน (ทุกเครื่องได้ยินพร้อมกัน) — เทียบกับสถานะก่อนหน้า
+  const prev = useRef(null);
+  useEffect(() => {
+    const s = { key: `${r.day}-${r.phase}`, phase: r.phase, shot: r.shot?.target || '', res: !!res };
+    const p = prev.current; prev.current = s;
+    if (!p) { if (r.phase === 'night' && r.day === 1 && !res && Date.now() - (r.startedAt || 0) < 8000) { sfx(sound, 'howl'); setTimeout(() => sfx(sound, 'night'), 1800); } return; }
+    const seq = list => { let t = 0; list.forEach(([n, d]) => { setTimeout(() => sfx(sound, n), t); t += d; }); return t; };
+    let t = 0;
+    if (s.shot && s.shot !== p.shot) t = seq([['shot', 1200]]);
+    if (s.res && !p.res) {
+      if (p.phase === 'night') t = seq([['morning', 700], [r.dawn?.dead?.length ? 'death' : 'safe', 1200]]);
+      else if (p.phase === 'day') t = seq([[r.lastVote?.out ? 'execute' : 'safe', 1300]]);
+      setTimeout(() => sfx(sound, room.result?.winner === info.side ? 'win' : 'lose'), t); return;
+    }
+    if (s.key === p.key) return;
+    if (r.phase === 'day' && p.phase === 'night') seq([['morning', 800], [r.dawn?.dead?.length ? 'death' : 'safe', 0]]);
+    else if (r.phase === 'hunter') seq([[p.phase === 'night' ? 'morning' : r.lastVote?.out ? 'execute' : 'safe', p.phase === 'night' ? 800 : 1300], ...(p.phase === 'night' ? [['death', 1200]] : []), ['reveal', 0]]);
+    else if (r.phase === 'night') setTimeout(() => seq([[p.phase === 'day' ? (r.lastVote?.out ? 'execute' : 'safe') : null, p.phase === 'day' ? 1500 : 0], ['howl', 1800], ['night', 0]].filter(x => x[0])), t);
+  });
   const deadNames = ids => (ids || []).map(id => `${nameOf(id)}${r.reveal ? ` (${W_ROLES[r.roles[id]]?.icon} ${W_ROLES[r.roles[id]]?.name})` : ''}`).join(', ');
   const Pick = ({ ids, sel, onPick, tags, disabled }) => <div className="ex-pick">{ids.map(id => <button key={id} disabled={disabled} className={'vote-row' + (sel === id ? ' selected' : '')} onClick={() => onPick(id)}><span>{nameOf(id)}{id === myId && ' (คุณ)'}</span><span>{tags?.(id) || (sel === id ? '✓ เลือกแล้ว' : 'เลือก')}</span></button>)}</div>;
 
