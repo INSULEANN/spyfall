@@ -10,7 +10,8 @@ const savePrefs = p => { try { localStorage.setItem(PREF_KEY, JSON.stringify(p))
 const sidGen = () => Math.random().toString(36).slice(2, 10);
 const level = an => { if (!an) return 0; const a = new Uint8Array(an.fftSize); an.getByteTimeDomainData(a); let s = 0; for (const v of a) { const x = (v - 128) / 128; s += x * x; } return Math.sqrt(s / a.length); };
 
-export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg }) {
+// gate = null (คุยได้ปกติ) หรือ { canTalk, hear: [ids], label } — ใช้ตอนกลางคืนในแวร์วูฟ: ไมค์คนที่ไม่ใช่หมาป่าถูกปิด และได้ยินเฉพาะคนใน hear
+export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, gate = null }) {
   const [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false);
   const [micOn, setMicOn] = useState(true);
@@ -21,11 +22,19 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg })
   const S = useRef({ pcs: new Map(), ctx: null, stream: null, sid: null, unsub: [], localAn: null }).current;
   const base = `rooms/${roomCode}/voice`;
   const others = Object.entries(members || {}).filter(([id]) => id !== myId);
+  S.gate = gate; S.prefs = prefs; S.micOn = micOn; // ค่าล่าสุดให้ callback ของ WebRTC ใช้
+  const gateKey = gate ? `${gate.canTalk}|${(gate.hear || []).join(',')}` : '';
+  const hidden = !!gate; // กลางคืนซ่อนจุดเขียว/ไอคอนไมค์ จะได้ไม่รู้ว่าใครพูด
 
   const setState = (id, v) => setStates(s => ({ ...s, [id]: v }));
   const send = (to, toSid, m) => push(ref(db, `${base}/sig/${to}`), { ...m, from: myId, fromSid: S.sid, toSid }).catch(() => {});
 
-  function applyPref(id) { const p = S.pcs.get(id); if (!p?.gain) return; const pr = prefs[id] || {}; p.gain.gain.value = pr.muted ? 0 : (pr.vol ?? 1); }
+  function applyPref(id) {
+    const p = S.pcs.get(id); if (!p?.gain) return; const pr = (S.prefs || {})[id] || {};
+    const blocked = S.gate && !(S.gate.hear || []).includes(id);
+    p.gain.gain.value = blocked || pr.muted ? 0 : (pr.vol ?? 1);
+  }
+  const applyMic = () => { const on = S.micOn && (!S.gate || S.gate.canTalk); S.stream?.getAudioTracks().forEach(t => t.enabled = on); };
 
   function closePeer(id) {
     const p = S.pcs.get(id); if (!p) return;
@@ -103,7 +112,7 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg })
   }
 
   function toggleMic() {
-    const on = !micOn; S.stream?.getAudioTracks().forEach(t => t.enabled = on); setMicOn(on);
+    const on = !micOn; S.micOn = on; applyMic(); setMicOn(on);
     update(ref(db, `${base}/members/${myId}`), { muted: !on }).catch(() => {});
   }
 
@@ -123,7 +132,7 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg })
     }
   }, [joined, JSON.stringify(others.map(([id, m]) => id + ':' + m.sid)), tick]);
 
-  useEffect(() => { for (const id of S.pcs.keys()) applyPref(id); }, [prefs]);
+  useEffect(() => { for (const id of S.pcs.keys()) applyPref(id); applyMic(); }, [prefs, gateKey, joined]);
 
   useEffect(() => {
     if (!joined) return;
@@ -149,17 +158,18 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg })
       <button className="primary wide" disabled={busy} onClick={join}><Mic size={16} /> {busy ? 'กำลังเปิดไมค์…' : 'เข้าห้องเสียง'}</button>
     </> : <>
       <div className="voice-me">
-        <span className={'voice-dot' + (speaking[myId] ? ' on' : '')} />
+        <span className={'voice-dot' + (speaking[myId] && !hidden ? ' on' : '')} />
         <span className="voice-name">คุณ</span>
         <button className={'secondary voice-mic' + (micOn ? '' : ' off')} onClick={toggleMic} title={micOn ? 'ปิดไมค์' : 'เปิดไมค์'}>{micOn ? <Mic size={16} /> : <MicOff size={16} />} {micOn ? 'ไมค์เปิด' : 'ไมค์ปิด'}</button>
         <button className="secondary voice-leave" onClick={() => leave()} title="ออกจากห้องเสียง"><PhoneOff size={16} /></button>
       </div>
+      {gate && <div className="voice-night">{gate.label}</div>}
       {others.length === 0 && <p className="hint">ยังไม่มีเพื่อนในห้องเสียง ชวนเพื่อนกด “เข้าห้องเสียง”</p>}
       {others.map(([id, m]) => { const pr = prefs[id] || {}; const vol = pr.vol ?? 1; const st = stLabel(states[id]);
         return <div className="voice-row" key={id}>
           <div className="voice-row-top">
-            <span className={'voice-dot' + (speaking[id] ? ' on' : '')} />
-            <span className="voice-name">{nameOf(id)}{m.muted && <MicOff size={13} className="voice-muted" />}</span>
+            <span className={'voice-dot' + (speaking[id] && !hidden ? ' on' : '')} />
+            <span className="voice-name">{nameOf(id)}{m.muted && !hidden && <MicOff size={13} className="voice-muted" />}</span>
             {st && <small className={'voice-st' + (states[id] === 'failed' ? ' bad' : '')}>{st}</small>}
             <button className={'icon-btn voice-mute' + (pr.muted ? ' off' : '')} onClick={() => setPref(id, { muted: !pr.muted })} title={pr.muted ? 'เลิกปิดเสียงคนนี้' : 'ปิดเสียงคนนี้'}>{pr.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}</button>
           </div>
