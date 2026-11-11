@@ -1,0 +1,188 @@
+/* ธีมของแต่ละเกม — ทุกสีใน style.css อ่านจากตัวแปรพวกนี้
+   ใส่ data-theme="<id เกม>" ที่ <html> (ทั้งหน้า) หรือที่ element ไหนก็ได้ (เช่นการ์ดเกมในหน้ารวม) */
+:root,[data-theme]{
+  --display:'Kanit',sans-serif;--body:'Prompt',sans-serif;--display-weight:800;--radius:20px;
+  --bg:#100f1b;--panel:#191725;--inset:#14121f;--chip:#292439;--glow:#302044;
+  --text:#f7f4ff;--soft:#d2c9df;--muted:#aaa2bb;--dim:#7d758f;
+  --accent:#ffc965;--accent-hi:#ffd57c;--accent-2:#f6ad4d;--on-accent:#2b1a20;
+  --hero-1:#21182e;--hero-2:#30203a;--hero-3:#5a382d;
+  --pattern:none;--pattern-size:auto;
+}
+/* 🏯 Spyfall Thai — แลคเกอร์ดำ ลายทอง วัดยามเย็น */
+[data-theme="spyfall"]{
+  --display:'Chonburi',serif;--display-weight:400;
+  --bg:#130a0c;--panel:#1d1013;--inset:#170c0f;--chip:#2c191d;--glow:#4d1a1f;
+  --text:#fbf1e4;--soft:#e4cfba;--muted:#b49b87;--dim:#7f6757;
+  --accent:#e9b84e;--accent-hi:#f7d580;--accent-2:#c98a2c;--on-accent:#2a1206;
+  --hero-1:#2a0f14;--hero-2:#4a1a1f;--hero-3:#7a2e1d;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M22 2 42 22 22 42 2 22Z' fill='none' stroke='%23e9b84e' stroke-opacity='.07'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23e9b84e' fill-opacity='.06'/%3E%3C/svg%3E");
+}
+/* 🤫 SPY — แฟ้มลับ ห้องปฏิบัติการ แดงสัญญาณ */
+[data-theme="spy"]{
+  --display:'Chakra Petch',sans-serif;--display-weight:700;--radius:12px;
+  --bg:#090b0b;--panel:#111515;--inset:#0c0f0f;--chip:#1a2020;--glow:#3a1010;
+  --text:#eef3f1;--soft:#c3cecb;--muted:#8fa09b;--dim:#5e6c68;
+  --accent:#ff4f4f;--accent-hi:#ff7070;--accent-2:#d42a2a;--on-accent:#fff;
+  --hero-1:#0f1414;--hero-2:#172020;--hero-3:#3a1212;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M32 0H0v32' fill='none' stroke='%23fff' stroke-opacity='.035'/%3E%3C/svg%3E");
+}
+/* 🙈 คำบนหัว — ปาร์ตี้ กระดาษโน้ต คอนเฟตติ */
+[data-theme="headword"]{
+  --display:'Mitr',sans-serif;--display-weight:700;--radius:22px;
+  --bg:#120d24;--panel:#1d1538;--inset:#170f2e;--chip:#2a1f4d;--glow:#46207a;
+  --text:#fdf8ff;--soft:#dacff2;--muted:#a597c9;--dim:#706397;
+  --accent:#ffd23f;--accent-hi:#ffe27a;--accent-2:#ff9f1c;--on-accent:#2b1600;
+  --hero-1:#2b1660;--hero-2:#5a1e7a;--hero-3:#b0306f;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill-opacity='.16'%3E%3Ccircle cx='18' cy='22' r='3' fill='%23ffd23f'/%3E%3Crect x='80' y='14' width='8' height='4' rx='2' fill='%2338d9c9' transform='rotate(30 84 16)'/%3E%3Ccircle cx='112' cy='80' r='2.5' fill='%23ff5fa2'/%3E%3Crect x='40' y='96' width='9' height='4' rx='2' fill='%23ffd23f' transform='rotate(-25 44 98)'/%3E%3Ccircle cx='70' cy='60' r='2' fill='%2338d9c9'/%3E%3Crect x='120' y='124' width='7' height='4' rx='2' fill='%23ff5fa2' transform='rotate(60 123 126)'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* 🧭 ออกสำรวจ — ป่าดิบ ซากเมืองโบราณ ทองเหลือง */
+[data-theme="explore"]{
+  --display:'Pridi',serif;--display-weight:700;
+  --bg:#0b130f;--panel:#132019;--inset:#0f1a14;--chip:#1d2e25;--glow:#1f3d2a;
+  --text:#f3efe2;--soft:#d2d8c6;--muted:#99a892;--dim:#61715e;
+  --accent:#e2b65c;--accent-hi:#f1cf82;--accent-2:#b8862f;--on-accent:#1f1606;
+  --hero-1:#10241a;--hero-2:#1f3a28;--hero-3:#5b4a22;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='none' stroke='%23e2b65c' stroke-opacity='.045'%3E%3Cpath d='M30 110c0-50 40-80 80-80s85 30 85 80-45 85-85 85-80-35-80-85z'/%3E%3Cpath d='M55 110c0-35 25-58 55-58s60 22 60 58-30 60-60 60-55-25-55-60z'/%3E%3Cpath d='M80 110c0-18 13-32 30-32s34 13 34 32-17 34-34 34-30-15-30-34z'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* 🐺 แวร์วูฟ — คืนพระจันทร์เต็มดวง หมู่บ้านในป่าสน */
+[data-theme="werewolf"]{
+  --display:'Trirong',serif;--display-weight:800;
+  --bg:#070a15;--panel:#0f1429;--inset:#0b0f21;--chip:#19203f;--glow:#1d2758;
+  --text:#eef1ff;--soft:#c5cbe8;--muted:#8d95ba;--dim:#5a6184;
+  --accent:#d6dfff;--accent-hi:#ffffff;--accent-2:#a5b4ee;--on-accent:#0f1429;
+  --hero-1:#0b1030;--hero-2:#1a2150;--hero-3:#3a1630;
+  --blood:#e0525a;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='20' cy='30' r='1' fill-opacity='.35'/%3E%3Ccircle cx='96' cy='12' r='.8' fill-opacity='.25'/%3E%3Ccircle cx='150' cy='60' r='1.2' fill-opacity='.3'/%3E%3Ccircle cx='60' cy='90' r='.7' fill-opacity='.2'/%3E%3Ccircle cx='120' cy='130' r='1' fill-opacity='.25'/%3E%3Ccircle cx='30' cy='160' r='.8' fill-opacity='.3'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* 🍰 เค้กหายไปไหน — ครัวกลางดึก สตรอว์เบอร์รี ครีม */
+[data-theme="cake"]{
+  --display:'Mali',sans-serif;--display-weight:700;--radius:26px;
+  --bg:#110e20;--panel:#1c1730;--inset:#161227;--chip:#2a2342;--glow:#40205a;
+  --text:#fff6fa;--soft:#ead8e5;--muted:#b6a2b9;--dim:#7c6c86;
+  --accent:#ff8fb3;--accent-hi:#ffb6cd;--accent-2:#ff6b9a;--on-accent:#3a0f22;
+  --hero-1:#1d1640;--hero-2:#3b1f52;--hero-3:#7a2f5a;
+  --cream:#ffe9c7;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='2' fill='%23ff8fb3' fill-opacity='.07'/%3E%3C/svg%3E");
+}
+
+/* ---------- พื้นฐานที่อ่านจากธีม ---------- */
+html{background:var(--bg)}
+body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}
+.hero h1,.hub-hero h1,.game-card h2,.room-heading h1,.join-head h2,.panel h2,.how h2,.how-grid h3,.role-card h3,.verdict-text,.ceo-text h2,.game-panel h2,.explore-game h2,.head-game h2{font-weight:var(--display-weight)}
+.join-card,.panel,.how-grid article,.game-card,.hero,.hub-hero{border-radius:var(--radius)}
+.primary{background:linear-gradient(135deg,var(--accent-hi),var(--accent-2));color:var(--on-accent);box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 22%,transparent)}
+.primary:hover{box-shadow:0 8px 28px color-mix(in srgb,var(--accent) 35%,transparent)}
+.panel,.join-card{background:linear-gradient(170deg,color-mix(in srgb,var(--panel) 92%,var(--accent) 8%),var(--panel) 40%)}
+::selection{background:color-mix(in srgb,var(--accent) 40%,transparent)}
+.brand .logo svg{display:block}
+.brand b{color:var(--accent)}
+
+/* ---------- ภาพประกอบ (SVG) ---------- */
+.hero-art{background:var(--inset)!important;padding:0}
+.hero-art:before,.hero-art:after{display:none}
+.scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-art .floating-card{background:color-mix(in srgb,var(--panel) 88%,transparent);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.hero-art .stamp{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--bg) 35%,transparent);font-family:var(--display)}
+.game-card{padding:0;overflow:hidden;background:linear-gradient(170deg,var(--panel),var(--inset));border-color:color-mix(in srgb,var(--accent) 18%,transparent)}
+.game-card:hover{border-color:color-mix(in srgb,var(--accent) 60%,transparent);box-shadow:0 14px 40px color-mix(in srgb,var(--accent) 14%,transparent)}
+.game-card .card-art{position:relative;height:150px;overflow:hidden;border-bottom:1px solid color-mix(in srgb,var(--accent) 20%,transparent)}
+.game-card .card-art .scene{transition:transform .5s}.game-card:hover .card-art .scene{transform:scale(1.05)}
+.game-card .card-body{display:flex;flex-direction:column;gap:8px;padding:18px 22px 22px;flex:1}
+.game-card h2{font-family:var(--display);color:var(--text)}
+.game-card .game-go{color:var(--accent)}
+.game-card .hero-pills span{border-color:color-mix(in srgb,var(--accent) 22%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.game-card.soon .card-body{padding-top:24px}
+.hub-hero{position:relative;overflow:hidden}
+.hub-hero .hub-art{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:min(42%,380px);opacity:.95;pointer-events:none}
+.hub-hero>*:not(.hub-art){position:relative;z-index:1}
+.room-heading{position:relative;padding:18px 20px;border:1px solid color-mix(in srgb,var(--accent) 16%,transparent);border-radius:var(--radius);overflow:hidden;background:linear-gradient(110deg,var(--panel) 40%,transparent)}
+.room-heading .room-art{position:absolute;right:0;top:0;bottom:0;width:46%;z-index:0;opacity:.55;-webkit-mask-image:linear-gradient(90deg,transparent,#000 45%);mask-image:linear-gradient(90deg,transparent,#000 45%)}
+.room-heading>*:not(.room-art){position:relative;z-index:1}
+@media(max-width:760px){.hub-hero .hub-art{opacity:.22;width:75%;right:-30px}.room-heading .room-art{width:70%;opacity:.35}}
+
+/* ---------- การ์ดบทบาท แต่ละธีม ---------- */
+.role-card{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--accent) 30%,transparent);background:linear-gradient(150deg,var(--chip),var(--inset))}
+.role-card .role-icon{display:inline-grid;place-items:center;width:64px;height:64px;font-size:34px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.role-card .secret{font-family:var(--display);font-weight:var(--display-weight)}
+
+/* Spyfall Thai: กรอบทองซ้อนสองชั้น มุมลายไทย */
+[data-theme="spyfall"] .role-card{border:1px solid var(--accent);outline:1px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:-7px;background:radial-gradient(circle at 50% 0%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 60%),linear-gradient(160deg,#2a1216,#160b0d)}
+[data-theme="spyfall"] .role-card:before,[data-theme="spyfall"] .role-card:after{content:"❖";position:absolute;top:10px;color:var(--accent);opacity:.7;font-size:14px}
+[data-theme="spyfall"] .role-card:before{left:14px}[data-theme="spyfall"] .role-card:after{right:14px}
+[data-theme="spyfall"] .hero h1 em,[data-theme="spyfall"] .hub-hero h1{text-shadow:0 2px 0 #00000055,0 0 30px color-mix(in srgb,var(--accent) 30%,transparent)}
+
+/* SPY: แฟ้มลับ + ตราประทับ */
+[data-theme="spy"] .role-card{border:1px solid #c9b48a55;background:linear-gradient(180deg,#2b2519 0 38px,#1d1a13 38px);text-align:left;padding-top:52px}
+[data-theme="spy"] .role-card:before{content:"FILE NO. 07 • CLASSIFIED";position:absolute;left:18px;top:12px;font:700 11px/1 'Chakra Petch',monospace;letter-spacing:2px;color:#c9b48a}
+[data-theme="spy"] .role-card:after{content:"TOP SECRET";position:absolute;right:14px;top:58px;transform:rotate(12deg);font:700 15px/1 'Chakra Petch',monospace;letter-spacing:2px;color:var(--accent);border:2px solid var(--accent);padding:5px 8px;border-radius:4px;opacity:.75}
+[data-theme="spy"] .role-card .role-icon{border-radius:8px}
+[data-theme="spy"] .role-card .secondary{margin-left:0}
+[data-theme="spy"] .eyebrow{font-family:'Chakra Petch',monospace;letter-spacing:2.2px}
+[data-theme="spy"] .timer{font-family:'Chakra Petch',monospace;font-size:18px}
+[data-theme="spy"] .board-item{font-family:'Chakra Petch','Prompt',sans-serif;font-weight:500}
+
+/* คำบนหัว: การ์ดเป็นกระดาษโน้ตแปะหัว */
+[data-theme="headword"] .head-card{--note:#fff3a3;background:var(--note);border:0;color:#2b2140;border-radius:6px 6px 14px 6px;box-shadow:0 8px 18px #0006,inset 0 -10px 18px #00000010;transform:rotate(-1.4deg);position:relative;padding-top:18px}
+[data-theme="headword"] .head-card:nth-child(4n+2){--note:#ffc6de;transform:rotate(1.2deg)}
+[data-theme="headword"] .head-card:nth-child(4n+3){--note:#b6f0e6;transform:rotate(-.6deg)}
+[data-theme="headword"] .head-card:nth-child(4n+4){--note:#cfd8ff;transform:rotate(1.8deg)}
+[data-theme="headword"] .head-card:before{content:"";position:absolute;top:-7px;left:50%;width:46px;height:16px;transform:translateX(-50%) rotate(-3deg);background:#ffffff88;box-shadow:0 1px 3px #0002}
+[data-theme="headword"] .head-card small{color:#5d5078}
+[data-theme="headword"] .head-card b{color:#2b1a40;font-size:18px}
+[data-theme="headword"] .head-card.me b{color:#8a7aa8}
+[data-theme="headword"] .head-card.turn{outline:3px solid var(--accent);outline-offset:3px;box-shadow:0 0 0 0 transparent,0 10px 30px color-mix(in srgb,var(--accent) 40%,transparent)}
+[data-theme="headword"] .head-card.solved{--note:#c9f7d6}[data-theme="headword"] .head-card.solved b{color:#16753d}
+[data-theme="headword"] .head-rank{color:#16753d}[data-theme="headword"] .head-rank.miss{color:#b03050}
+[data-theme="headword"] .head-q{border-color:color-mix(in srgb,var(--accent) 50%,transparent);background:var(--chip)}
+
+/* ออกสำรวจ: บันทึกการเดินทาง ทองเหลือง + เข็มทิศ */
+[data-theme="explore"] .role-card{border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23e2b65c' stroke-opacity='.12'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3Ccircle cx='50' cy='50' r='36'/%3E%3C/g%3E%3Cpath d='M50 8 56 50 50 92 44 50Z' fill='%23e2b65c' fill-opacity='.1'/%3E%3Cpath d='M8 50 50 44 92 50 50 56Z' fill='%23e2b65c' fill-opacity='.07'/%3E%3C/svg%3E") center/220px no-repeat,linear-gradient(160deg,#1f3226,#101c15)}
+[data-theme="explore"] .ex-stage{background:linear-gradient(180deg,var(--chip),var(--inset));border-color:color-mix(in srgb,var(--accent) 22%,transparent)}
+[data-theme="explore"] .ex-stage.cur{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent),0 0 24px color-mix(in srgb,var(--accent) 25%,transparent)}
+[data-theme="explore"] .ex-map{position:relative}
+[data-theme="explore"] .ex-map:before{content:"";position:absolute;left:8%;right:8%;top:50%;border-top:2px dashed color-mix(in srgb,var(--accent) 35%,transparent);z-index:0}
+[data-theme="explore"] .ex-stage{position:relative;z-index:1}
+
+/* แวร์วูฟ: ไพ่ทาโรต์ พระจันทร์ */
+[data-theme="werewolf"] .role-card{border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);outline:1px solid color-mix(in srgb,var(--accent) 18%,transparent);outline-offset:-8px;padding-top:34px;background:radial-gradient(circle at 50% -10%,#d6dfff2e,transparent 45%),linear-gradient(170deg,#1a2148,#0b0f21)}
+[data-theme="werewolf"] .role-card:before{content:"☾ ✦ ☽";position:absolute;top:12px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:6px;color:var(--accent);opacity:.65}
+[data-theme="werewolf"] .ex-side.bad,[data-theme="werewolf"] .ex-role b.bad{color:var(--blood)!important}
+[data-theme="werewolf"] .ex-banner.fail{background:#2a0f16;border-color:#e0525a66}
+
+/* เค้ก: ขอบครีมแบบหน้าเค้ก + เม็ดน้ำตาล */
+[data-theme="cake"] .role-card{border:2px dashed color-mix(in srgb,var(--accent) 50%,transparent);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg stroke-width='3' stroke-linecap='round' stroke-opacity='.22'%3E%3Cpath d='M8 10l5 3' stroke='%23ff8fb3'/%3E%3Cpath d='M40 8l-4 4' stroke='%23ffe9c7'/%3E%3Cpath d='M24 34l5-2' stroke='%2391e3ff'/%3E%3Cpath d='M50 44l-3 5' stroke='%23ff8fb3'/%3E%3Cpath d='M12 50l4-4' stroke='%23c3f58a'/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(160deg,#2c2140,#181327)}
+[data-theme="cake"] .cake-hour{border-radius:14px;background:var(--inset)}
+[data-theme="cake"] .cake-hour.now{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--inset));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+[data-theme="cake"] .cake-hour.mine{border-color:var(--cream)}
+[data-theme="cake"] .cake-hour small{color:var(--cream)}
+[data-theme="cake"] .cake-memory{border-style:dashed;border-color:color-mix(in srgb,var(--cream) 30%,transparent);background:color-mix(in srgb,var(--cream) 5%,transparent)}
+[data-theme="cake"] .vote-row,[data-theme="cake"] .secondary,[data-theme="cake"] .primary{border-radius:16px}
+body{min-height:100vh}
+.round-top+.role-card{margin-top:12px}
+[data-theme="spy"] .role-card .cat-tag{display:table;margin-bottom:12px}
+[data-theme="spy"] .role-card:after{top:auto;bottom:22px;right:16px}
+@media(max-width:760px){
+  .room-heading{padding:14px 14px 14px 16px;gap:10px}.room-heading h1{font-size:26px;white-space:nowrap}
+  .room-heading>.secondary{padding:11px;flex:none}.room-heading .leave-text{display:none}
+  [data-theme="spy"] .role-card:after{font-size:12px;padding:4px 6px}
+}
+/* ---------- หลอดปรับเสียง (กดที่รูปลำโพง) ---------- */
+.sound-wrap{position:relative;margin-left:0}
+@media(max-width:760px){.topbar .sound-wrap{margin-left:auto}}
+.sound.open{border-color:var(--accent);color:var(--accent)}
+.mixer{position:absolute;right:0;top:calc(100% + 10px);z-index:70;width:280px;padding:16px;border-radius:16px;background:var(--panel);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);box-shadow:0 18px 50px #000a;display:grid;gap:6px;animation:mixin .18s ease-out}
+.mixer:before{content:"";position:absolute;top:-6px;right:16px;width:10px;height:10px;transform:rotate(45deg);background:var(--panel);border-left:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-top:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+@keyframes mixin{from{opacity:0;transform:translateY(-6px)}}
+.mixer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.mixer-head b{font-family:var(--display);font-weight:var(--display-weight);font-size:15px}
+.mixer-mute{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:6px 10px;border-radius:20px;border:1px solid color-mix(in srgb,var(--ok,#7ee0a0) 50%,transparent);background:#7ee0a014;color:#a7efc0}
+.mixer-mute.off{border-color:#ff7a7a66;background:#ff7a7a14;color:#ffb3b3}
+.mixer-row{display:flex!important;justify-content:space-between;align-items:center;margin:6px 0 0!important;font-size:13px!important;color:var(--text)!important}.mixer-row b{color:var(--accent);font-variant-numeric:tabular-nums;font-size:12px}
+.mixer input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;padding:0;margin:4px 0 2px;border:0;border-radius:8px;box-shadow:none;background:linear-gradient(90deg,var(--accent) 0 var(--fill,50%),var(--chip) var(--fill,50%) 100%);cursor:pointer}
+.mixer input[type=range]:disabled{opacity:.35;cursor:not-allowed}
+.mixer input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent-hi);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--accent),0 2px 8px #0008}
+.mixer input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent-hi);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--accent)}
+.mixer-now{margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--accent) 8%,transparent);font-size:12px;color:var(--soft)}.mixer-now b{color:var(--accent)}
+.mixer small{font-size:10.5px;color:var(--dim);line-height:1.5}
+@media(max-width:760px){.mixer{width:min(280px,calc(100vw - 30px));right:-4px}}
+[data-theme="spy"] .rcard{padding-top:52px!important}
+[data-theme="headword"] .head-card .hc-owner{color:#5d5078}

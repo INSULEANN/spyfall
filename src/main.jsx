@@ -4,6 +4,14 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, get, update, onValue, remove, runTransaction } from 'firebase/database';
 import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut } from 'lucide-react';
 import './style.css';
+import './themes.css';
+import './play.css';
+import './effects.css';
+import { Art } from './play-art.jsx';
+import { makeAv, Avatar, Voters, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Choice, Ambient, TimerRing, AVATARS, freeAv, AvFace, AvatarPicker } from './ui.jsx';
+import { SceneArt, HubArt, BrandMark } from './art.jsx';
+import { play as sfx, setSfxTheme, setSfxVolume } from './sfx.js';
+import { setMusic, setMusicVolume, trackName } from './music.js';
 import { ROLES, GENERIC_ROLES } from './roles.js';
 import { SPY_PACKS } from './spyWords.js';
 import { HEAD_PACKS } from './headWords.js';
@@ -11,9 +19,10 @@ import VoicePanel from './voice.jsx';
 import { ExploreGame, makeExploreRound, teamSizes, traitorCount, needFails, EXPLORE_MIN, EXPLORE_SCORE, MAX_REJECT } from './explore.jsx';
 import { WolfGame, makeWolfRound, wolfCount, WOLF_MIN, WOLF_SCORE } from './werewolf.jsx';
 import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS } from './cake.jsx';
+import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.13';
+const APP_VERSION = '1.14';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -65,29 +74,45 @@ const GAMES = {
   cake: { id:'cake', type:'cake', name:'เค้กหายไปไหน', emoji:'🍰', packs:[], item:'เค้ก', unit:'ชิ้น', roles:true, min:CAKE_MIN, h1:['เค้กหายไปไหน','ใครแอบกิน'], art:'🍰', float:'ตีสามเธอตื่นมาทำไม?',
     blurb:'รูมเมททอยเต๋าตื่นกลางดึก ตี 1–6 ดูว่าเค้กในตู้เย็นยังอยู่ไหม แล้วตอนเช้าโหวตจับจอมแอบกินและลูกสมุน',
     lead:'กลางดึกทุกคนตื่นตามเลขเต๋า เห็นแค่คนที่ตื่นเวลาเดียวกัน…ใครเห็นเค้กยังอยู่ ใครเห็นขโมยถือเค้กคามือ? ตอนเช้าช่วยกันปะติดปะต่อเวลาแล้วจับขโมย',
-    pills:['🎲 ทอยเต๋าตื่น','🌙 คุยเฉพาะคนตื่น','🥷 ลูกสมุน'],
+    pills:['🎲 ทอยเต๋าตื่น','🌙 คุยเฉพาะคนตื่น','😈 ลูกสมุน'],
     how:[['ทอยเต๋า','ทุกคนได้เลข 1–6 = ตื่นตอนตีนั้น เห็นเฉพาะคนที่ตื่นเวลาเดียวกันและคุยกันได้ คนตื่นคนเดียวแอบดูเต๋าคนอื่นได้ 1 คน'],['เค้กหาย','จอมแอบกินกินเค้กตอนตีของตัวเอง แล้วเลือกลูกสมุนมาเป็นพวก คนที่ตื่นก่อนเห็นเค้ก ตื่นทีหลังเห็นตู้เย็นว่าง'],['โหวตจับขโมย','ตอนเช้าเอาเวลามาปะติดปะต่อ โหวตถูกตัว ฝ่ายหิวโหยได้คนละ 1 ผิดคนหรือเสมอ ขโมยได้ 2 ลูกสมุนได้ 1']] },
 };
+// เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
+const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
+// ข้อความตกแต่งเฉพาะแต่ละเกม (ป้ายบนภาพ หัวข้อ)
+const COPY = {
+  spyfall:{stamp:'ห้ามโป๊ะ!',floatSub:'ถามแบบมีชั้นเชิง',joinH:'รวมแก๊งให้ครบ แล้วค่อยจับโป๊ะ',howH:'เล่นยังไง ไม่ให้โป๊ะ?'},
+  spy:{stamp:'TOP SECRET',floatSub:'ใบ้อ้อม ๆ อย่าให้สายลับรู้',joinH:'เรียกเอเจนต์เข้าห้องลับ',howH:'คู่มือเอเจนต์'},
+  headword:{stamp:'ห้ามแอบดู!',floatSub:'ถามได้แค่ ใช่ / ไม่ใช่',joinH:'ชวนแก๊งมาแปะคำบนหัว',howH:'เล่นยังไง?'},
+  explore:{stamp:'ระวังโจร!',floatSub:'เลือกคณะให้ดี',joinH:'รวมคณะนักสำรวจ',howH:'คู่มือนักสำรวจ'},
+  werewolf:{stamp:'อย่าออกจากบ้าน!',floatSub:'ใครโกหก ใครพูดจริง',joinH:'รวมชาวบ้านก่อนพระอาทิตย์ตก',howH:'กฎของหมู่บ้าน'},
+  cake:{stamp:'ห้ามแตะเค้ก!',floatSub:'จำเวลาที่ตื่นไว้ให้ดี',joinH:'ชวนรูมเมทเข้าบ้าน',howH:'กติกาบ้านนี้'},
+};
+Object.keys(COPY).forEach(k=>Object.assign(GAMES[k],COPY[k]));
 const HEAD_NORM = s => String(s||'').toLowerCase().replace(/[\s\-.'’]/g,'');
 // กติกาคะแนนต่อรอบ
 const SCORE = { teamWin: 1, rightVote: 1, spyEscape: 2, spyGuess: 2 };
 const jokes = ['ใจเย็นพี่ สายลับอาจเป็นคนข้าง ๆ ก็ได้ 👀','ถามเนียน ๆ อย่าโป๊ะเหมือนสั่งส้มตำไม่ใส่พริก','ถ้าตอบแปลก ๆ อาจจะง่วง…หรือเป็นสายลับ!','หลักฐานยังไม่แน่น อย่าเพิ่งกล่าวหาเพื่อน','เนียนกว่านี้ก็ปลาร้าในกระเป๋าแล้ว'];
 const rid = () => Math.random().toString(36).slice(2, 9).toUpperCase();
-const pick = a => a[Math.floor(Math.random()*a.length)];
 const clean = s => String(s || '').trim().slice(0, 24);
-function beep(freq=660, duration=.09) {
-  try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o=ctx.createOscillator(), g=ctx.createGain(); o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;o.type='sine';g.gain.value=.045;o.start();g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);o.stop(ctx.currentTime+duration);o.onended=()=>ctx.close(); } catch {}
-}
 function App() {
   const [name,setName]=useState(localStorage.getItem('sf-name')||'');
   const [roomCode,setRoomCode]=useState('');
-  const [joinCode,setJoinCode]=useState('');
+  const [joinCode,setJoinCode]=useState(()=>{try{return (new URLSearchParams(location.search).get('join')||'').toUpperCase().slice(0,6)}catch{return ''}});
   const liveCode=useRef('');
   const [room,setRoom]=useState(null);
   const [myId,setMyId]=useState(sessionStorage.getItem('sf-player')||rid());
   const [screen,setScreen]=useState('home');
   const [notice,setNotice]=useState('');
-  const [sound,setSound]=useState(true);
+  const readNum=(k,d)=>{try{const v=parseFloat(localStorage.getItem(k));return isNaN(v)?d:Math.max(0,Math.min(1,v))}catch{return d}};
+  const [sound,setSound]=useState(()=>{try{return localStorage.getItem('sf-sound')!=='0'}catch{return true}});
+  const [musicVol,setMusicVol]=useState(()=>readNum('sf-music',0.4));
+  const [sfxVol,setSfxVol]=useState(()=>readNum('sf-sfx',0.8));
+  const [mixOpen,setMixOpen]=useState(false);
+  // รูปโปรไฟล์ที่เลือกไว้ (จำในเครื่อง ใช้ทุกห้อง)
+  const [myAv,setMyAv]=useState(()=>{try{const v=parseInt(localStorage.getItem('sf-av'),10);return isNaN(v)?null:v}catch{return null}});
+  const [avOpen,setAvOpen]=useState(false);
+  const saveAv=i=>{setMyAv(i);try{localStorage.setItem('sf-av',String(i))}catch{}};const mixRef=useRef(null);
   const [duration,setDuration]=useState(8);
   const [packName,setPackName]=useState('ชุดเพื่อนฉัน');
   const [packPlaces,setPackPlaces]=useState('');
@@ -117,6 +142,22 @@ function App() {
   const players=room?.players ? Object.values(room.players) : [];
   const gid=room?(room.game||'spyfall'):(game||'spyfall');const G=GAMES[gid]||GAMES.spyfall;const I=G.item,U=G.unit;
   const me=players.find(p=>p.id===myId);
+  // คำนวณรูปใหม่เมื่อมีคนเข้า/ออก หรือเปลี่ยนรูป
+  const av=useMemo(()=>makeAv(players),[players.map(p=>p.id+':'+(p.av??'')+':'+(p.joinedAt||0)).join()]);
+  // มือถือ: กันจอดับเองระหว่างอยู่ในห้อง (กลางคืนเค้ก/แวร์วูฟรอนานโดยไม่แตะจอ จอดับ = เบราว์เซอร์หยุด พลาดตาตัวเอง)
+  const inRoom=screen==='room'&&!!room;
+  useEffect(()=>{if(!inRoom||!('wakeLock' in navigator))return;let lock=null,alive=true;
+    const get=()=>{if(!alive||lock||document.visibilityState!=='visible')return;navigator.wakeLock.request('screen').then(l=>{if(!alive){l.release();return}lock=l;l.addEventListener('release',()=>{lock=null})}).catch(()=>{})};
+    get();const ev=['visibilitychange','pointerup'];ev.forEach(e=>document.addEventListener(e,get));
+    return()=>{alive=false;ev.forEach(e=>document.removeEventListener(e,get));lock?.release().catch(()=>{});lock=null}},[inRoom]);
+  const joke=useMemo(()=>pick(jokes),[room?.round?.number,room?.status]);
+  const themeId=screen==='room'&&room?gid:(game||'hub');
+  useEffect(()=>{document.documentElement.dataset.theme=themeId;setSfxTheme(themeId);setMusic(themeId);
+    // สีแถบเบราว์เซอร์บนมือถือให้ตรงกับธีมเกม
+    const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();const m=document.querySelector('meta[name=theme-color]');if(m&&bg)m.setAttribute('content',bg)},[themeId]);
+  // เพลงประกอบ + เอฟเฟกต์: ปุ่มลำโพงปิดทั้งหมด, หลอดเลื่อนปรับแยกกัน
+  useEffect(()=>{setMusicVolume(sound?musicVol:0);setSfxVolume(sfxVol);try{localStorage.setItem('sf-sound',sound?'1':'0');localStorage.setItem('sf-music',String(musicVol));localStorage.setItem('sf-sfx',String(sfxVol))}catch{}},[sound,musicVol,sfxVol]);
+  useEffect(()=>{if(!mixOpen)return;const f=e=>{if(mixRef.current&&!mixRef.current.contains(e.target))setMixOpen(false)};const k=e=>e.key==='Escape'&&setMixOpen(false);document.addEventListener('pointerdown',f);document.addEventListener('keydown',k);return()=>{document.removeEventListener('pointerdown',f);document.removeEventListener('keydown',k)}},[mixOpen]);
   const isHost=room?.hostId===myId;
   const outdated=players.filter(p=>p.v!==APP_VERSION);
   const packs=room?.packs || G.packs;
@@ -129,16 +170,22 @@ function App() {
   const scores=room?.scores||{};
   const timeUp=room?.status==='playing'&&!!room.round?.endsAt&&now>=room.round.endsAt;
   // หมดเวลา → ทุกเครื่องพยายามเปลี่ยนเป็น voting แต่ transaction ทำให้เปลี่ยนได้ครั้งเดียว (ไม่ต้องพึ่ง host ออนไลน์)
-  useEffect(()=>{if(!timeUp||!db||!roomCode)return;if(sound)beep(330,.4);
+  useEffect(()=>{if(!timeUp||!db||!roomCode)return;sfx(sound,'timeup');
     runTransaction(ref(db,`rooms/${roomCode}/status`),s=>s==='playing'?'voting':undefined).catch(()=>{})},[timeUp]);
   const customPlaces=useMemo(()=>packPlaces.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,80),[packPlaces]);
   function msg(s){setNotice(s);setTimeout(()=>setNotice(''),3200)}
+  // เปิดจากลิงก์ชวนเพื่อน (?join=รหัส) → บอกให้ใส่ชื่อแล้วกดเข้าห้อง
+  useEffect(()=>{if(joinCode&&screen==='home')setTimeout(()=>msg(`ได้รับคำชวนเข้าห้อง ${joinCode} — ใส่ชื่อแล้วกด “เข้าห้อง” ได้เลย`),600)},[]);
+  // ปุ่มชวนเพื่อน: มือถือเปิดเมนูแชร์ของเครื่อง / คอมคัดลอกลิงก์
+  async function invite(){const url=`${location.origin}/?join=${roomCode}#${gid}`;const text=`มาเล่น ${G.name} กัน! รหัสห้อง ${roomCode}`;sfx(sound,'click');
+    try{if(navigator.share){await navigator.share({title:BRAND,text,url});return}}catch(e){if(e?.name==='AbortError')return}
+    try{await navigator.clipboard.writeText(`${text}\n${url}`);msg('คัดลอกลิงก์ชวนเพื่อนแล้ว! ส่งในแชตได้เลย 🔗')}catch{msg(url)}}
   async function createRoom(){
     if(!db){msg('ยังไม่ได้ตั้งค่า Firebase ตาม README');return}
     const n=clean(name);if(!n){msg('ใส่ชื่อเล่นก่อนนะ');return}
-    const code=rid().slice(0,5);const player={id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION};
+    const code=rid().slice(0,5);const a0=freeAv([],myAv);if(a0!==myAv)saveAv(a0);const player={id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION,av:a0};
     const data={code,game:gid,v:APP_VERSION,hostId:myId,status:'lobby',createdAt:Date.now(),players:{[myId]:player},packs:G.packs,round:null,votes:null,settings:{duration}};
-    await set(ref(db,`rooms/${code}`),data);localStorage.setItem('sf-name',n);setRoomCode(code);setScreen('room');if(sound)beep(800);
+    await set(ref(db,`rooms/${code}`),data);localStorage.setItem('sf-name',n);setRoomCode(code);setScreen('room');sfx(sound,'join');
   }
   async function joinRoom(){
     if(!db){msg('ยังไม่ได้ตั้งค่า Firebase ตาม README');return}
@@ -146,56 +193,64 @@ function App() {
     const rr=ref(db,`rooms/${code}`);const snap=await get(rr);if(!snap.exists()){msg('ไม่เจอห้องนี้ เช็กรหัสอีกที');return}
     const data=snap.val();if((data.v||'1.0')!==APP_VERSION){msg(`ห้องนี้ใช้เวอร์ชัน ${data.v||'เก่า'} แต่เครื่องคุณเป็น ${APP_VERSION} — ให้ทุกคนรีเฟรชหน้าเว็บก่อน`);return}if(data.status!=='lobby' && !data.players?.[myId]){msg('เกมเริ่มแล้ว รอรอบหน้าก่อนนะ');return}
     if(Object.keys(data.players||{}).length>=12 && !data.players?.[myId]){msg('ห้องเต็มแล้ว (สูงสุด 12 คน)');return}
-    await update(ref(db,`rooms/${code}/players/${myId}`),{id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION});
-    localStorage.setItem('sf-name',n);setGame(data.game||'spyfall');setRoomCode(code);setScreen('room');if(sound)beep(740);
+    const a1=freeAv(Object.values(data.players||{}),myAv??data.players?.[myId]?.av,myId);if(myAv==null)saveAv(a1);
+    await update(ref(db,`rooms/${code}/players/${myId}`),{id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION,av:a1});if(myAv!=null&&a1!==myAv)msg(`รูปที่คุณเลือกมีคนใช้แล้ว ได้รูป ${AVATARS[a1].e} แทน (แตะรูปตัวเองเพื่อเปลี่ยน)`);
+    localStorage.setItem('sf-name',n);setGame(data.game||'spyfall');try{if(location.search)history.replaceState(null,'',location.pathname+location.hash)}catch{}setRoomCode(code);setScreen('room');sfx(sound,'join');
   }
   async function startGame(){
     if(!isHost||players.length<G.min){msg(`ต้องมีผู้เล่นอย่างน้อย ${G.min} คน`);return}if(outdated.length){msg('ยังมีคนใช้เวอร์ชันเก่า ให้รีเฟรชก่อน');return}
-    if(G.type==='cake'){
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:makeCakeRound(players.map(p=>p.id),ckOpts,(room.round?.number||0)+1,Date.now()+skew),votes:null,ready:null,spyGuess:null,result:null});
+    // ตัวร้าย 2 ตาล่าสุด → ลดโอกาสได้ตัวร้ายซ้ำ (ดู rand.js)
+    const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
+    if(G.type==='cake'){const rd=makeCakeRound(ids,{...ckOpts,hist},(room.round?.number||0)+1,Date.now()+skew);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([rd.thief]),votes:null,ready:null,spyGuess:null,result:null});
       return}
     if(G.type==='wolf'){
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:makeWolfRound(players.map(p=>p.id),wfOpts,(room.round?.number||0)+1),votes:null,ready:null,spyGuess:null,result:null});
-      if(sound)beep(300,.3);return}
+      const rd=makeWolfRound(ids,{...wfOpts,hist},(room.round?.number||0)+1);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='wolf')),votes:null,ready:null,spyGuess:null,result:null});
+      sfx(sound,'start');return}
     if(G.type==='explore'){
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:makeExploreRound(players.map(p=>p.id),exOpts,(room.round?.number||0)+1),votes:null,ready:null,spyGuess:null,result:null});
-      if(sound)beep(900,.18);return}
+      const rd=makeExploreRound(ids,{...exOpts,hist},(room.round?.number||0)+1);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>['traitor','mole'].includes(rd.roles[id]))),votes:null,ready:null,spyGuess:null,result:null});
+      sfx(sound,'start');return}
     if(!placePool.length){msg(`ติ๊กเลือก${I}อย่างน้อย 1 ${U}ก่อนนะ`);return}
     if(G.type==='head')return startHead();
-    const place=pick(placePool),spy=pick(players).id,roles={};
+    const place=pick(placePool),spy=pickBad(ids,1,hist)[0],roles={};
     const pi=packs.findIndex(p=>(p.places||[]).includes(place));const cat=!G.roles&&showCat&&pi>=0?packs[pi].name:null;
     // ถ้าบอกหมวด กระดานจะเหลือเฉพาะคำในหมวดนั้น
     const pool=cat?(packs[pi].places||[]).filter((pl,qi)=>pl&&isOn(pi,qi)):placePool;
-    const deck=[...(ROLES[place]||GENERIC_ROLES)].sort(()=>Math.random()-.5);let k=0;
+    const deck=shuffle(ROLES[place]||GENERIC_ROLES);let k=0;
     players.forEach(p=>roles[p.id]=p.id===spy?{type:'spy'}:G.roles?{type:'player',place,role:deck[(k++)%deck.length]}:{type:'player',place});
-    await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:{number:(room.round?.number||0)+1,place,roles,pool,cat,startedAt:Date.now(),endsAt:Date.now()+duration*60*1000,phase:'question'},votes:null,ready:null,spyGuess:null,result:null});
-    setShowRole(false);setVote('');setAccuse('');setSpyGuess('');if(sound)beep(900,.18);
+    await update(ref(db,`rooms/${roomCode}`),{status:'playing',badHist:nextHist([spy]),round:{number:(room.round?.number||0)+1,place,roles,pool,cat,startedAt:Date.now(),endsAt:Date.now()+duration*60*1000,phase:'question'},votes:null,ready:null,spyGuess:null,result:null});
+    setShowRole(false);setVote('');setAccuse('');setSpyGuess('');sfx(sound,'start');
   }
   // คำบนหัว: สุ่ม 1 หมวด (ที่มีคำพอสำหรับทุกคน) แล้วแจกคำไม่ซ้ำกันให้ทุกคน
   async function startHead(){
     const ok=packs.map((p,pi)=>({name:p.name,words:(p.places||[]).filter((pl,qi)=>pl&&isOn(pi,qi))})).filter(x=>x.words.length>=players.length);
     if(!ok.length){msg(`ต้องติ๊กให้มีอย่างน้อย 1 หมวดที่มีคำ ≥ ${players.length} คำ`);return}
-    const c=pick(ok);const deck=[...c.words].sort(()=>Math.random()-.5);const words={};players.forEach((p,i)=>words[p.id]=deck[i]);
-    const order=players.map(p=>p.id).sort(()=>Math.random()-.5);
+    const c=pick(ok);const deck=shuffle(c.words);const words={};players.forEach((p,i)=>words[p.id]=deck[i]);
+    const order=shuffle(players.map(p=>p.id));
     await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:{number:(room.round?.number||0)+1,cat:c.name,words,order,turn:0,pool:c.words,startedAt:Date.now()},votes:null,ready:null,spyGuess:null,result:null});
-    if(sound)beep(900,.18);
+    sfx(sound,'start');
   }
+  async function pickAv(i){if(room){const other=players.find(p=>p.id!==myId&&av.idxOf(p.id)===i);if(other){msg(`${other.name} ใช้รูปนี้อยู่`);return}
+    try{await update(ref(db,`rooms/${roomCode}/players/${myId}`),{av:i})}catch{msg('เปลี่ยนรูปไม่สำเร็จ ลองใหม่อีกที');return}}
+    saveAv(i);setAvOpen(false);sfx(sound,'select');msg(`เปลี่ยนรูปเป็น ${AVATARS[i].e} ${AVATARS[i].n} แล้ว`)}
   async function leaveRoom(){const code=roomCode,host=isHost;liveCode.current='';setRoomCode('');setRoom(null);setScreen('home');if(db&&code&&myId){if(host){await remove(ref(db,`rooms/${code}`));}else{await remove(ref(db,`rooms/${code}/players/${myId}`));}}}
   const canEdit=isHost&&room?.status==='lobby';
-  async function togglePlace(pi,qi){if(!canEdit)return;await set(ref(db,`rooms/${roomCode}/off/p${pi}/i${qi}`),isOn(pi,qi)?true:null);if(sound)beep(600,.04)}
+  async function togglePlace(pi,qi){if(!canEdit)return;await set(ref(db,`rooms/${roomCode}/off/p${pi}/i${qi}`),isOn(pi,qi)?true:null);sfx(sound,'click')}
   async function togglePack(pi){if(!canEdit)return;const n=(packs[pi]?.places||[]).length;const allOn=packOnCount(pi)===n;
-    if(allOn){const o={};for(let q=0;q<n;q++)o['i'+q]=true;await set(ref(db,`rooms/${roomCode}/off/p${pi}`),o)}else await set(ref(db,`rooms/${roomCode}/off/p${pi}`),null);if(sound)beep(allOn?480:720,.06)}
+    if(allOn){const o={};for(let q=0;q<n;q++)o['i'+q]=true;await set(ref(db,`rooms/${roomCode}/off/p${pi}`),o)}else await set(ref(db,`rooms/${roomCode}/off/p${pi}`),null);sfx(sound,'click')}
   async function setAll(on){if(!canEdit)return;if(on){await set(ref(db,`rooms/${roomCode}/off`),null)}else{const o={};packs.forEach((p,pi)=>{const x={};(p.places||[]).forEach((_,q)=>x['i'+q]=true);o['p'+pi]=x});await set(ref(db,`rooms/${roomCode}/off`),o)}}
   async function addPlace(pi,text){if(!canEdit)return false;const t=String(text||'').trim().slice(0,40);if(!t)return false;const cur=packs[pi]?.places||[];if(cur.includes(t)){msg(`มี${I}นี้ในชุดแล้ว`);return false}
-    await set(ref(db,`rooms/${roomCode}/packs/${pi}/places`),[...cur,t]);msg(`เพิ่ม “${t}” แล้ว`);if(sound)beep(820,.06);return true}
+    await set(ref(db,`rooms/${roomCode}/packs/${pi}/places`),[...cur,t]);msg(`เพิ่ม “${t}” แล้ว`);sfx(sound,'select');return true}
   async function addPack(){
     const places=customPlaces;if(!clean(packName)||places.length<2){msg(`ตั้งชื่อชุดและใส่${I}อย่างน้อย 2 ${U}`);return}
-    const updated=[...(room.packs||G.packs),{name:clean(packName),places}];await update(ref(db,`rooms/${roomCode}`),{packs:updated});setPackPlaces('');msg(`เพิ่มชุด${I}แล้ว 🎉`);if(sound)beep();
+    const updated=[...(room.packs||G.packs),{name:clean(packName),places}];await update(ref(db,`rooms/${roomCode}`),{packs:updated});setPackPlaces('');msg(`เพิ่มชุด${I}แล้ว 🎉`);sfx(sound,'confirm');
   }
-  async function castVote(targetId){if(!room||!me||room.ready?.[myId])return;setVote(targetId);if(sound)beep(520)}
+  async function castVote(targetId){if(!room||!me||room.ready?.[myId])return;setVote(targetId);sfx(sound,'vote')}
   async function confirmVote(){if(!room||!me)return;if(!vote){msg('เลือกคนที่จะโหวตก่อน');return}
     const spy=role?.type==='spy';const g=spyGuess.trim();if(spy&&!g){msg(`สายลับต้องเดา${I}ก่อนยืนยัน`);return}
-    const u={[`votes/${myId}`]:vote,[`ready/${myId}`]:true};if(spy)u.spyGuess=g;await update(ref(db,`rooms/${roomCode}`),u);if(sound)beep(760,.12)}
+    const u={[`votes/${myId}`]:vote,[`ready/${myId}`]:true};if(spy)u.spyGuess=g;await update(ref(db,`rooms/${roomCode}`),u);sfx(sound,'confirm')}
   async function unconfirm(){if(!room)return;await update(ref(db,`rooms/${roomCode}`),{[`ready/${myId}`]:null});}
   // สรุปผลด้วย transaction กันสรุปซ้ำ (เช่น host กดปุ่มพร้อมกับระบบสรุปอัตโนมัติ) และบวกคะแนนสะสม
   async function finishVote(){
@@ -207,13 +262,12 @@ function App() {
       const max=Math.max(0,...Object.values(counts));const winners=Object.keys(counts).filter(id=>counts[id]===max);
       const votedOut=max>0&&winners.length===1?winners[0]:null;const majority=!!votedOut&&max>ids.length/2;
       const caught=votedOut===spyId;const guess=cur.spyGuess||'';const actual=cur.round.place||'';
-      const guessCorrect=!!guess&&guess.trim().toLowerCase()===actual.trim().toLowerCase();const spyWins=!caught||guessCorrect;
+      const guessCorrect=!!guess&&GUESS_NORM(guess)===GUESS_NORM(actual);const spyWins=!caught||guessCorrect;
       const points={},scores={...(cur.scores||{})};
       ids.forEach(id=>{points[id]=id===spyId?(caught?0:SCORE.spyEscape)+(guessCorrect?SCORE.spyGuess:0):(spyWins?0:SCORE.teamWin)+(votes[id]===spyId?SCORE.rightVote:0);scores[id]=(scores[id]||0)+points[id]});
       out={caught,guessCorrect};
       return {...cur,status:'result',scores,result:{caught,spyId,votes:counts,votedOut,majority,ballots:votes,guess,guessCorrect,spyWins,points,reason:'final'}};
     });
-    if(out&&sound)beep(out.caught&&!out.guessCorrect?980:220,.25);
   }
   async function resetScores(){if(!isHost)return;if(!confirm('ล้างคะแนนสะสมของทุกคนเป็น 0?'))return;await update(ref(db,`rooms/${roomCode}`),{scores:null});msg('ล้างคะแนนแล้ว')}
   async function backToLobby(){await update(ref(db,`rooms/${roomCode}`),{status:'lobby',round:null,votes:null,ready:null,spyGuess:null,result:null});setShowRole(false);setVote('');setSpyGuess('')}
@@ -230,21 +284,35 @@ function App() {
   const allReady=room?.status==='voting'&&players.length>0&&readyCount===players.length;
   useEffect(()=>{if(allReady&&isHost){const t=setTimeout(()=>finishVote(),900);return()=>clearTimeout(t)}},[allReady,isHost]);
   const resultKey=room?.status==='result'&&room?.result&&!G.type?`${roomCode}-${room.round?.number}-${room.result.spyId}`:null;
-  useEffect(()=>{if(!resultKey)return;const spyId=room.result.spyId;if(myId===spyId)return;
+  useEffect(()=>{if(!resultKey)return;const spyId=room.result.spyId;if(myId===spyId){sfx(sound,(room.result.spyWins??!room.result.caught)?'right':'wrong');return}
     const myVote=room.votes?.[myId];const right=myVote?myVote===spyId:!!room.result.caught;
-    setVerdict({right,key:resultKey});if(sound)beep(right?980:200,.3);const t=setTimeout(()=>setVerdict(null),3500);return()=>clearTimeout(t)},[resultKey]);
+    setVerdict({right,key:resultKey});sfx(sound,right?'right':'wrong');const t=setTimeout(()=>setVerdict(null),3500);return()=>clearTimeout(t)},[resultKey]);
   if(!configured||!db)return <div className="setup"><div className="brand"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></div><div className="setup-card"><span className="eyebrow">SETUP ก่อนเปิดเกม</span><h1>อีกนิดเดียวก็ได้โป๊ะกับเพื่อนแล้ว</h1><p>เว็บนี้พร้อมรันแล้ว แต่ต้องเชื่อม Firebase Realtime Database เพื่อให้ผู้เล่นคนละเครื่องเห็นข้อมูลห้องเดียวกัน</p><ol><li>สร้างโปรเจกต์ Firebase แล้วเปิด Realtime Database</li><li>คัดลอกค่าการตั้งค่ามาใส่ในไฟล์ <code>.env</code></li><li>ตั้งค่า Database Rules ตาม README แล้วรัน <code>npm run dev</code></li></ol><a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="primary">เปิด Firebase Console ↗</a><p className="muted">อ่าน README.md ในไฟล์โปรเจกต์เพื่อทำทีละขั้นตอน</p></div></div>;
 
-  return <div className="app">
-    <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?`${G.emoji} ${G.name}`:'รวมบอร์ดเกมเล่นกับแก๊งเพื่อน 🇹🇭'}</div><button className="sound" onClick={()=>setSound(!sound)} title="เปิด/ปิดเสียง">{sound?<Volume2/>:<VolumeX/>}</button></header>
+  return <div className="app"><Ambient theme={themeId}/>
+    <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo"><BrandMark/></span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?`${G.emoji} ${G.name}`:'รวมบอร์ดเกมเล่นกับแก๊งเพื่อน 🇹🇭'}</div><div className="sound-wrap" ref={mixRef}><button className={'sound'+(mixOpen?' open':'')} onClick={()=>setMixOpen(o=>!o)} title="ปรับเสียง" aria-label="ปรับเสียง" aria-expanded={mixOpen}>{sound&&(musicVol>0||sfxVol>0)?<Volume2/>:<VolumeX/>}</button>
+      {mixOpen&&<div className="mixer" role="dialog" aria-label="ปรับเสียง">
+        <div className="mixer-head"><b>🎚️ ปรับเสียง</b><button className={'mixer-mute'+(sound?'':' off')} onClick={()=>setSound(!sound)}>{sound?<><Volume2 size={14}/> เปิดอยู่</>:<><VolumeX size={14}/> ปิดหมด</>}</button></div>
+        <label className="mixer-row"><span>🎵 เพลงประกอบ</span><b>{Math.round(musicVol*100)}%</b></label>
+        <input type="range" min="0" max="100" step="1" value={Math.round(musicVol*100)} disabled={!sound} onChange={e=>setMusicVol(+e.target.value/100)} aria-label="ความดังเพลงประกอบ" style={{'--fill':Math.round(musicVol*100)+'%'}}/>
+        <label className="mixer-row"><span>🔔 เสียงเอฟเฟกต์</span><b>{Math.round(sfxVol*100)}%</b></label>
+        <input type="range" min="0" max="100" step="1" value={Math.round(sfxVol*100)} disabled={!sound} onChange={e=>setSfxVol(+e.target.value/100)} onPointerUp={()=>sfx(sound,'select')} aria-label="ความดังเสียงเอฟเฟกต์" style={{'--fill':Math.round(sfxVol*100)+'%'}}/>
+        <div className="mixer-now">♪ กำลังเล่น: <b>{trackName(themeId)}</b></div>
+        <small>เพลงแต่งขึ้นใหม่สำหรับแต่ละเกม • ถ้าคุยในห้องเสียงแล้วเพลงกลบ ลดหลอดเพลงลงได้</small>
+      </div>}</div></header>
     {newBuild&&<button className="update-bar" onClick={()=>location.reload()}>🔄 มีเวอร์ชันใหม่ — แตะเพื่ออัปเดต</button>}
     {notice&&<div className="toast">{notice}</div>}
+    {avOpen&&<AvatarPicker current={room?av.idxOf(myId):myAv} takenBy={room?Object.fromEntries(players.filter(p=>p.id!==myId).map(p=>[av.idxOf(p.id),p.name])):{}} onPick={pickAv} onClose={()=>setAvOpen(false)}/>}
     {verdict&&<div className={'verdict '+(verdict.right?'right':'wrong')} onClick={()=>setVerdict(null)} key={verdict.key}><div className="verdict-box"><div className="verdict-emoji">{verdict.right?'🧠':'🤡'}</div><div className="verdict-text">{verdict.right?'ฉลาดจริงๆเลยไอโง่':'มึงนี่โง่จริงๆเลยนะ'}</div><small>{verdict.right?'โหวตถูกตัวสายลับ':'โหวตผิดคน'} • แตะเพื่อปิด</small></div></div>}
     {screen==='home'&&!game&&<main className="home hub">
-      <section className="hub-hero"><span className="eyebrow"><Sparkles size={15}/> PARTY GAMES • เล่นข้ามเครื่อง <span className="version-tag">v{APP_VERSION}</span></span><h1>{BRAND}</h1><p>รวมบอร์ดเกมปาร์ตี้ไว้เล่นกับแก๊งเพื่อน เลือกเกมแล้วสร้างห้อง หรือใส่รหัสห้องที่เพื่อนส่งมาได้เลย</p></section>
-      <section className="game-grid">{Object.values(GAMES).map(g=><button key={g.id} className="game-card" onClick={()=>setGame(g.id)}><span className="game-emoji">{g.emoji}</span><h2>{g.name}</h2><p>{g.blurb}</p><div className="hero-pills">{g.pills.map(x=><span key={x}>{x}</span>)}</div><span className="game-go">เล่นเกมนี้ →</span></button>)}
-        <div className="game-card soon"><span className="game-emoji">🧩</span><h2>เกมต่อไป…</h2><p>กำลังเตรียมเกมใหม่ เร็ว ๆ นี้</p></div></section>
-      <section className="join-card"><div className="join-head"><div><span className="eyebrow">มีรหัสห้องแล้ว?</span><h2>เข้าห้องที่เพื่อนสร้างไว้</h2></div><span className="players-chip"><Users size={16}/> 3–12 คน</span></div><label>ชื่อเล่นของคุณ</label><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="เช่น ตัวตึงประจำซอย"/><div className="join-actions"><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="รหัสห้อง เช่น A7K2Q"/><button className="secondary" onClick={joinRoom}><DoorOpen size={18}/> เข้าห้อง</button></div></div><p className="hint">ระบบจะพาเข้าเกมที่ห้องนั้นเล่นอยู่ให้เอง</p></section>
+      <section className="hub-hero"><HubArt/><span className="eyebrow"><Sparkles size={15}/> PARTY GAMES • เล่นข้ามเครื่อง <span className="version-tag">v{APP_VERSION}</span></span><h1>{BRAND}</h1><p>รวมบอร์ดเกมปาร์ตี้ไว้เล่นกับแก๊งเพื่อน เลือกเกมแล้วสร้างห้อง หรือใส่รหัสห้องที่เพื่อนส่งมาได้เลย</p></section>
+      <section className="game-grid">{Object.values(GAMES).map(g=><button key={g.id} data-theme={g.id} className="game-card" onClick={()=>{sfx(sound,'click');setGame(g.id)}}><div className="card-art"><SceneArt id={g.id}/></div><div className="card-body"><h2>{g.emoji} {g.name}</h2><p>{g.blurb}</p><div className="hero-pills">{g.pills.map(x=><span key={x}>{x}</span>)}</div><span className="game-go">เล่นเกมนี้ →</span></div></button>)}
+        <div className="game-card soon"><div className="card-body"><span className="game-emoji">🧩</span><h2>เกมต่อไป…</h2><p>กำลังเตรียมเกมใหม่ เร็ว ๆ นี้</p></div></div></section>
+      <section className="start3"><h2>เริ่มเล่นใน 3 ขั้น 🎲</h2><div className="start3-grid">
+        <article><span className="num">01</span><Art name="crown" size={84}/><h3>เลือกเกม สร้างห้อง</h3><p>คนหนึ่งเป็นหัวหน้าห้อง เลือกเกมแล้วกด “สร้างห้องใหม่”</p></article>
+        <article><span className="num">02</span><Art name="bubble" size={84}/><h3>ชวนเพื่อนเข้าห้อง</h3><p>กด “ชวนเพื่อน” ส่งลิงก์ในแชต หรือบอกรหัสห้อง 5 ตัว</p></article>
+        <article><span className="num">03</span><Art name="win" size={84}/><h3>เข้าห้องเสียงแล้วเล่น</h3><p>คุยกันในห้องเสียงของเว็บได้เลย แต้มสะสมนับต่อทุกรอบ</p></article></div></section>
+      <section className="join-card"><div className="join-head"><div><span className="eyebrow">มีรหัสห้องแล้ว?</span><h2>เข้าห้องที่เพื่อนสร้างไว้</h2></div><span className="players-chip"><Users size={16}/> 3–12 คน</span></div><div className="me-row"><button type="button" className="av-edit big" onClick={()=>setAvOpen(true)} title="เลือกรูปโปรไฟล์" aria-label="เลือกรูปโปรไฟล์">{myAv!=null?<AvFace i={myAv} size={54}/>:<span className="av-empty">🙂</span>}<i>✏️</i></button><div className="me-name"><label>ชื่อเล่นของคุณ <small>• แตะรูปเพื่อเลือกรูปโปรไฟล์</small></label><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="เช่น ตัวตึงประจำซอย"/></div></div><div className="join-actions"><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="รหัสห้อง เช่น A7K2Q"/><button className="secondary" onClick={joinRoom}><DoorOpen size={18}/> เข้าห้อง</button></div></div><p className="hint">ระบบจะพาเข้าเกมที่ห้องนั้นเล่นอยู่ให้เอง</p></section>
       <section className="ceo-card"><div className="ceo-photo"><img src="/ceo-big-dodo.jpg" alt="Big Dodo นั่งหน้ากระดานบอร์ดเกม" loading="lazy"/><span className="ceo-badge">👑 CEO & ผู้ก่อตั้ง</span></div>
         <div className="ceo-text"><span className="eyebrow">รู้จักผู้อยู่เบื้องหลัง</span><h2>Big Dodo</h2><p className="ceo-role">ประธานเจ้าหน้าที่บริหารฝ่ายปั่นประสาท • Board game T baan</p>
           <p>เกิดมาพร้อมลูกเต๋าในมือขวาและคู่มือกติกาในมือซ้าย ว่ากันว่าคำแรกที่พูดไม่ใช่ “พ่อ” หรือ “แม่” แต่เป็น <b>“เดี๋ยว ขออ่านกติกาอีกรอบ”</b></p>
@@ -253,41 +321,65 @@ function App() {
             <li>🐺 เล่นแวร์วูฟเป็นหมาป่ามา 47 ตาติด แต่ยืนยันว่า “ระบบสุ่มนะ ไม่ใช่ผม”</li>
             <li>🕵️ ตอนเป็นสายลับใน Spyfall เคยตอบว่า “ที่นี่มีหมูกระทะไหม” ในด่านสถานีอวกาศ แล้วยังรอดได้</li>
             <li>🧭 ในเกมออกสำรวจ ทุกคนโหวตค้านคณะที่มีเขาไว้ก่อนเสมอ ไม่ว่าเขาจะอยู่ฝ่ายไหน</li>
-            <li>🪙 สะสมเหรียญบอร์ดเกมไว้ในถ้วยหลากสี มากกว่าเงินในบัญชีจริง</li>
+            <li>💰 สะสมเหรียญบอร์ดเกมไว้ในถ้วยหลากสี มากกว่าเงินในบัญชีจริง</li>
             <li>📜 คติประจำใจ: “แพ้ได้ แต่ต้องปั่นให้คนชนะไม่มีความสุข”</li>
           </ul>
           <p className="muted">* ประวัตินี้แต่งขึ้นเพื่อความฮา ไม่มีมูลความจริงใด ๆ ทั้งสิ้น (มั้ง)</p></div></section>
     </main>}
     {screen==='home'&&game&&<main className="home">
-      <section className="hero"><div className="hero-copy"><span className="eyebrow"><Sparkles size={15}/> {G.name} • {G.min}–12 PLAYERS <span className="version-tag">v{APP_VERSION}</span></span><h1>{G.h1[0]}<br/><em>{G.h1[1]}</em></h1><p>{G.lead}</p><div className="hero-pills">{G.pills.map(x=><span key={x}>{x}</span>)}</div></div><div className="hero-art"><div className="sun"></div><div className="temple">{G.art}</div><div className="floating-card">🤫 <b>{G.float}</b><small>ถามแบบมีชั้นเชิง</small></div><div className="stamp">ห้ามโป๊ะ!</div></div></section>
-      <section className="join-card"><div className="join-head"><div><button className="back-link" onClick={()=>setGame(null)}><ArrowLeft size={14}/> รวมเกม</button><span className="eyebrow">{G.emoji} {G.name} • เริ่มปฏิบัติการ</span><h2>รวมแก๊งให้ครบ แล้วค่อยจับโป๊ะ</h2></div><span className="players-chip"><Users size={16}/> 3–12 คน</span></div><label>ชื่อเล่นของคุณ</label><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="เช่น ตัวตึงประจำซอย" onKeyDown={e=>e.key==='Enter'&&createRoom()}/><div className="join-actions"><button className="primary" onClick={createRoom}><Plus size={18}/> สร้างห้องใหม่</button><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="รหัสห้อง เช่น A7K2Q"/><button className="secondary" onClick={joinRoom}><DoorOpen size={18}/> เข้าห้อง</button></div></div></section>
-      <section className="how"><h2>เล่นยังไง ไม่ให้โป๊ะ?</h2><div className="how-grid">{G.how.map(([h,t],i)=><article key={i}><span>0{i+1}</span><h3>{h}</h3><p>{t}</p></article>)}</div></section>
+      <section className="hero"><div className="hero-copy"><span className="eyebrow"><Sparkles size={15}/> {G.name} • {G.min}–12 PLAYERS <span className="version-tag">v{APP_VERSION}</span></span><h1>{G.h1[0]}<br/><em>{G.h1[1]}</em></h1><p>{G.lead}</p><div className="hero-pills">{G.pills.map(x=><span key={x}>{x}</span>)}</div></div><div className="hero-art"><SceneArt id={G.id}/><div className="floating-card">{G.emoji} <b>{G.float}</b><small>{G.floatSub}</small></div><div className="stamp">{G.stamp}</div></div></section>
+      <section className="join-card"><div className="join-head"><div><button className="back-link" onClick={()=>setGame(null)}><ArrowLeft size={14}/> รวมเกม</button><span className="eyebrow">{G.emoji} {G.name} • เริ่มปฏิบัติการ</span><h2>{G.joinH}</h2></div><span className="players-chip"><Users size={16}/> {G.min}–12 คน</span></div><div className="me-row"><button type="button" className="av-edit big" onClick={()=>setAvOpen(true)} title="เลือกรูปโปรไฟล์" aria-label="เลือกรูปโปรไฟล์">{myAv!=null?<AvFace i={myAv} size={54}/>:<span className="av-empty">🙂</span>}<i>✏️</i></button><div className="me-name"><label>ชื่อเล่นของคุณ <small>• แตะรูปเพื่อเลือกรูปโปรไฟล์</small></label><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="เช่น ตัวตึงประจำซอย" onKeyDown={e=>e.key==='Enter'&&createRoom()}/></div></div><div className="join-actions"><button className="primary" onClick={createRoom}><Plus size={18}/> สร้างห้องใหม่</button><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="รหัสห้อง เช่น A7K2Q"/><button className="secondary" onClick={joinRoom}><DoorOpen size={18}/> เข้าห้อง</button></div></div></section>
+      <section className="how"><h2>{G.howH}</h2><div className="how-grid">{G.how.map(([h,t],i)=><article key={i}><span>0{i+1}</span><h3>{h}</h3><p>{t}</p></article>)}</div></section>
     </main>}
     {screen==='room'&&room&&<main className="room-page">
-      <div className="room-heading"><div><span className="eyebrow">{G.emoji} {G.name} • ห้องเล่นส่วนตัว</span><h1>ห้อง {roomCode} <button className="icon-btn" onClick={copy}><Copy size={17}/></button></h1><p>ส่งรหัสนี้ให้เพื่อนเพื่อชวนเข้ามาเล่น</p></div><button className="secondary" onClick={leaveRoom}><LogOut size={16}/> ออกจากห้อง</button></div>
-      <div className="room-grid"><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/12</span></div>{players.map((p,i)=><div className="player-row" key={p.id}><span className="avatar">{['🐸','🐯','🐼','🦆','🐵','🐙','🦝','🐷','🐸','🐻','🦊','🐣'][i%12]}</span><div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}{room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]?' • 💀 ตายแล้ว':''}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg} gate={voiceGate}/></section>
+      <div className="room-heading"><div className="room-art"><SceneArt id={G.id}/></div><div><span className="eyebrow">{G.emoji} {G.name} • ห้องเล่นส่วนตัว</span><h1>ห้อง <span className="room-code">{roomCode}</span> <button className="icon-btn" onClick={copy}><Copy size={17}/></button></h1><p>ส่งรหัสนี้ให้เพื่อน หรือกดส่งลิงก์ชวนได้เลย</p><button className="invite" onClick={invite}>📤 ชวนเพื่อน</button></div><button className="secondary" onClick={leaveRoom} aria-label="ออกจากห้อง" title="ออกจากห้อง"><LogOut size={16}/><span className="leave-text">ออกจากห้อง</span></button></div>
+      <div className={'room-grid'+(room.status!=='lobby'?' playing':'')}><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/12</span></div>{players.map((p,i)=><div className="player-row" key={p.id}>{p.id===myId?<button type="button" className="av-edit" onClick={()=>setAvOpen(true)} title="เปลี่ยนรูปโปรไฟล์" aria-label="เปลี่ยนรูปโปรไฟล์"><Avatar id={p.id} av={av} size={40} dead={room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]}/><i>✏️</i></button>:<Avatar id={p.id} av={av} size={40} dead={room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]}/>}<div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}{p.id===myId?' • แตะรูปเพื่อเปลี่ยน':''}{room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]?' • 💀 ตายแล้ว':''}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg} gate={voiceGate}/></section>
       <section className="panel game-panel">{room.status==='lobby'&&G.type==='head'&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน แล้วค่อยเดาคำบนหัว</h2><p className="hint">ตอนเริ่ม ระบบจะสุ่ม 1 หมวดจากที่ติ๊กไว้ แล้วแจกคำให้ทุกคนคนละคำ (เล่นได้ 2–12 คน)</p><div className="score-rules"><b>🏅 คะแนน</b><span>ทายถูกอันดับ 1 ได้ (จำนวนคน − 1) แต้ม อันดับถัดไปลดลงทีละ 1</span><span>ยังทายไม่ได้ตอนจบเกม = 0 แต้ม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<G.min||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {room.status==='lobby'&&!G.type&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน เดี๋ยวค่อยโป๊ะ</h2><label>เวลาต่อรอบ</label><select value={duration} onChange={e=>setDuration(+e.target.value)}><option value={3}>3 นาที</option><option value={5}>5 นาที</option><option value={8}>8 นาที</option><option value={10}>10 นาที</option></select><p className="hint">หัวหน้าห้องเป็นคนเริ่มเกมและเพิ่มชุด{I} • หมดเวลาแล้วจะเข้าหน้าโหวตอัตโนมัติ</p><div className="score-rules"><b>🏅 กติกาคะแนน</b><span>จับสายลับได้: ชาวบ้านทุกคน +{SCORE.teamWin}</span><span>โหวตถูกตัวสายลับ: +{SCORE.rightVote}</span><span>สายลับรอด: +{SCORE.spyEscape} • เดา{I}ถูก: +{SCORE.spyGuess}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{!G.roles&&<label className="cat-toggle"><input type="checkbox" className="tick" checked={showCat} disabled={!isHost} onChange={e=>setShowCat(e.target.checked)}/> บอกหมวดหมู่ให้ทุกคนรู้ (สายลับเดาง่ายขึ้น)</label>}{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<3||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
-      {active&&!G.type&&room.round&&<><div className="round-top"><span className="eyebrow">รอบที่ {room.round.number}</span><span className={'timer'+(secondsLeft<=30?' low':'')}><Clock3 size={16}/> {Math.floor(secondsLeft/60)}:{String(secondsLeft%60).padStart(2,'0')}</span></div><h2>{room.round.phase==='question'?'ภารกิจ: เนียนเข้าไว้':'โหวตคนโป๊ะ'}</h2><div className="role-card">{room.round.cat&&<div className="cat-tag">หมวด: {room.round.cat}</div>}<span className="role-icon">{showRole&&role?.type==='spy'?'🕵️':G.roles?'📍':'💬'}</span><h3>{showRole?(role?.type==='spy'?'คุณคือสายลับ!':`${I}ของคุณ`): 'บทบาทลับของคุณ'}</h3><p>{showRole?(role?.type==='spy'?`ทำตัวเนียน ๆ แล้วพยายามเดา${I}ให้ได้`:`${I}คือ`): 'กดเปิดดูบทบาทนี้คนเดียว ระวังคนแอบมองจอ!'}</p>{showRole&&<strong className="secret">{role?.type==='spy'?`ไม่รู้${I} 🤫`:role?.place}</strong>}{showRole&&role?.type==='player'&&role.role&&<p className="role-name">บทบาทของคุณ: <b>{role.role}</b></p>}<button className="secondary" onClick={()=>setShowRole(!showRole)}>{showRole?<EyeOff size={16}/>:<Eye size={16}/>} {showRole?'ซ่อนบทบาท':'เปิดดูบทบาท'}</button></div><p className="joke">😂 {pick(jokes)}</p><div className="vote-actions">{isHost?<button className="primary wide" onClick={()=>update(ref(db,`rooms/${roomCode}`),{status:'voting',votes:null,ready:null,spyGuess:null})}><Vote size={16}/> เปิดโหวตให้ทุกคน</button>:<div className="waiting" style={{width:'100%'}}>🗳️ ถามตอบกันให้พอ แล้วรอหัวหน้าห้องเปิดโหวต</div>}</div></>}
-      {room.status==='voting'&&(()=>{const done=!!room.ready?.[myId];const spy=role?.type==='spy';return <><span className="eyebrow">ลงคะแนน</span>{room.round?.endsAt&&now>=room.round.endsAt&&<div className="timeout-tag">⏰ หมดเวลาถามตอบแล้ว!</div>}<h2>ใครดูมีพิรุธที่สุด?</h2><p className="hint">เลือกคนที่คิดว่าเป็นสายลับ แล้วกดยืนยัน{spy?` • คุณคือสายลับ ต้องเดา${I}ด้วย`:''} เมื่อทุกคนยืนยันครบจะไปหน้าสรุปเอง</p>
-        {players.filter(p=>p.id!==myId).map(p=><button key={p.id} disabled={done} className={`vote-row ${vote===p.id?'selected':''}`} onClick={()=>castVote(p.id)}><span>{p.name}</span><span>{vote===p.id?'✓ เลือกแล้ว':'โหวตคนนี้'}</span></button>)}
-        {spy&&<div className="guess-box"><label>🕵️ สายลับเดาว่า{I}คือ…</label><input value={spyGuess} disabled={done} list="pool-list" onChange={e=>setSpyGuess(e.target.value)} placeholder={`พิมพ์หรือเลือก${I}ที่คิดว่าใช่`}/><datalist id="pool-list">{(room.round?.pool||[]).map(pl=><option key={pl} value={pl}/>)}</datalist></div>}
-        {done?<div className="confirmed">✅ ยืนยันแล้ว{vote&&<> — โหวต <b>{nameOf(room.votes?.[myId]||vote)}</b></>}{spy&&room.spyGuess&&<> • เดา <b>{room.spyGuess}</b></>}<button className="link-btn" onClick={unconfirm}>แก้ไข</button></div>
-          :<button className="primary wide" onClick={confirmVote}>✅ ยืนยัน{spy?'โหวตและคำตอบ':'โหวต'}</button>}
-        <div className="ready-list"><div className="ready-head">🗳️ ยืนยันแล้ว <b>{readyCount}/{players.length}</b> คน</div></div>
-        {allReady&&<div className="waiting">กำลังไปหน้าสรุป…</div>}
-        {isHost&&!allReady&&<button className="secondary wide" onClick={()=>{if(confirm('สรุปผลเลยโดยไม่รอคนที่ยังไม่ยืนยัน?'))finishVote()}}>สรุปผลเลย (ไม่รอ)</button>}</>})()}
-      {room.status==='result'&&!G.type&&room.result&&(()=>{const R=room.result;const spyWins=R.spyWins??!R.caught;const tally=players.map(p=>({p,n:R.votes?.[p.id]||0})).sort((a,b)=>b.n-a.n);return <><span className="eyebrow">ผลการจับโป๊ะ</span><h2>{spyWins?'สายลับชนะ! 😭':'จับสายลับได้! 🎉'}</h2><div className="result-card"><div className="big-emoji">{spyWins?'🫠':'🏆'}</div>
-        <p>สายลับคือ <b>{nameOf(R.spyId)}</b></p><p>{I}จริงคือ <b>{room.round?.place}</b></p>
-        {R.guess!==undefined&&<p>สายลับเดาว่า “<b>{R.guess||'ไม่ได้เดา'}</b>” — {R.guessCorrect?'เดาถูก! 😱':'เดาผิดจ้า'}</p>}
-        <p className="voted-out">{R.votedOut?<>ถูกโหวตออก: <b>{nameOf(R.votedOut)}</b> ({R.votes?.[R.votedOut]||0} โหวต • {R.majority?'เกินครึ่ง':'มากที่สุด'}){R.caught?' — โดนตัวสายลับ!':' — ไม่ใช่สายลับ'}</>:'คะแนนเสมอหรือไม่มีใครโหวต ไม่มีใครถูกโหวตออก'}</p>
+      {active&&!G.type&&room.round&&(()=>{const spy=role?.type==='spy';const low=secondsLeft<=30;return <>
+        <div className="round-top"><span className="eyebrow">รอบที่ {room.round.number}</span>{room.round.cat&&<span className="cat-tag">หมวด: {room.round.cat}</span>}</div>
+        <Steps items={['ดูบทบาท','ถาม–ตอบ','โหวต','เฉลย']} at={showRole?1:0}/>
+        <Phase art={G.roles?'magnifier':'bubble'} kicker="🕵️ ภารกิจ" title={spy&&showRole?'เนียนให้รอด แล้วเดาให้ถูก':'ถามตอบให้เนียน หาตัวคนที่ไม่รู้'} aside={<TimerRing secs={secondsLeft} total={Math.max(1,Math.round(((room.round.endsAt||0)-(room.round.startedAt||0))/1000))} label="เวลาที่เหลือ"/>}>
+          {G.roles?'ผลัดกันถามเพื่อนเกี่ยวกับสถานที่ ตอบให้รู้ว่าเรารู้ แต่อย่าใบ้ตรงจนสายลับเดาได้':'ใบ้คำแบบอ้อม ๆ ให้รู้ว่าเรารู้ แต่อย่าตรงจนสายลับเดาคำได้'}</Phase>
+        <RoleCard show={showRole} onToggle={()=>setShowRole(!showRole)} art={spy?'spy':G.roles?'pin':'bubble'} cover={G.roles?'pin':'bubble'}
+          name={spy?'คุณคือสายลับ!':G.roles?'สถานที่ของคุณ':'คำลับของคุณ'} side={spy?'bad':'good'} sideLabel={spy?'🕵️ สายลับ':'🙂 คนรู้ความลับ'}>
+          {spy?<><strong className="secret">ไม่รู้{I} 🤫</strong><p>ฟังคำถามคำตอบให้ดี ทำตัวเนียน ๆ แล้วเดา{I}ตอนโหวต (เดาถูก +{SCORE.spyGuess})</p></>
+            :<><strong className="secret">{role?.place}</strong>{role?.role&&<p>บทบาทของคุณ: <b>{role.role}</b></p>}<p>ห้ามพูด{I}ตรง ๆ — สายลับฟังอยู่!</p></>}
+        </RoleCard>
+        <div className="howto">
+          <div><Art name="think" size={46}/><b>ถามทีละคน</b>เช่น “ที่นี่ต้องจ่ายเงินไหม?” “มาบ่อยไหม?”</div>
+          <div><Art name="magnifier" size={46}/><b>จับผิด</b>ใครตอบกว้าง ๆ มั่ว ๆ หรือถามย้อน น่าสงสัย</div>
+          <div><Art name="vote" size={46}/><b>เปิดโหวต</b>สงสัยพอแล้วให้หัวหน้าห้องเปิดโหวตได้เลย</div>
+        </div>
+        <p className="joke">😂 {joke}</p>
+        <div className="vote-actions">{isHost?<button className="primary wide" onClick={()=>update(ref(db,`rooms/${roomCode}`),{status:'voting',votes:null,ready:null,spyGuess:null})}><Vote size={16}/> เปิดโหวตให้ทุกคน</button>:<div className="waiting" style={{width:'100%'}}>🗳️ ถามตอบกันให้พอ แล้วรอหัวหน้าห้องเปิดโหวต (หรือรอหมดเวลา)</div>}</div></>})()}
+      {room.status==='voting'&&(()=>{const done=!!room.ready?.[myId];const spy=role?.type==='spy';return <>
+        <div className="round-top"><span className="eyebrow">รอบที่ {room.round?.number}</span>{room.round?.endsAt&&now>=room.round.endsAt&&<span className="timeout-tag">⏰ หมดเวลาถามตอบ</span>}</div>
+        <Steps items={['ดูบทบาท','ถาม–ตอบ','โหวต','เฉลย']} at={2}/>
+        <Phase art={spy?'spy':'vote'} tone={done?'good':'me'} kicker="🗳️ ลงคะแนน" title={done?'ยืนยันแล้ว รอเพื่อน…':spy?'แตะรูปคนที่จะโหวต แล้วเดา'+I:'ใครคือสายลับ? แตะรูปเพื่อโหวต'}>
+          {spy?`คุณคือสายลับ — โหวตคนอื่นเพื่อเบี่ยงเบน แล้วเดา${I}ให้ถูก (+${SCORE.spyGuess})`:`โหวตถูกตัวสายลับ +${SCORE.rightVote} • จับสายลับได้ทั้งทีม +${SCORE.teamWin}`} • ยืนยันครบทุกคนแล้วไปหน้าเฉลยเอง</Phase>
+        <PlayerGrid ids={players.filter(p=>p.id!==myId).map(p=>p.id)} av={av} nameOf={nameOf} selected={vote} onPick={done?undefined:castVote} badge={id=>vote===id?<span className="tag">โหวตคนนี้</span>:null}/>
+        {spy&&<div className="guess-box"><div className="tip"><Art name="spy" size={42}/><span><b>สายลับเดาว่า{I}คือ…</b> พิมพ์หรือเลือกจากรายการ</span></div><input value={spyGuess} disabled={done} list="pool-list" onChange={e=>setSpyGuess(e.target.value)} placeholder={`พิมพ์${I}ที่คิดว่าใช่`}/><datalist id="pool-list">{(room.round?.pool||[]).map(pl=><option key={pl} value={pl}/>)}</datalist></div>}
+        {done?<div className="confirmed">✅ ยืนยันแล้ว{vote&&<> — โหวต <Avatar id={room.votes?.[myId]||vote} av={av} size={24}/> <b>{nameOf(room.votes?.[myId]||vote)}</b></>}{spy&&room.spyGuess&&<> • เดา <b>{room.spyGuess}</b></>}<button className="link-btn" onClick={unconfirm}>แก้ไข</button></div>
+          :<button className="primary wide" disabled={!vote} onClick={confirmVote}>✅ ยืนยัน{spy?'โหวตและคำตอบ':'โหวต'}{vote?` (${nameOf(vote)})`:''}</button>}
+        <WhoDone ids={players.map(p=>p.id)} done={id=>!!room.ready?.[id]} av={av} nameOf={nameOf} label="🗳️ ยืนยันแล้ว"/>
+        {allReady&&<div className="waiting">กำลังไปหน้าเฉลย…</div>}
+        {isHost&&!allReady&&<HostBar><button className="secondary" onClick={()=>{if(confirm('สรุปผลเลยโดยไม่รอคนที่ยังไม่ยืนยัน?'))finishVote()}}>สรุปผลเลย (ไม่รอ)</button></HostBar>}</>})()}
+      {room.status==='result'&&!G.type&&room.result&&(()=>{const R=room.result;const spyWins=R.spyWins??!R.caught;const tally=players.map(p=>({p,n:R.votes?.[p.id]||0})).sort((a,b)=>b.n-a.n);return <>
+        <div className="round-top"><span className="eyebrow">ผลการจับโป๊ะ • รอบที่ {room.round?.number}</span></div>
+        <Steps items={['ดูบทบาท','ถาม–ตอบ','โหวต','เฉลย']} at={3}/>
+        <Outcome art={spyWins?'escape':'handcuffs'} tone={spyWins?'bad':'good'} title={spyWins?'สายลับชนะ! 😭':'จับสายลับได้! 🎉'}>
+          สายลับคือ <Avatar id={R.spyId} av={av} size={28}/> <b>{nameOf(R.spyId)}</b><br/>{I}จริงคือ <b>{room.round?.place}</b>
+          {R.guess!==undefined&&<><br/>สายลับเดาว่า “<b>{R.guess||'ไม่ได้เดา'}</b>” — {R.guessCorrect?'เดาถูก! 😱':'เดาผิดจ้า'}</>}
+        </Outcome>
+        <p className="voted-out">{R.votedOut?<>ถูกโหวตออก: <Avatar id={R.votedOut} av={av} size={24}/> <b>{nameOf(R.votedOut)}</b> ({R.votes?.[R.votedOut]||0} โหวต • {R.majority?'เกินครึ่ง':'มากที่สุด'}){R.caught?' — โดนตัวสายลับ!':' — ไม่ใช่สายลับ'}</>:'คะแนนเสมอหรือไม่มีใครโหวต ไม่มีใครถูกโหวตออก'}</p>
         {R.caught&&R.guessCorrect&&<p className="hint">จับสายลับได้ แต่สายลับเดา{I}ถูก เลยพลิกกลับมาชนะ</p>}
-        <h4 className="ballot-title">🏅 ตารางคะแนนสะสม</h4><ol className="leaderboard">{[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0)).map((p,i)=>{const d=R.points?.[p.id]||0;return <li key={p.id} className={p.id===myId?'me':''}><span className="rank">{['🥇','🥈','🥉'][i]||i+1}</span><span className="lb-name">{p.name}{p.id===R.spyId&&' 🕵️'}</span>{R.points&&<em className={d>0?'up':''}>{d>0?'+'+d:'±0'}</em>}<b>{scores[p.id]||0}</b></li>})}</ol>
-        <h4 className="ballot-title">คะแนนโหวต</h4><ul className="tally">{tally.map(({p,n})=><li key={p.id} className={p.id===R.votedOut?'out':''}><span>{p.name}</span><i style={{width:`${players.length?n/players.length*100:0}%`}}/><b>{n} โหวต</b></li>)}</ul>
-        <h4 className="ballot-title">ใครโหวตใคร</h4><ul className="ballots">{players.map(p=>{const t=(R.ballots||{})[p.id];return <li key={p.id}><span>{p.name}{p.id===R.spyId&&' 🕵️'}</span><span className="arrow">→</span><b className={t&&t===R.spyId?'hit':''}>{t?nameOf(t):'ไม่ได้โหวต'}</b></li>})}</ul>
-        <h4 className="ballot-title">บทบาทของแต่ละคน</h4><ul className="role-list">{players.map(p=>{const r=room.round?.roles?.[p.id];return <li key={p.id}><span>{p.name}</span><b className={r?.type==='spy'?'spy':''}>{r?.type==='spy'?'🕵️ สายลับ':(r?.role||(G.roles?'-':'ชาวบ้าน'))}</b></li>})}</ul>
-        </div>{isHost?<button className="primary wide" onClick={backToLobby}><RotateCcw size={17}/> กลับห้องรอแล้วเล่นรอบใหม่</button>:<div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}</>})()}
-      {G.type==='head'&&room.status!=='lobby'&&room.round&&<HeadGame room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} nameOf={nameOf} msg={msg} onBack={backToLobby}/>}
+        <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={R.points} myId={myId} av={av} mark={id=>id===R.spyId?' 🕵️':''}/>
+        <SecH icon="📊">คะแนนโหวต</SecH><ul className="tally">{tally.map(({p,n})=><li key={p.id} className={p.id===R.votedOut?'out':''}><span><Avatar id={p.id} av={av} size={22}/> {p.name}</span><i style={{width:`${players.length?n/players.length*100:0}%`}}/><b>{n} โหวต</b></li>)}</ul>
+        <SecH icon="🗳️">ใครโหวตใคร</SecH><Ballots ids={players.map(p=>p.id)} ballots={R.ballots} av={av} nameOf={nameOf} hit={t=>t===R.spyId}/>
+        <SecH icon="🎭">บทบาทของแต่ละคน</SecH><RevealGrid av={av} nameOf={nameOf} items={players.map(p=>{const x=room.round?.roles?.[p.id];return {id:p.id,art:x?.type==='spy'?'spy':G.roles?'pin':'bubble',label:x?.type==='spy'?'สายลับ':(x?.role||(G.roles?'คนในพื้นที่':'รู้คำลับ')),bad:x?.type==='spy'}})}/>
+        {isHost?<button className="primary wide" onClick={backToLobby}><RotateCcw size={17}/> กลับห้องรอแล้วเล่นรอบใหม่</button>:<div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}</>})()}
+      {G.type==='head'&&room.status!=='lobby'&&room.round&&<HeadGame room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby}/>}
       {G.type==='explore'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=EXPLORE_MIN;const sz=ok?teamSizes(n):null,nf=ok?needFails(n):null;return <><span className="eyebrow">พร้อมยัง?</span><h2>รวมคณะให้ครบ แล้วออกเดินทาง</h2>
         <p className="hint">เล่นได้ {EXPLORE_MIN}–12 คน • โจรขุดสมบัติราว 1 ใน 3 ของวง • คุยกันทางเสียงระหว่างเลือกคณะ</p>
         {ok&&<div className="score-rules"><b>🗺️ วงนี้ {n} คน</b><span>โจร {traitorCount(n)} คน • นักสำรวจ {n-traitorCount(n)} คน</span><span>จำนวนคนต่อด่าน: {sz.map((s,i)=>nf[i]>1?`${s}*`:s).join(' → ')}{nf.some(x=>x>1)&&' (* ต้องก่อวินาศ 2 ใบถึงพัง)'}</span><span>ค้านคณะติดกัน {MAX_REJECT} ครั้ง = โจรชนะ</span></div>}
@@ -297,25 +389,25 @@ function App() {
         <div className="score-rules"><b>🏅 คะแนน</b><span>นักสำรวจชนะ: ฝ่ายนักสำรวจคนละ +{EXPLORE_SCORE.good}</span><span>โจรชนะ: ฝ่ายโจรคนละ +{EXPLORE_SCORE.bad}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🧭 ออกเดินทาง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
-      {G.type==='explore'&&room.status!=='lobby'&&room.round?.kind==='explore'&&<ExploreGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} beep={beep} nameOf={nameOf} msg={msg} onBack={backToLobby}/>}
+      {G.type==='explore'&&room.status!=='lobby'&&room.round?.kind==='explore'&&<ExploreGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby}/>}
       {G.type==='wolf'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=WOLF_MIN;const k=wolfCount(n);const hunter=wfOpts.hunter&&n>=6;return <><span className="eyebrow">พร้อมยัง?</span><h2>หมู่บ้านนี้…มีหมาป่าปนอยู่</h2>
         <p className="hint">เล่นได้ {WOLF_MIN}–12 คน • ระบบเป็นผู้ดำเนินเกม ทุกคนดูจอตัวเอง แล้วคุยกันทางเสียง</p>
-        {ok&&<div className="score-rules"><b>🎭 บทบาทในวงนี้ ({n} คน)</b><span>🐺 หมาป่า {k} • 🔮 หมอดู 1 • 💉 หมอยา 1{hunter?' • 🏹 นายพราน 1':''} • 🧑‍🌾 ชาวบ้าน {n-k-2-(hunter?1:0)}</span></div>}
+        {ok&&<div className="score-rules"><b>🎭 บทบาทในวงนี้ ({n} คน)</b><span>🐺 หมาป่า {k} • 🔮 หมอดู 1 • 💉 หมอยา 1{hunter?' • 🏹 นายพราน 1':''} • 👨‍🌾 ชาวบ้าน {n-k-2-(hunter?1:0)}</span></div>}
         <div className="score-rules"><b>⚙️ ตั้งค่า</b>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.hunter} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,hunter:e.target.checked}))}/> 🏹 มีนายพราน (6 คนขึ้นไป) — ตายแล้วยิงพาไปด้วย 1 คน</label>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.reveal} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,reveal:e.target.checked}))}/> 🪦 เปิดบทบาทคนที่ตาย</label></div>
         <div className="score-rules"><b>🏅 คะแนน</b><span>ชาวบ้านชนะ: ฝ่ายชาวบ้านคนละ +{WOLF_SCORE.village} (รวมคนที่ตายไปแล้ว)</span><span>หมาป่าชนะ: หมาป่าคนละ +{WOLF_SCORE.wolf}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌙 เริ่มคืนแรก ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
-      {G.type==='wolf'&&room.status!=='lobby'&&room.round?.kind==='wolf'&&<WolfGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} beep={beep} nameOf={nameOf} onBack={backToLobby}/>}
+      {G.type==='wolf'&&room.status!=='lobby'&&room.round?.kind==='wolf'&&<WolfGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby}/>}
       {G.type==='cake'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=CAKE_MIN;const a=accCount(n);return <><span className="eyebrow">พร้อมยัง?</span><h2>เค้กชิ้นสุดท้ายในตู้เย็น…</h2>
         <p className="hint">เล่นได้ {CAKE_MIN}–12 คน • ระบบทอยเต๋าให้ทุกคน กลางคืนเดินจากตี 1 ถึงตี 6 ทุกช่วงยาวเท่ากัน • ควรเข้าห้องเสียงไว้ เพราะกลางคืนคุยได้เฉพาะคนที่ตื่นพร้อมกัน</p>
-        {ok&&<div className="score-rules"><b>🎭 วงนี้ {n} คน</b><span>🥷 จอมแอบกิน 1 • 🤝 ลูกสมุน {a} (ขโมยเลือกเองตอนตื่น) • 😋 หิวโหย {n-1-a}</span></div>}
+        {ok&&<div className="score-rules"><b>🎭 วงนี้ {n} คน</b><span>😈 จอมแอบกิน 1 • 🤝 ลูกสมุน {a} (ขโมยเลือกเองตอนตื่น) • 😋 หิวโหย {n-1-a}</span></div>}
         <label>เวลาต่อชั่วโมง (กลางคืน)</label><select value={ckOpts.hourSec} disabled={!isHost} onChange={e=>setCkOpts(o=>({...o,hourSec:+e.target.value}))}><option value={15}>15 วินาที</option><option value={20}>20 วินาที</option><option value={30}>30 วินาที</option><option value={45}>45 วินาที</option></select>
         <div className="score-rules"><b>🏅 คะแนน</b><span>โหวตถูกตัวขโมย: ฝ่ายหิวโหยคนละ +{CAKE_SCORE.hungry}</span><span>โหวตผิดหรือเสมอ: ขโมย +{CAKE_SCORE.thief} • ลูกสมุน +{CAKE_SCORE.acc}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌙 เข้านอน ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
-      {G.type==='cake'&&room.status!=='lobby'&&room.round?.kind==='cake'&&<CakeGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='cake'&&room.status!=='lobby'&&room.round?.kind==='cake'&&<CakeGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section></div>
       {!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}
       {room.status==='lobby'&&!['explore','wolf','cake'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
@@ -324,13 +416,13 @@ function App() {
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>
 }
-function HeadGame({room,roomCode,myId,players,isHost,scores,sound,nameOf,msg,onBack}){
-  const r=room.round;const [g,setG]=useState('');
+function HeadGame({room,roomCode,myId,players,isHost,scores,sound,av,nameOf,msg,onBack}){
+  const r=room.round;const [g,setG]=useState('');const [guessing,setGuessing]=useState(false);
   const order=(r.order||[]).filter(id=>room.players?.[id]);const solved=r.solved||{};
   const turnId=(r.order||[])[r.turn];const myTurn=room.status==='playing'&&turnId===myId&&!solved[myId];
   const log=Object.entries(r.log||{}).sort((a,b)=>b[0].localeCompare(a[0])).map(x=>x[1]);
   const medal=n=>['🥇','🥈','🥉'][n-1]||`#${n}`;
-  useEffect(()=>{if(myTurn&&sound)beep(880,.15)},[myTurn]);
+  useEffect(()=>{if(myTurn)sfx(sound,'turn');setGuessing(false);setG('')},[myTurn,r.turn]);
   // เลื่อนตาไปคนถัดไปที่ยังไม่ทายถูก ถ้าทายถูกครบทุกคนแล้วจบเกมและบวกคะแนน
   function step(cur,entry){
     const rd=cur.round;const sv=rd.solved||{};const here=(rd.order||[]).filter(id=>cur.players?.[id]);
@@ -352,8 +444,8 @@ function HeadGame({room,roomCode,myId,players,isHost,scores,sound,nameOf,msg,onB
     await tx(cur=>{const rd=cur.round;if(rd.order[rd.turn]!==myId||rd.solved?.[myId])return;ok=HEAD_NORM(t)===HEAD_NORM(rd.words?.[myId]);
       if(ok){rd.solved={...(rd.solved||{}),[myId]:Object.keys(rd.solved||{}).length+1}}
       return step(cur,{type:'guess',by:myId,text:t,ok})});
-    setG('');msg(ok?'ถูกต้อง! 🎉 นั่งชิล ๆ ช่วยเพื่อนตอบต่อได้':'ยังไม่ใช่ 😅 ไว้ลองใหม่ตาหน้า');if(sound)beep(ok?980:220,.25)}
-  async function pass(byHost){await tx(cur=>{const rd=cur.round;const who=rd.order[rd.turn];if(!byHost&&who!==myId)return;return step(cur,{type:'pass',by:who,host:!!byHost})})}
+    setG('');msg(ok?'ถูกต้อง! 🎉 นั่งชิล ๆ ช่วยเพื่อนตอบต่อได้':'ยังไม่ใช่ 😅 ไว้ลองใหม่ตาหน้า');sfx(sound,ok?'right':'wrong')}
+  async function pass(byHost){sfx(sound,'click');await tx(cur=>{const rd=cur.round;const who=rd.order[rd.turn];if(!byHost&&who!==myId)return;return step(cur,{type:'pass',by:who,host:!!byHost})})}
   async function accept(pid){if(!confirm(`นับว่า ${nameOf(pid)} ทายถูก?`))return;
     await tx(cur=>{const rd=cur.round;if(rd.solved?.[pid])return;rd.solved={...(rd.solved||{}),[pid]:Object.keys(rd.solved||{}).length+1};
       const lg={...(rd.log||{})};lg[`${Date.now()}_ok`]={type:'accept',by:pid};rd.log=lg;
@@ -361,25 +453,42 @@ function HeadGame({room,roomCode,myId,players,isHost,scores,sound,nameOf,msg,onB
       if(rd.order[rd.turn]===pid)return step(cur,null);return cur})}
   async function endNow(){if(!confirm('จบเกมเลย? คนที่ยังทายไม่ได้จะได้ 0 แต้ม'))return;await tx(cur=>finish(cur))}
   const res=room.status==='result'&&room.result;
+  // คนที่จะเล่นต่อจากตานี้
+  const n=(r.order||[]).length;let nextId=null;for(let i=1;i<=n;i++){const id=(r.order||[])[(r.turn+i)%n];if(room.players?.[id]&&!solved[id]&&id!==turnId){nextId=id;break}}
+  const note=(id,big)=>{const mine=id===myId,sv=solved[id],show=!mine||sv||res;
+    return <div className={'head-card'+(id===turnId&&!res?' turn':'')+(sv?' solved':'')+(mine?' me':'')+(big?' big':'')}>
+      <div className="hc-owner"><Avatar id={id} av={av} size={big?30:24}/><span>{mine?'คำของคุณ':`คำของ ${nameOf(id)}`}</span></div>
+      <b>{show?r.words?.[id]:'❓ ???'}</b>
+      {mine&&!show&&<small className="hc-hint">มองไม่เห็นคำตัวเอง — ถามเพื่อนเอา</small>}
+      {sv?<span className="head-rank">{medal(sv)} ทายถูกแล้ว{res&&` +${room.result.points?.[id]||0}`}</span>:res?<span className="head-rank miss">ยังทายไม่ได้</span>:id===turnId?<span className="hc-turn">🎯 กำลังทาย</span>:null}
+    </div>};
   return <div className="head-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">หมวด: {r.cat}</span></div>
-    {!res&&<h2>{solved[myId]?`คุณทายถูกแล้ว ${medal(solved[myId])} — ช่วยเพื่อนตอบต่อ`:myTurn?'ถึงตาคุณแล้ว! 🎯':`ตาของ ${nameOf(turnId)}`}</h2>}
-    {res&&<h2>จบเกมแล้ว! 🏁</h2>}
-    <div className="head-grid">{order.map(id=>{const mine=id===myId,sv=solved[id],show=!mine||sv||res;
-      return <div key={id} className={'head-card'+(id===turnId&&!res?' turn':'')+(sv?' solved':'')+(mine?' me':'')}>
-        <small>{nameOf(id)}{mine&&' (คุณ)'}{id===turnId&&!res&&' • กำลังเล่น'}</small>
-        <b>{show?r.words?.[id]:'❓ ???'}</b>
-        {sv?<span className="head-rank">{medal(sv)}{res&&` +${room.result.points?.[id]||0}`}</span>:res?<span className="head-rank miss">ยังทายไม่ได้</span>:null}
-      </div>})}</div>
-    {myTurn&&<div className="head-actions">
-      <div className="add-place"><input value={g} list="head-pool" onChange={e=>setG(e.target.value)} onKeyDown={e=>e.key==='Enter'&&guess()} placeholder="ทายคำของคุณ (ทายได้ 1 ครั้งต่อตา)"/><datalist id="head-pool">{(r.pool||[]).map(w=><option key={w} value={w}/>)}</datalist><button className="primary" onClick={guess}>🎯 ทาย</button></div>
-      <button className="secondary wide" onClick={()=>pass(false)}>⏭️ ยังไม่ชัวร์ ข้ามตา</button></div>}
-    {!res&&isHost&&<div className="head-host">{turnId!==myId&&<button className="link-btn" onClick={()=>pass(true)}>ข้ามตา {nameOf(turnId)}</button>}<button className="link-btn" onClick={endNow}>จบเกมเลย</button></div>}
-    {res&&<><h4 className="ballot-title">🏅 ตารางคะแนนสะสม</h4><ol className="leaderboard">{[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0)).map((p,i)=>{const d=room.result.points?.[p.id]||0;return <li key={p.id} className={p.id===myId?'me':''}><span className="rank">{['🥇','🥈','🥉'][i]||i+1}</span><span className="lb-name">{p.name}</span><em className={d>0?'up':''}>{d>0?'+'+d:'±0'}</em><b>{scores[p.id]||0}</b></li>})}</ol>
+    {/* ลำดับการเล่น */}
+    <div className="turn-strip">{order.map((id,i)=><React.Fragment key={id}>{i>0&&<i className="ts-arrow">›</i>}<span className={'ts'+(id===turnId&&!res?' now':'')+(solved[id]?' done':'')} title={nameOf(id)}><Avatar id={id} av={av} size={id===turnId&&!res?40:30}/>{solved[id]?<em>{medal(solved[id])}</em>:id===turnId&&!res?<em>ตานี้</em>:null}</span></React.Fragment>)}</div>
+
+    {!res&&(solved[myId]?<Phase art="medal" tone="good" kicker={`คุณทายถูกแล้ว ${medal(solved[myId])}`} title="นั่งชิล ๆ ช่วยเพื่อนตอบ">ตอนนี้ตาของ <b>{nameOf(turnId)}</b> — ตอบคำถามเขาแค่ ใช่ / ไม่ใช่</Phase>
+      :myTurn?<Phase art="note" tone="me" kicker="🎯 ถึงตาคุณแล้ว!" title="ถามเพื่อน 1 คำถาม แล้วเลือก ทาย หรือ ข้าม">ถามแบบตอบได้แค่ ใช่/ไม่ใช่ เช่น “ฉันกินได้ไหม?” “ฉันตัวใหญ่กว่าแมวไหม?”</Phase>
+      :<Phase art="think" kicker={`ตาของ ${nameOf(turnId)}`} title={<>ช่วย <Avatar id={turnId} av={av} size={28}/> {nameOf(turnId)} ตอบ ใช่ / ไม่ใช่</>}>คำที่เขาต้องทายอยู่ในกรอบใหญ่ด้านล่าง{nextId&&<> • คนต่อไป: <b>{nextId===myId?'คุณ':nameOf(nextId)}</b></>}</Phase>)}
+
+    {myTurn&&<div className="head-act">
+      {guessing?<><div className="add-place"><input autoFocus value={g} list="head-pool" onChange={e=>setG(e.target.value)} onKeyDown={e=>e.key==='Enter'&&guess()} placeholder="พิมพ์คำที่คิดว่าเป็นคำของคุณ"/><datalist id="head-pool">{(r.pool||[]).map(w=><option key={w} value={w}/>)}</datalist></div>
+        <div className="choices"><Choice art="guess" label="ส่งคำตอบ" sub="ทายได้ 1 ครั้งต่อตา" tone="good" onClick={guess}/><Choice art="skip" label="ยกเลิก" sub="กลับไปเลือกใหม่" onClick={()=>{setGuessing(false);setG('')}}/></div></>
+      :<div className="choices"><Choice art="guess" label="ทายคำ" sub="รู้แล้ว! พิมพ์คำตอบ" tone="good" onClick={()=>{sfx(sound,'click');setGuessing(true)}}/><Choice art="skip" label="ข้ามตา" sub="ยังไม่ชัวร์ ไว้ตาหน้า" onClick={()=>pass(false)}/></div>}
+    </div>}
+
+    {!res&&turnId!==myId&&!solved[turnId]&&<div className="head-spot"><span className="hs-label">🔦 ตอนนี้ {nameOf(turnId)} กำลังทายคำนี้</span>{note(turnId,true)}</div>}
+    {res&&<Outcome art="medal" tone="good" title="จบเกมแล้ว! 🏁">ทายถูกก่อนได้แต้มมากกว่า • อันดับ 1 ได้ {order.length-1} แต้ม</Outcome>}
+
+    <SecH icon="🗒️">คำบนหัวของทุกคน <small>{res?'เฉลยทุกคำ':'คุณเห็นของทุกคน ยกเว้นของตัวเอง'}</small></SecH>
+    <div className="head-grid">{order.map(id=><React.Fragment key={id}>{note(id)}</React.Fragment>)}</div>
+
+    {!res&&isHost&&<HostBar>{turnId!==myId&&<button className="secondary" onClick={()=>pass(true)}>⏭️ ข้ามตา {nameOf(turnId)}</button>}<button className="secondary" onClick={endNow}>🏁 จบเกมเลย</button></HostBar>}
+    {res&&<><SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={room.result.points} myId={myId} av={av}/>
       {isHost?<button className="primary wide" onClick={onBack}><RotateCcw size={17}/> กลับห้องรอแล้วเล่นรอบใหม่</button>:<div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}</>}
-    {log.length>0&&<><h4 className="ballot-title">📜 บันทึกเกม</h4><ul className="head-log">{log.map((e,i)=><li key={i}>
-            {e.type==='guess'&&<><b>{nameOf(e.by)}</b> ทาย “{e.text}” — {e.ok?<span className="ok">ถูก! 🎉</span>:<span className="bad">ผิด</span>}{!e.ok&&isHost&&!res&&!solved[e.by]&&<button className="link-btn" onClick={()=>accept(e.by)}>นับว่าถูก</button>}</>}
-      {e.type==='pass'&&<><b>{nameOf(e.by)}</b> {e.host?'ถูก host ข้ามตา':'ข้ามตา'}</>}
+    {log.length>0&&<><SecH icon="📜">บันทึกเกม</SecH><ul className="head-log">{log.map((e,i)=><li key={i}><Avatar id={e.by} av={av} size={24}/>
+      {e.type==='guess'&&<><b>{nameOf(e.by)}</b> ทาย “{e.text}” — {e.ok?<span className="ok">ถูก! 🎉</span>:<span className="bad">ผิด</span>}{!e.ok&&isHost&&!res&&!solved[e.by]&&<button className="link-btn" onClick={()=>accept(e.by)}>นับว่าถูก</button>}</>}
+      {e.type==='pass'&&<><b>{nameOf(e.by)}</b> {e.host?'ถูก host ข้ามตา':'ข้ามตา ⏭️'}</>}
       {e.type==='accept'&&<><b>{nameOf(e.by)}</b> — host นับว่าทายถูก ✅</>}
     </li>)}</ul></>}
   </div>;

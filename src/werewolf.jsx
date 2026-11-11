@@ -1,8 +1,11 @@
 // เกม "แวร์วูฟ" — กลางคืนหมาป่าแอบกัดชาวบ้าน กลางวันทุกคนโหวตประหารคนที่สงสัย (ระบบเป็นผู้ดำเนินเกมให้)
 import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
-import { RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import { Art } from './play-art.jsx';
+import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters } from './ui.jsx';
 import { play as sfx } from './sfx.js';
+import { shuffle, pickBad } from './rand.js';
 
 export const WOLF_MIN = 5;
 export const WOLF_SCORE = { village: 1, wolf: 2 }; // แต้มต่อคนของฝ่ายที่ชนะ
@@ -12,14 +15,14 @@ export const W_ROLES = {
   seer: { icon: '🔮', name: 'หมอดู', side: 'village', desc: 'กลางคืนเลือกดู 1 คนว่าเป็นหมาป่าหรือไม่' },
   doctor: { icon: '💉', name: 'หมอยา', side: 'village', desc: 'กลางคืนเลือกปกป้อง 1 คน (ปกป้องตัวเองได้ แต่ห้ามคนเดิม 2 คืนติด)' },
   hunter: { icon: '🏹', name: 'นายพราน', side: 'village', desc: 'ถ้าคุณตาย ไม่ว่ากลางวันหรือกลางคืน ยิงพาใครไปด้วยได้ 1 คน' },
-  villager: { icon: '🧑‍🌾', name: 'ชาวบ้าน', side: 'village', desc: 'ไม่มีพลังพิเศษ ใช้สมองจับหมาป่าให้ได้ตอนกลางวัน' },
+  villager: { icon: '👨‍🌾', name: 'ชาวบ้าน', side: 'village', desc: 'ไม่มีพลังพิเศษ ใช้สมองจับหมาป่าให้ได้ตอนกลางวัน' },
 };
 export const wSide = r => W_ROLES[r]?.side || 'village';
-const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 
 export function makeWolfRound(ids, opts = {}, number = 1) {
-  const deck = shuffle(ids); const roles = {}; const k = wolfCount(ids.length); let i = 0;
-  deck.slice(i, i += k).forEach(id => roles[id] = 'wolf');
+  const k = wolfCount(ids.length); const wolves = pickBad(ids, k, opts.hist); const roles = {}; let i = k;
+  const deck = [...wolves, ...shuffle(ids.filter(id => !wolves.includes(id)))];
+  wolves.forEach(id => roles[id] = 'wolf');
   roles[deck[i++]] = 'seer'; roles[deck[i++]] = 'doctor';
   if (opts.hunter && ids.length >= 6) roles[deck[i++]] = 'hunter';
   deck.slice(i).forEach(id => roles[id] = 'villager');
@@ -110,7 +113,8 @@ export function hunterShoot(cur, me, target) {
 }
 
 // ---------- หน้าจอ ----------
-export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, sound, beep, nameOf, onBack }) {
+const W_ART = { wolf: 'wolf', seer: 'crystal', doctor: 'potion', hunter: 'bow', villager: 'villager' };
+export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, onBack }) {
   const r = room.round; const res = room.status === 'result' && room.result;
   const [showRole, setShowRole] = useState(false);
   const myRole = r.roles?.[myId]; const info = W_ROLES[myRole] || W_ROLES.villager;
@@ -143,75 +147,76 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     else if (r.phase === 'hunter') seq([[p.phase === 'night' ? 'morning' : r.lastVote?.out ? 'execute' : 'safe', p.phase === 'night' ? 800 : 1300], ...(p.phase === 'night' ? [['death', 1200]] : []), ['reveal', 0]]);
     else if (r.phase === 'night') setTimeout(() => seq([[p.phase === 'day' ? (r.lastVote?.out ? 'execute' : 'safe') : null, p.phase === 'day' ? 1500 : 0], ['howl', 1800], ['night', 0]].filter(x => x[0])), t);
   });
-  const deadNames = ids => (ids || []).map(id => `${nameOf(id)}${r.reveal ? ` (${W_ROLES[r.roles[id]]?.icon} ${W_ROLES[r.roles[id]]?.name})` : ''}`).join(', ');
-  const Pick = ({ ids, sel, onPick, tags, disabled }) => <div className="ex-pick">{ids.map(id => <button key={id} disabled={disabled} className={'vote-row' + (sel === id ? ' selected' : '')} onClick={() => onPick(id)}><span>{nameOf(id)}{id === myId && ' (คุณ)'}</span><span>{tags?.(id) || (sel === id ? '✓ เลือกแล้ว' : 'เลือก')}</span></button>)}</div>;
+  const roleTxt = id => `${W_ROLES[r.roles[id]]?.icon} ${W_ROLES[r.roles[id]]?.name}`;
+  const deadNames = ids => (ids || []).map(id => `${nameOf(id)}${r.reveal ? ` (${roleTxt(id)})` : ''}`).join(', ');
+  const stack = list => list.length ? <Voters ids={list} av={av} size={20} /> : null;
 
   return <div className="explore-game wolf-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span><span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
+    {!res && <Steps items={['🌙 กลางคืน', '☀️ ประกาศ', '⚖️ โหวตประหาร']} at={r.phase === 'night' ? 0 : r.phase === 'hunter' ? 1 : 2} />}
 
-    {!res && <div className="role-card ex-role">
-      <span className="role-icon">{showRole ? info.icon : '🌕'}</span>
-      <h3>{showRole ? info.name : 'บทบาทลับของคุณ'}</h3>
-      {showRole ? <><p>{info.desc}</p>
-        <p className={'ex-side ' + (info.side === 'wolf' ? 'bad' : 'good')}>{info.side === 'wolf' ? '🐺 ฝ่ายหมาป่า' : '🏡 ฝ่ายชาวบ้าน'}</p>
-        {myRole === 'wolf' && <p>เพื่อนหมาป่า: <b>{wolves.filter(id => id !== myId).map(nameOf).join(', ') || '— ไม่มี —'}</b></p>}
-        {myRole === 'seer' && (r.seerLog || []).length > 0 && <p>🔮 ที่ดูมาแล้ว: {r.seerLog.map((s, i) => <span key={i}><br />คืนที่ {s.day}: <b>{nameOf(s.target)}</b> {s.wolf ? <b className="bad">เป็นหมาป่า!</b> : <b className="good">ไม่ใช่หมาป่า</b>}</span>)}</p>}
-      </> : <p>กดเปิดดูคนเดียว ระวังคนแอบมองจอ!</p>}
-      <button className="secondary" onClick={() => setShowRole(!showRole)}>{showRole ? <EyeOff size={16} /> : <Eye size={16} />} {showRole ? 'ซ่อนบทบาท' : 'เปิดดูบทบาท'}</button>
-    </div>}
+    {/* เมื่อวานใครถูกประหาร (แสดงตอนกลางคืน) */}
+    {!res && r.phase === 'night' && r.lastVote && r.lastVote.day === r.day - 1 && <div className={'event ' + (r.lastVote.out ? 'fail' : 'ok')}><Art name={r.lastVote.out ? 'gavel' : 'shield'} size={46} /><span><b>เมื่อวาน: {r.lastVote.out ? `${deadNames([r.lastVote.out])} ถูกประหาร` : 'ไม่มีใครถูกประหาร'}</b>{r.shot?.target && !r.dawn ? ` • นายพรานยิง ${deadNames([r.shot.target])}` : ''}
+      <span className="ev-votes">{Object.entries(r.lastVote.votes || {}).map(([a, b]) => <span key={a}><Avatar id={a} av={av} size={20} />→{b === 'skip' ? '🤷' : <Avatar id={b} av={av} size={20} />}</span>)}</span></span></div>}
 
-    {!res && !meAlive && <div className="ex-banner fail">💀 คุณตายแล้ว — ดูเกมต่อได้และเห็นบทบาททุกคน แต่ห้ามพูดหรือใบ้คนที่ยังเล่นอยู่นะ!</div>}
-
+    {/* ---------- กลางคืน ---------- */}
     {!res && r.phase === 'night' && <>
-      <h2>🌙 คืนที่ {r.day} — ทุกคนหลับตา…</h2>
-      {meAlive && myRole === 'wolf' && <><p className="hint">หมาป่าทุกตัวต้องเลือกเหยื่อคนเดียวกัน (เปลี่ยนใจได้)</p>
-        <Pick ids={liveIds.filter(id => r.roles[id] !== 'wolf')} sel={n.wolf?.[myId]} onPick={t => act('wolf', t)} tags={id => { const w = wolves.filter(x => n.wolf?.[x] === id); return w.length ? '🐺 ' + w.map(x => x === myId ? 'คุณ' : nameOf(x)).join(', ') : 'กัดคนนี้'; }} /></>}
-      {meAlive && myRole === 'seer' && (n.seer ? <div className="confirmed">🔮 คืนนี้ดู {nameOf(n.seer)} แล้ว — ผลจะขึ้นในการ์ดบทบาทตอนเช้า</div>
-        : <><p className="hint">เลือกดู 1 คน (เลือกแล้วเปลี่ยนไม่ได้)</p><Pick ids={liveIds.filter(id => id !== myId)} onPick={t => act('seer', t)} tags={() => 'ดูคนนี้'} /></>)}
-      {meAlive && myRole === 'doctor' && (n.doc ? <div className="confirmed">💉 คืนนี้ปกป้อง {nameOf(n.doc)}</div>
-        : <><p className="hint">เลือกปกป้อง 1 คน{r.lastDoc ? ` (คืนก่อนปกป้อง ${nameOf(r.lastDoc)} — คืนนี้ห้ามซ้ำ)` : ''}</p><Pick ids={liveIds.filter(id => id !== r.lastDoc)} onPick={t => act('doc', t)} tags={() => 'ปกป้อง'} /></>)}
-      {meAlive && !['wolf', 'seer', 'doctor'].includes(myRole) && <div className="waiting">😴 หลับฝันดี… รอเช้า (ทำหน้าเฉย ๆ ไว้ อย่าให้ใครรู้ว่าคุณไม่มีอะไรทำ)</div>}
-      {seeAll && <div className="waiting">👻 หมาป่าเล็ง: {Object.entries(n.wolf || {}).map(([w, t]) => `${nameOf(w)}→${nameOf(t)}`).join(', ') || '-'} • หมอดู: {n.seer ? nameOf(n.seer) : '-'} • หมอยา: {n.doc ? nameOf(n.doc) : '-'}</div>}
-      {isHost && <div className="head-host"><button className="link-btn" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ? (คนที่หลุดหรือยังไม่เลือกจะถูกข้าม)')) tx(cur => resolveNight(cur, true)); }}>จบคืนนี้เลย (ไม่รอ)</button></div>}
+      {!meAlive ? <Phase art="tombstone" tone="night" kicker={`🌙 คืนที่ ${r.day}`} title="คุณตายแล้ว 👻">ดูเกมต่อได้และเห็นบทบาททุกคน แต่<b>ห้ามพูดหรือใบ้</b>คนที่ยังเล่นอยู่</Phase>
+        : myRole === 'wolf' ? <Phase art="wolf" tone="me" kicker={`🌙 คืนที่ ${r.day} — หมาป่าออกล่า`} title="เลือกเหยื่อคืนนี้">หมาป่าทุกตัวต้องเลือก<b>คนเดียวกัน</b> (เปลี่ยนใจได้){wolves.length > 1 && <> • คุยกับเพื่อนหมาป่าได้ในห้องเสียง</>}</Phase>
+        : myRole === 'seer' ? <Phase art="crystal" tone={n.seer ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอดู`} title={n.seer ? `คืนนี้ส่อง ${nameOf(n.seer)} แล้ว` : 'ส่องลูกแก้วดู 1 คน'}>{n.seer ? 'ผลจะขึ้นในการ์ดบทบาทตอนเช้า' : 'เลือกแล้วเปลี่ยนไม่ได้ • รู้ว่าเขาเป็นหมาป่าหรือไม่'}</Phase>
+        : myRole === 'doctor' ? <Phase art="potion" tone={n.doc ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอยา`} title={n.doc ? `คืนนี้ปกป้อง ${nameOf(n.doc)}` : 'เลือกปกป้อง 1 คน'}>{n.doc ? 'ถ้าหมาป่ากัดคนนี้ เขาจะรอด' : <>ปกป้องตัวเองได้{r.lastDoc ? <> • คืนก่อนปกป้อง <b>{nameOf(r.lastDoc)}</b> คืนนี้ห้ามซ้ำ</> : ''}</>}</Phase>
+        : <Phase art="night" tone="night" kicker={`🌙 คืนที่ ${r.day}`} title="หลับตาฝันดี… 😴">คุณไม่มีอะไรต้องทำคืนนี้ ทำหน้าเฉย ๆ ไว้ อย่าให้ใครรู้ว่าคุณว่าง</Phase>}
+      {meAlive && myRole === 'wolf' && <PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} />}
+      {meAlive && myRole === 'seer' && !n.seer && <PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => act('seer', t)} badge={() => <span className="tag">🔮 ส่อง</span>} />}
+      {meAlive && myRole === 'doctor' && !n.doc && <PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => act('doc', t)} off={id => id === r.lastDoc} badge={id => id === r.lastDoc ? <span className="ptile-note">คืนก่อนแล้ว</span> : <span className="tag good">💉 ปกป้อง</span>} />}
+      {seeAll && <div className="tip"><Art name="crystal" size={42} /><span>👻 มุมคนตาย — หมาป่าเล็ง: <b>{Object.entries(n.wolf || {}).map(([w, t]) => `${nameOf(w)}→${nameOf(t)}`).join(', ') || '-'}</b> • หมอดู: <b>{n.seer ? nameOf(n.seer) : '-'}</b> • หมอยา: <b>{n.doc ? nameOf(n.doc) : '-'}</b></span></div>}
+      {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ? (คนที่หลุดหรือยังไม่เลือกจะถูกข้าม)')) tx(cur => resolveNight(cur, true)); }}>จบคืนนี้เลย (ไม่รอ)</button></HostBar>}
     </>}
 
+    {/* ---------- นายพราน ---------- */}
     {!res && r.phase === 'hunter' && <>
-      <h2>🏹 {nameOf(r.hunter)} คือนายพราน!</h2>
-      <p className="hint">ก่อนตาย นายพรานยิงพาใครไปด้วยได้ 1 คน</p>
-      {r.hunter === myId ? <><Pick ids={liveIds} onPick={t => { if (confirm(`ยิง ${nameOf(t)}?`)) tx(cur => hunterShoot(cur, myId, t)); }} tags={() => '🏹 ยิง'} />
+      <Phase art="bow" tone={r.hunter === myId ? 'me' : 'bad'} kicker="🏹 ก่อนตาย…" title={r.hunter === myId ? 'คุณคือนายพราน! ยิงใครดี?' : `${nameOf(r.hunter)} คือนายพราน!`}>นายพรานยิงพาใครไปด้วยได้ 1 คน (หรือไม่ยิงก็ได้)</Phase>
+      {r.hunter === myId ? <><PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => { if (confirm(`ยิง ${nameOf(t)}?`)) tx(cur => hunterShoot(cur, myId, t)); }} badge={() => <span className="tag bad">🏹 ยิง</span>} />
         <button className="secondary wide" onClick={() => tx(cur => hunterShoot(cur, myId, null))}>ไม่ยิงใคร</button></>
         : <div className="waiting">⏳ รอนายพรานเล็งเป้า…</div>}
-      {isHost && r.hunter !== myId && <div className="head-host"><button className="link-btn" onClick={() => { if (confirm('ข้ามนายพราน (ไม่ยิงใคร)?')) tx(cur => hunterShoot(cur, cur.round.hunter, null)); }}>ข้ามนายพราน</button></div>}
+      {isHost && r.hunter !== myId && <HostBar><button className="secondary" onClick={() => { if (confirm('ข้ามนายพราน (ไม่ยิงใคร)?')) tx(cur => hunterShoot(cur, cur.round.hunter, null)); }}>ข้ามนายพราน</button></HostBar>}
     </>}
 
+    {/* ---------- กลางวัน ---------- */}
     {!res && r.phase === 'day' && <>
-      <div className={'ex-banner ' + (r.dawn?.dead?.length ? 'fail' : 'ok')}>☀️ เช้าวันที่ {r.day}: {r.dawn?.dead?.length ? `${deadNames(r.dawn.dead)} ถูกหมาป่ากัดตายเมื่อคืน 🩸` : 'เมื่อคืนไม่มีใครตาย 🙏'}{r.shot?.target && r.dawn ? ` • นายพรานยิง ${deadNames([r.shot.target])}` : ''}</div>
-      <h2>ใครคือหมาป่า? โหวตประหาร</h2>
-      <p className="hint">คุยกันให้พอ แล้วโหวต — เสียงมากที่สุดถูกประหาร เสมอหรือ "ไม่ประหาร" ชนะ = ไม่มีใครตาย • สรุปเมื่อคนที่ยังมีชีวิตโหวตครบ</p>
-      {meAlive ? <><Pick ids={liveIds.filter(id => id !== myId)} sel={votes[myId]} onPick={vote} tags={id => { const c = Object.values(votes).filter(t => t === id).length; return (votes[myId] === id ? '✓ ' : '') + (c ? `${c} เสียง` : 'โหวต'); }} />
-        <button className={'secondary wide' + (votes[myId] === 'skip' ? ' selected' : '')} onClick={() => vote('skip')}>🤷 ไม่ประหารใคร{votes[myId] === 'skip' ? ' ✓' : ''} ({Object.values(votes).filter(t => t === 'skip').length})</button></>
-        : <div className="waiting">👻 คนตายโหวตไม่ได้</div>}
-      <div className="ready-list"><div className="ready-head">🗳️ โหวตแล้ว <b>{liveIds.filter(id => id in votes).length}/{liveIds.length}</b> คน (เปลี่ยนใจได้จนกว่าจะครบ)</div></div>
-      {isHost && <div className="head-host"><button className="link-btn" onClick={() => { if (confirm('สรุปโหวตเลย? คนที่ยังไม่โหวตไม่นับ')) tx(cur => resolveDay(cur, true)); }}>สรุปโหวตเลย (ไม่รอ)</button></div>}
+      <Phase art={r.dawn?.dead?.length ? 'tombstone' : 'shield'} tone={r.dawn?.dead?.length ? 'bad' : 'day'} kicker={`☀️ เช้าวันที่ ${r.day}`} title={r.dawn ? (r.dawn.dead?.length ? `${r.dawn.dead.map(nameOf).join(', ')} ถูกหมาป่ากัดตาย 🩸` : 'เมื่อคืนไม่มีใครตาย 🙏') : 'กลางวัน'}>
+        {r.dawn?.dead?.length && r.reveal ? <>บทบาท: <b>{r.dawn.dead.map(roleTxt).join(', ')}</b> • </> : ''}{r.shot?.target && r.dawn ? <>นายพรานยิง <b>{deadNames([r.shot.target])}</b> • </> : ''}คุยกันให้พอ แล้วโหวตประหารคนที่สงสัย</Phase>
+      <SecH icon="⚖️">โหวตประหาร <small>{meAlive ? (votes[myId] ? `คุณโหวต ${votes[myId] === 'skip' ? 'ไม่ประหาร' : nameOf(votes[myId])}` : 'แตะรูป • เปลี่ยนใจได้') : 'คนตายโหวตไม่ได้'}</small></SecH>
+      <PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} selected={votes[myId]} onPick={meAlive ? vote : undefined}
+        badge={id => stack(Object.keys(votes).filter(v => votes[v] === id)) || <span className="ptile-note">ยังไม่มีเสียง</span>} />
+      {meAlive && <button className={'skip-vote' + (votes[myId] === 'skip' ? ' sel' : '')} onClick={() => vote('skip')}><span>🤷 ไม่ประหารใครวันนี้{votes[myId] === 'skip' ? ' ✓' : ''}</span>{stack(Object.keys(votes).filter(v => votes[v] === 'skip'))}</button>}
+      <WhoDone ids={liveIds} done={id => id in votes} av={av} nameOf={nameOf} label="🗳️ โหวตแล้ว" />
+      <p className="hint">เสียงมากที่สุดถูกประหาร • เสมอ หรือ “ไม่ประหาร” ชนะ = ไม่มีใครตาย • สรุปเมื่อคนที่ยังมีชีวิตโหวตครบ</p>
+      {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('สรุปโหวตเลย? คนที่ยังไม่โหวตไม่นับ')) tx(cur => resolveDay(cur, true)); }}>สรุปโหวตเลย (ไม่รอ)</button></HostBar>}
     </>}
 
-    {!res && r.phase === 'night' && r.lastVote && r.lastVote.day === r.day - 1 && <div className={'ex-banner ' + (r.lastVote.out ? 'fail' : 'ok')}>⚖️ เมื่อวาน: {r.lastVote.out ? `${deadNames([r.lastVote.out])} ถูกประหาร` : 'ไม่มีใครถูกประหาร'}{r.shot?.target && !r.dawn ? ` • นายพรานยิง ${deadNames([r.shot.target])}` : ''} — {Object.entries(r.lastVote.votes || {}).map(([a, b]) => `${nameOf(a)}→${b === 'skip' ? 'ไม่ประหาร' : nameOf(b)}`).join(' • ')}</div>}
+    {/* ---------- บทบาท ---------- */}
+    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : 'good'} sideLabel={info.side === 'wolf' ? '🐺 ฝ่ายหมาป่า' : '🏡 ฝ่ายชาวบ้าน'}>
+      <p>{info.desc}</p>
+      {myRole === 'wolf' && <div className="info-line">เพื่อนหมาป่า: {wolves.filter(id => id !== myId).length ? <><Voters ids={wolves.filter(id => id !== myId)} av={av} /> <b>{wolves.filter(id => id !== myId).map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
+      {myRole === 'seer' && (r.seerLog || []).length > 0 && <div className="seer-log">{r.seerLog.map((s, i) => <span key={i} className={s.wolf ? 'bad' : 'good'}>คืนที่ {s.day}: <Avatar id={s.target} av={av} size={22} /> <b>{nameOf(s.target)}</b> {s.wolf ? '🐺 เป็นหมาป่า!' : '🙂 ไม่ใช่หมาป่า'}</span>)}</div>}
+    </RoleCard>}
 
+    {/* ---------- จบเกม ---------- */}
     {res && <>
-      <h2>{res.winner === 'village' ? 'ชาวบ้านชนะ! หมาป่าหมดหมู่บ้าน 🏡' : 'หมาป่าชนะ! ยึดหมู่บ้านได้แล้ว 🐺'}</h2>
-      <div className="result-card"><div className="big-emoji">{res.winner === 'village' ? '🏆' : '🌕'}</div>
-        <h4 className="ballot-title">บทบาทของแต่ละคน</h4>
-        <ul className="role-list">{players.map(p => { const ri = W_ROLES[r.roles?.[p.id]] || W_ROLES.villager; return <li key={p.id}><span>{alive[p.id] ? '' : '💀 '}{p.name}</span><b className={ri.side === 'wolf' ? 'spy' : ''}>{ri.icon} {ri.name}</b></li>; })}</ul>
-        <h4 className="ballot-title">🏅 ตารางคะแนนสะสม</h4>
-        <ol className="leaderboard">{[...players].sort((a, b) => (scores[b.id] || 0) - (scores[a.id] || 0)).map((p, i) => { const d = res.points?.[p.id] || 0; return <li key={p.id} className={p.id === myId ? 'me' : ''}><span className="rank">{['🥇', '🥈', '🥉'][i] || i + 1}</span><span className="lb-name">{p.name}</span><em className={d > 0 ? 'up' : ''}>{d > 0 ? '+' + d : '±0'}</em><b>{scores[p.id] || 0}</b></li>; })}</ol>
-      </div>
+      <Outcome art={res.winner === 'village' ? 'villager' : 'wolf'} tone={res.winner === 'village' ? 'good' : 'bad'} title={res.winner === 'village' ? 'ชาวบ้านชนะ! หมาป่าหมดหมู่บ้าน 🏡' : 'หมาป่าชนะ! ยึดหมู่บ้านได้แล้ว 🐺'}>
+        หมาป่าคือ <Voters ids={wolves} av={av} size={24} /> <b>{wolves.map(nameOf).join(', ')}</b> • เล่นไป {r.day} วัน</Outcome>
+      <SecH icon="🎭">บทบาทของแต่ละคน</SecH>
+      <RevealGrid av={av} nameOf={nameOf} items={players.map(p => { const k = r.roles?.[p.id]; const ri = W_ROLES[k] || W_ROLES.villager; return { id: p.id, art: W_ART[k] || 'villager', label: ri.name, bad: ri.side === 'wolf', dead: !alive[p.id], extra: alive[p.id] ? 'รอดชีวิต' : '💀 ตาย' }; })} />
+      <SecH icon="🏅">ตารางคะแนนสะสม</SecH>
+      <Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
 
-    <h4 className="ballot-title">👥 ชาวบ้าน</h4>
-    <ul className="role-list">{order.map(id => <li key={id}><span>{alive[id] ? '🙂' : '💀'} {nameOf(id)}{id === myId && ' (คุณ)'}</span><b className={showRoleOf(id) && r.roles[id] === 'wolf' ? 'spy' : ''}>{showRoleOf(id) ? `${W_ROLES[r.roles[id]]?.icon} ${W_ROLES[r.roles[id]]?.name}` : alive[id] ? 'ยังมีชีวิต' : 'ตายแล้ว'}</b></li>)}</ul>
+    {!res && <><SecH icon="🏘️">ชาวบ้าน <small>ยังอยู่ {liveIds.length} • ตาย {order.length - liveIds.length}</small></SecH>
+      <PlayerGrid ids={order} av={av} nameOf={nameOf} myId={myId} small dead={id => !alive[id]} note={id => showRoleOf(id) ? roleTxt(id) : alive[id] ? 'ยังมีชีวิต' : 'ตายแล้ว'} /></>}
 
-    {(r.log || []).length > 0 && <><h4 className="ballot-title">📜 บันทึกหมู่บ้าน</h4><ul className="head-log">{[...r.log].reverse().map((e, i) => <li key={i}>
+    {(r.log || []).length > 0 && <><SecH icon="📜">บันทึกหมู่บ้าน</SecH><ul className="head-log">{[...r.log].reverse().map((e, i) => <li key={i}>
       {e.t === 'night' && <>🌙 คืนที่ {e.day}: {e.dead?.length ? <span className="bad">{deadNames(e.dead)} ถูกกัด</span> : 'ไม่มีใครตาย'}</>}
       {e.t === 'day' && <>☀️ วันที่ {e.day}: {e.dead?.length ? <span className="bad">{deadNames(e.dead)} ถูกประหาร</span> : 'ไม่มีใครถูกประหาร'}</>}
       {e.t === 'shot' && <>🏹 นายพราน {nameOf(e.by)} ยิง <span className="bad">{deadNames(e.dead)}</span></>}
