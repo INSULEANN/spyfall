@@ -9,9 +9,10 @@ import { SPY_PACKS } from './spyWords.js';
 import { HEAD_PACKS } from './headWords.js';
 import VoicePanel from './voice.jsx';
 import { ExploreGame, makeExploreRound, teamSizes, traitorCount, needFails, EXPLORE_MIN, EXPLORE_SCORE, MAX_REJECT } from './explore.jsx';
+import { WolfGame, makeWolfRound, wolfCount, WOLF_MIN, WOLF_SCORE } from './werewolf.jsx';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.9.1';
+const APP_VERSION = '1.10';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -55,6 +56,11 @@ const GAMES = {
     lead:'หัวหน้าคณะผลัดกันเลือกคนไปสำรวจ ทุกคนโหวตเห็นด้วย/ค้าน แล้วคณะส่งการ์ดลับ…ถ้ามีการ์ดก่อวินาศ ด่านนั้นพัง!',
     pills:['🧭 ทีมลับ','🗳️ โหวตคณะ','💣 ก่อวินาศ'],
     how:[['รับฝ่ายลับ','ราว 1 ใน 3 เป็นโจรขุดสมบัติที่รู้จักกันเอง และมีผู้ถือตะเกียง 1 คนที่รู้ว่าใครเป็นโจร'],['เสนอและโหวตคณะ','หัวหน้าคณะเลือกคนไปด่านนี้ ทุกคนโหวต ถ้าเห็นด้วยไม่เกินครึ่ง หัวหน้าคนถัดไปเสนอใหม่'],['สำรวจหรือก่อวินาศ','คณะส่งการ์ดลับ มีก่อวินาศแม้ใบเดียวด่านก็พัง พัง 3 ด่านโจรชนะ ผ่าน 3 ด่านโจรยังพลิกได้ถ้าชี้ตัวผู้ถือตะเกียงถูก']] },
+  werewolf: { id:'werewolf', type:'wolf', name:'แวร์วูฟ', emoji:'🐺', packs:[], item:'บทบาท', unit:'บทบาท', roles:true, min:WOLF_MIN, h1:['แวร์วูฟ','ใครคือหมาป่า'], art:'🐺', float:'เมื่อคืนเธออยู่ไหน?',
+    blurb:'กลางคืนหมาป่าแอบกัดชาวบ้าน กลางวันทุกคนถกเถียงแล้วโหวตประหาร มีหมอดู หมอยา นายพราน ระบบเป็นผู้ดำเนินเกมให้',
+    lead:'หมู่บ้านนี้มีหมาป่าปลอมตัวอยู่…กลางคืนหมาป่าเลือกเหยื่อ หมอดูส่อง หมอยาปกป้อง กลางวันทุกคนต้องช่วยกันโหวตหาตัวหมาป่า',
+    pills:['🐺 หมาป่า','🔮 หมอดู','💉 หมอยา'],
+    how:[['กลางคืน','ทุกคนดูจอตัวเอง หมาป่าตกลงกันเลือกเหยื่อ หมอดูส่อง 1 คน หมอยาปกป้อง 1 คน ชาวบ้านรอเช้า'],['กลางวัน','ระบบประกาศว่าใครตาย ทุกคนคุยกันแล้วโหวตประหาร เสียงมากสุดถูกประหาร เสมอ = ไม่มีใครตาย'],['จบเกม','จับหมาป่าได้หมด ชาวบ้านชนะ ถ้าหมาป่ามีจำนวนเท่ากับชาวบ้านที่เหลือ หมาป่าชนะ']] },
 };
 const HEAD_NORM = s => String(s||'').toLowerCase().replace(/[\s\-.'’]/g,'');
 // กติกาคะแนนต่อรอบ
@@ -89,6 +95,7 @@ function App() {
   const [game,setGameState]=useState(()=>{const h=location.hash.slice(1);return GAMES[h]?h:null});
   const [showCat,setShowCat]=useState(true);
   const [exOpts,setExOpts]=useState({mole:false});
+  const [wfOpts,setWfOpts]=useState({hunter:true,reveal:true});
   function setGame(g){setGameState(g);try{history.replaceState(null,'',g?'#'+g:location.pathname+location.search)}catch{}}
   useEffect(()=>{const f=()=>{const h=location.hash.slice(1);setGameState(GAMES[h]?h:null)};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f)},[]);
   const [newBuild,setNewBuild]=useState(false);
@@ -135,6 +142,9 @@ function App() {
   }
   async function startGame(){
     if(!isHost||players.length<G.min){msg(`ต้องมีผู้เล่นอย่างน้อย ${G.min} คน`);return}if(outdated.length){msg('ยังมีคนใช้เวอร์ชันเก่า ให้รีเฟรชก่อน');return}
+    if(G.type==='wolf'){
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:makeWolfRound(players.map(p=>p.id),wfOpts,(room.round?.number||0)+1),votes:null,ready:null,spyGuess:null,result:null});
+      if(sound)beep(300,.3);return}
     if(G.type==='explore'){
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:makeExploreRound(players.map(p=>p.id),exOpts,(room.round?.number||0)+1),votes:null,ready:null,spyGuess:null,result:null});
       if(sound)beep(900,.18);return}
@@ -225,7 +235,7 @@ function App() {
     </main>}
     {screen==='room'&&room&&<main className="room-page">
       <div className="room-heading"><div><span className="eyebrow">{G.emoji} {G.name} • ห้องเล่นส่วนตัว</span><h1>ห้อง {roomCode} <button className="icon-btn" onClick={copy}><Copy size={17}/></button></h1><p>ส่งรหัสนี้ให้เพื่อนเพื่อชวนเข้ามาเล่น</p></div><button className="secondary" onClick={leaveRoom}><LogOut size={16}/> ออกจากห้อง</button></div>
-      <div className="room-grid"><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/12</span></div>{players.map((p,i)=><div className="player-row" key={p.id}><span className="avatar">{['🐸','🐯','🐼','🦆','🐵','🐙','🦝','🐷','🐸','🐻','🦊','🐣'][i%12]}</span><div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg}/></section>
+      <div className="room-grid"><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/12</span></div>{players.map((p,i)=><div className="player-row" key={p.id}><span className="avatar">{['🐸','🐯','🐼','🦆','🐵','🐙','🦝','🐷','🐸','🐻','🦊','🐣'][i%12]}</span><div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}{room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]?' • 💀 ตายแล้ว':''}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg}/></section>
       <section className="panel game-panel">{room.status==='lobby'&&G.type==='head'&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน แล้วค่อยเดาคำบนหัว</h2><p className="hint">ตอนเริ่ม ระบบจะสุ่ม 1 หมวดจากที่ติ๊กไว้ แล้วแจกคำให้ทุกคนคนละคำ (เล่นได้ 2–12 คน)</p><div className="score-rules"><b>🏅 คะแนน</b><span>ทายถูกอันดับ 1 ได้ (จำนวนคน − 1) แต้ม อันดับถัดไปลดลงทีละ 1</span><span>ยังทายไม่ได้ตอนจบเกม = 0 แต้ม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<G.min||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {room.status==='lobby'&&!G.type&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน เดี๋ยวค่อยโป๊ะ</h2><label>เวลาต่อรอบ</label><select value={duration} onChange={e=>setDuration(+e.target.value)}><option value={3}>3 นาที</option><option value={5}>5 นาที</option><option value={8}>8 นาที</option><option value={10}>10 นาที</option></select><p className="hint">หัวหน้าห้องเป็นคนเริ่มเกมและเพิ่มชุด{I} • หมดเวลาแล้วจะเข้าหน้าโหวตอัตโนมัติ</p><div className="score-rules"><b>🏅 กติกาคะแนน</b><span>จับสายลับได้: ชาวบ้านทุกคน +{SCORE.teamWin}</span><span>โหวตถูกตัวสายลับ: +{SCORE.rightVote}</span><span>สายลับรอด: +{SCORE.spyEscape} • เดา{I}ถูก: +{SCORE.spyGuess}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{!G.roles&&<label className="cat-toggle"><input type="checkbox" className="tick" checked={showCat} disabled={!isHost} onChange={e=>setShowCat(e.target.checked)}/> บอกหมวดหมู่ให้ทุกคนรู้ (สายลับเดาง่ายขึ้น)</label>}{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<3||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {active&&!G.type&&room.round&&<><div className="round-top"><span className="eyebrow">รอบที่ {room.round.number}</span><span className={'timer'+(secondsLeft<=30?' low':'')}><Clock3 size={16}/> {Math.floor(secondsLeft/60)}:{String(secondsLeft%60).padStart(2,'0')}</span></div><h2>{room.round.phase==='question'?'ภารกิจ: เนียนเข้าไว้':'โหวตคนโป๊ะ'}</h2><div className="role-card">{room.round.cat&&<div className="cat-tag">หมวด: {room.round.cat}</div>}<span className="role-icon">{showRole&&role?.type==='spy'?'🕵️':G.roles?'📍':'💬'}</span><h3>{showRole?(role?.type==='spy'?'คุณคือสายลับ!':`${I}ของคุณ`): 'บทบาทลับของคุณ'}</h3><p>{showRole?(role?.type==='spy'?`ทำตัวเนียน ๆ แล้วพยายามเดา${I}ให้ได้`:`${I}คือ`): 'กดเปิดดูบทบาทนี้คนเดียว ระวังคนแอบมองจอ!'}</p>{showRole&&<strong className="secret">{role?.type==='spy'?`ไม่รู้${I} 🤫`:role?.place}</strong>}{showRole&&role?.type==='player'&&role.role&&<p className="role-name">บทบาทของคุณ: <b>{role.role}</b></p>}<button className="secondary" onClick={()=>setShowRole(!showRole)}>{showRole?<EyeOff size={16}/>:<Eye size={16}/>} {showRole?'ซ่อนบทบาท':'เปิดดูบทบาท'}</button></div><p className="joke">😂 {pick(jokes)}</p><div className="vote-actions">{isHost?<button className="primary wide" onClick={()=>update(ref(db,`rooms/${roomCode}`),{status:'voting',votes:null,ready:null,spyGuess:null})}><Vote size={16}/> เปิดโหวตให้ทุกคน</button>:<div className="waiting" style={{width:'100%'}}>🗳️ ถามตอบกันให้พอ แล้วรอหัวหน้าห้องเปิดโหวต</div>}</div></>}
@@ -258,10 +268,20 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🧭 ออกเดินทาง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
       {G.type==='explore'&&room.status!=='lobby'&&room.round?.kind==='explore'&&<ExploreGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} beep={beep} nameOf={nameOf} msg={msg} onBack={backToLobby}/>}
+      {G.type==='wolf'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=WOLF_MIN;const k=wolfCount(n);const hunter=wfOpts.hunter&&n>=6;return <><span className="eyebrow">พร้อมยัง?</span><h2>หมู่บ้านนี้…มีหมาป่าปนอยู่</h2>
+        <p className="hint">เล่นได้ {WOLF_MIN}–12 คน • ระบบเป็นผู้ดำเนินเกม ทุกคนดูจอตัวเอง แล้วคุยกันทางเสียง</p>
+        {ok&&<div className="score-rules"><b>🎭 บทบาทในวงนี้ ({n} คน)</b><span>🐺 หมาป่า {k} • 🔮 หมอดู 1 • 💉 หมอยา 1{hunter?' • 🏹 นายพราน 1':''} • 🧑‍🌾 ชาวบ้าน {n-k-2-(hunter?1:0)}</span></div>}
+        <div className="score-rules"><b>⚙️ ตั้งค่า</b>
+          <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.hunter} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,hunter:e.target.checked}))}/> 🏹 มีนายพราน (6 คนขึ้นไป) — ตายแล้วยิงพาไปด้วย 1 คน</label>
+          <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.reveal} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,reveal:e.target.checked}))}/> 🪦 เปิดบทบาทคนที่ตาย</label></div>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>ชาวบ้านชนะ: ฝ่ายชาวบ้านคนละ +{WOLF_SCORE.village} (รวมคนที่ตายไปแล้ว)</span><span>หมาป่าชนะ: หมาป่าคนละ +{WOLF_SCORE.wolf}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌙 เริ่มคืนแรก ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
+      {G.type==='wolf'&&room.status!=='lobby'&&room.round?.kind==='wolf'&&<WolfGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} beep={beep} nameOf={nameOf} onBack={backToLobby}/>}
       </section></div>
       {!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}
-      {room.status==='lobby'&&G.type!=='explore'&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&G.type!=='explore'&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>
