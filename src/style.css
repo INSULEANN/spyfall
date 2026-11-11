@@ -75,3 +75,15 @@ button.brand{background:none;border:0;color:inherit;padding:0}button.brand:hover
 .voice-mute{padding:7px;margin:0}.voice-mute.off{color:#ff9b9b;border-color:#ff7a7a66}
 .voice-vol{display:flex;align-items:center;gap:10px;margin:6px 0 0 19px}.voice-vol input{flex:1;padding:0;height:20px;accent-color:#ffc965;background:none;border:0;box-shadow:none}.voice-vol input:disabled{opacity:.35}.voice-vol span{width:42px;text-align:right;font-size:11px;color:#bfb5d0;font-variant-numeric:tabular-nums}
 .voice-note{font-size:10.5px;color:#7d758f;margin:8px 0 0}
+/* ออกสำรวจ */
+.explore-game h2{font-family:'Kanit',sans-serif;font-size:22px;margin:14px 0}.explore-game .cat-tag{margin:0}
+.ex-map{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0 8px}
+.ex-stage{border:1px solid #ffffff16;background:#14121f;border-radius:12px;padding:10px 6px;display:grid;gap:2px;text-align:center}.ex-stage .ex-icon{font-size:22px}.ex-stage b{font-size:12px;font-weight:600}.ex-stage small{font-size:10px;color:#9e95b2}
+.ex-stage.cur{border-color:#ffc965;box-shadow:0 0 0 2px #ffc96533}.ex-stage.ok{background:#14231b;border-color:#7ee0a055}.ex-stage.fail{background:#2a1519;border-color:#ff8f8f55}
+.ex-rejects{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:12px;color:#bfb5d0;margin-bottom:14px}.ex-rejects i{width:14px;height:14px;border-radius:50%;border:1px solid #ffffff30}.ex-rejects i.on{background:#ff8f8f;border-color:#ff8f8f}.ex-rejects small{color:#8d849f;font-size:11px}
+.ex-role{margin-bottom:6px}.ex-role b{color:#ffc965}.ex-role b.bad,.ex-side.bad{color:#ff8f8f!important}.ex-role b.good,.ex-side.good{color:#7ee0a0!important}.ex-side{font-weight:700;font-size:14px!important}
+.ex-peek{display:flex;gap:8px;margin-top:10px}.ex-peek select{max-width:none;flex:1}
+.ex-banner{margin:12px 0 0;padding:11px 13px;border-radius:11px;font-size:13px;line-height:1.6}.ex-banner.ok{background:#14231b;border:1px solid #7ee0a055;color:#c9f2d6}.ex-banner.fail{background:#2a1519;border:1px solid #ff8f8f55;color:#ffd0d0}
+.ex-team{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}.ex-team span{font-size:13px;padding:7px 11px;border-radius:20px;background:#292439;border:1px solid #ffffff20}.ex-team span.done{border-color:#7ee0a088;color:#7ee0a0}
+.ex-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ex-two>button:only-child{grid-column:1/-1}.secondary.danger{background:#4a1f26;border-color:#ff8f8f66;color:#ffd0d0}
+@media(max-width:760px){.ex-map{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.ex-stage{padding:8px 2px}.ex-stage b{font-size:10px}.ex-stage small{font-size:9px}}
