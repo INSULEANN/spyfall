@@ -97,3 +97,9 @@ button.brand{background:none;border:0;color:inherit;padding:0}button.brand:hover
 .ceo-role{color:#bfb5d0;font-size:13px;margin:0 0 14px}.ceo-text p{color:#d2c9df;font-size:14px;line-height:1.75;margin:8px 0}.ceo-text b{color:#f3eefa}
 .ceo-facts{list-style:none;padding:0;margin:12px 0;display:grid;gap:6px}.ceo-facts li{font-size:13px;color:#e5dced;background:#ffffff08;border:1px solid #ffffff10;border-radius:10px;padding:8px 11px;line-height:1.6}
 @media(max-width:760px){.ceo-card{grid-template-columns:1fr}.ceo-photo{min-height:0;aspect-ratio:4/3}.ceo-text{padding:20px 18px}.ceo-text h2{font-size:30px}}
+/* เค้กหายไปไหน */
+.cake-clock{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:14px 0}
+.cake-hour{border:1px solid #ffffff16;background:#14121f;border-radius:10px;padding:8px 4px;text-align:center;display:grid;gap:2px}.cake-hour b{font-size:12px}.cake-hour small{font-size:10px;color:#ffc965;min-height:12px}
+.cake-hour.past{opacity:.45}.cake-hour.now{border-color:#8f9bff;background:#1b1f3a;box-shadow:0 0 0 2px #8f9bff33}.cake-hour.mine{border-style:dashed;border-color:#ffc96588}
+.cake-memory{display:grid;gap:4px;margin:14px 0;padding:12px 14px;border-radius:12px;background:#ffffff06;border:1px solid #ffffff10;font-size:13px;color:#d2c9df}.cake-memory b{color:#e9e2ff}
+.score-rules small{color:#8d849f;font-size:11px}
