@@ -21,9 +21,9 @@ export const needFails = n => STAGES.map((_, i) => (i === 4 && n >= 7 ? 2 : 1));
 
 export const ROLE_INFO = {
   explorer: { icon: '🧭', name: 'นักสำรวจ', side: 'good', desc: 'พาคณะผ่านด่านให้ได้ 3 ด่าน เลือกเพื่อนร่วมทางให้ดี อย่าพาโจรไปด้วย' },
-  lantern: { icon: '🏮', name: 'ผู้ถือตะเกียง', side: 'good', desc: 'ฝ่ายนักสำรวจ ส่องดูฝ่ายของผู้เล่น 1 คนได้ 1 ครั้งต่อเกม (เห็นคนเดียว)' },
-  traitor: { icon: '🗡️', name: 'โจรขุดสมบัติ', side: 'bad', desc: 'แฝงตัวในคณะ ถ้าได้ไปด่านไหน แอบก่อวินาศให้ด่านพัง 3 ด่าน' },
-  mole: { icon: '🐍', name: 'จอมแฝงตัว', side: 'bad', desc: 'ฝ่ายโจร แต่ถ้าผู้ถือตะเกียงส่องมา จะเห็นเป็นนักสำรวจ' },
+  lantern: { icon: '🏮', name: 'ผู้ถือตะเกียง', side: 'good', desc: 'ฝ่ายนักสำรวจ รู้ตั้งแต่แรกว่าใครเป็นโจร ใบ้เพื่อนอ้อม ๆ อย่าให้โจรจับได้ เพราะถ้านักสำรวจผ่าน 3 ด่าน โจรจะได้ชี้ตัวคุณ 1 ครั้ง ชี้ถูก = โจรพลิกชนะ' },
+  traitor: { icon: '🗡️', name: 'โจรขุดสมบัติ', side: 'bad', desc: 'แฝงตัวในคณะ แอบก่อวินาศให้ด่านพัง 3 ด่าน หรือถ้าแพ้ด่าน ให้จับตาว่าใครคือผู้ถือตะเกียงแล้วชี้ตัวตอนจบ' },
+  mole: { icon: '🐍', name: 'จอมแฝงตัว', side: 'bad', desc: 'ฝ่ายโจร แต่ผู้ถือตะเกียงมองไม่เห็นคุณ (เพื่อนโจรยังรู้ว่าคุณเป็นพวก)' },
 };
 export const sideOf = role => ROLE_INFO[role]?.side || 'good';
 
@@ -35,7 +35,7 @@ export function makeExploreRound(ids, opts = {}, number = 1) {
   const good = shuffle(ids.filter(id => !bad.includes(id)));
   const roles = {};
   ids.forEach(id => roles[id] = bad.includes(id) ? 'traitor' : 'explorer');
-  if (opts.lantern && good.length) roles[good[0]] = 'lantern';
+  roles[good[0]] = 'lantern'; // มีผู้ถือตะเกียงทุกตา
   if (opts.mole && bad.length) roles[bad[0]] = 'mole';
   return { number, kind: 'explore', order: shuffle(ids), leader: 0, roles, sizes: teamSizes(n), need: needFails(n), stage: 0, rejects: 0, phase: 'pick', startedAt: Date.now() };
 }
@@ -50,7 +50,7 @@ function nextLeader(cur) {
 function endGame(cur, winner, reason) {
   const points = {}, sc = { ...(cur.scores || {}) };
   Object.keys(cur.players || {}).forEach(id => { points[id] = sideOf(cur.round.roles?.[id]) === winner ? EXPLORE_SCORE[winner] : 0; sc[id] = (sc[id] || 0) + points[id]; });
-  cur.status = 'result'; cur.scores = sc; cur.result = { type: 'explore', winner, reason, points };
+  cur.status = 'result'; cur.round.phase = 'done'; cur.scores = sc; cur.result = { type: 'explore', winner, reason, points };
   return cur;
 }
 const tally = hist => ({ ok: hist.filter(h => h.ok).length, bad: hist.filter(h => !h.ok).length });
@@ -90,7 +90,11 @@ export function resolveMission(cur, force) {
   const hist = [...(rd.history || []), entry]; rd.history = hist; rd.lastMission = entry;
   rd.team = null; rd.votes = null; rd.cards = null; rd.lastVote = null;
   const t = tally(hist);
-  if (t.ok >= WIN_AT) return endGame(cur, 'good', 'stages');
+  if (t.ok >= WIN_AT) { // ผ่านครบ → ให้ฝ่ายโจรได้ชี้ตัวผู้ถือตะเกียง 1 ครั้ง
+    const hunters = Object.keys(cur.players || {}).filter(id => sideOf(rd.roles?.[id]) === 'bad');
+    if (!hunters.length) return endGame(cur, 'good', 'stages');
+    rd.phase = 'hunt'; return cur;
+  }
   if (t.bad >= WIN_AT) return endGame(cur, 'bad', 'stages');
   rd.stage += 1; rd.rejects = 0; nextLeader(cur); rd.phase = 'pick';
   return cur;
@@ -101,10 +105,20 @@ export function playCard(cur, me, sabotage) {
   rd.cards = { ...(rd.cards || {}), [me]: sabotage && canSabotage ? 'f' : 's' };
   return resolveMission(cur, false);
 }
-export function castLantern(cur, me, target) {
-  const rd = cur.round; if (rd.roles?.[me] !== 'lantern' || rd.peek || target === me || !here(cur, target)) return;
-  const r = rd.roles[target]; rd.peek = { target, side: r === 'traitor' ? 'bad' : 'good' }; // จอมแฝงตัวเห็นเป็นฝ่ายดี
-  return cur;
+// โจรทุกคน (ที่ยังอยู่ในห้อง) ต้องชี้คนเดียวกันถึงจะสรุปผล — เปลี่ยนใจได้จนกว่าจะตรงกันครบ
+export function huntLantern(cur, me, target) {
+  const rd = cur.round; if (rd.phase !== 'hunt' || sideOf(rd.roles?.[me]) !== 'bad' || !here(cur, me) || !rd.roles?.[target] || sideOf(rd.roles[target]) === 'bad') return;
+  rd.huntVotes = { ...(rd.huntVotes || {}), [me]: target };
+  const hunters = Object.keys(cur.players || {}).filter(id => sideOf(rd.roles?.[id]) === 'bad');
+  if (!hunters.every(id => rd.huntVotes[id] === target)) return cur;
+  const hit = rd.roles[target] === 'lantern';
+  rd.hunt = { by: hunters, target, hit };
+  return endGame(cur, hit ? 'bad' : 'good', 'hunt');
+}
+// host ใช้เมื่อฝ่ายโจรหลุดหมด → นักสำรวจชนะ
+export function skipHunt(cur) {
+  const rd = cur.round; if (rd.phase !== 'hunt') return;
+  rd.hunt = { skipped: true }; return endGame(cur, 'good', 'hunt');
 }
 export function skipLeader(cur) {
   const rd = cur.round; if (rd.phase !== 'pick') return;
@@ -116,7 +130,6 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
   const r = room.round; const res = room.status === 'result' && room.result;
   const [showRole, setShowRole] = useState(false);
   const [sel, setSel] = useState([]);
-  const [peekT, setPeekT] = useState('');
   const myRole = r.roles?.[myId]; const info = ROLE_INFO[myRole] || ROLE_INFO.explorer; const bad = info.side === 'bad';
   const leader = leaderId(r); const amLeader = leader === myId && !res;
   const size = r.sizes?.[r.stage]; const hist = r.history || []; const t = tally(hist);
@@ -134,7 +147,10 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
   async function propose() { if (sel.length !== size) { msg(`เลือกให้ครบ ${size} คน`); return; } await tx(cur => proposeTeam(cur, myId, sel)); }
   async function approve(yes) { await tx(cur => castApprove(cur, myId, yes)); if (sound) beep(yes ? 760 : 420, .1); }
   async function play(sab) { await tx(cur => playCard(cur, myId, sab)); if (sound) beep(600, .1); }
-  async function peek() { if (!peekT) { msg('เลือกคนที่จะส่องก่อน'); return; } if (!confirm(`ใช้ตะเกียงส่อง ${nameOf(peekT)}? ใช้ได้ครั้งเดียวต่อเกม`)) return; await tx(cur => castLantern(cur, myId, peekT)); }
+  const seen = Object.keys(r.roles || {}).filter(id => r.roles[id] === 'traitor'); // ผู้ถือตะเกียงเห็นโจร ยกเว้นจอมแฝงตัว
+  async function hunt(id) { await tx(cur => huntLantern(cur, myId, id)); if (sound) beep(700, .08); }
+  const huntVotes = r.huntVotes || {};
+  async function hostSkipHunt() { if (!confirm('ฝ่ายโจรหลุดหมดแล้ว? จบเกมให้นักสำรวจชนะ')) return; await tx(cur => skipHunt(cur)); }
   async function hostForce(kind) { if (!confirm(kind === 'approve' ? 'สรุปโหวตเลย? คนที่ยังไม่โหวตนับเป็นไม่เห็นด้วย' : 'เปิดผลเลย? สมาชิกที่ยังไม่ส่งนับเป็นสำรวจต่อ')) return; await tx(cur => kind === 'approve' ? resolveApprove(cur, true) : resolveMission(cur, true)); }
   async function hostSkip() { if (!confirm(`ข้ามหัวหน้าคณะ ${nameOf(leader)} ไปคนถัดไป?`)) return; await tx(cur => skipLeader(cur)); }
 
@@ -157,9 +173,7 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
       {showRole ? <><p>{info.desc}</p>
         <p className={'ex-side ' + info.side}>{bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}</p>
         {bad && <p>พวกเดียวกัน: <b>{mates.length ? mates.map(nameOf).join(', ') : '— ไม่มี —'}</b></p>}
-        {myRole === 'lantern' && (r.peek
-          ? <p>🏮 ส่องแล้ว: <b>{nameOf(r.peek.target)}</b> เป็น <b className={r.peek.side}>{r.peek.side === 'bad' ? 'ฝ่ายโจร' : 'ฝ่ายนักสำรวจ'}</b></p>
-          : <div className="ex-peek"><select value={peekT} onChange={e => setPeekT(e.target.value)}><option value="">เลือกคนที่จะส่อง…</option>{order.filter(id => id !== myId).map(id => <option key={id} value={id}>{nameOf(id)}</option>)}</select><button className="secondary" onClick={peek}>🏮 ส่อง</button></div>)}
+        {myRole === 'lantern' && <p>🏮 โจรที่ตะเกียงส่องเห็น: <b className="bad">{seen.map(nameOf).join(', ') || '— ไม่มี —'}</b>{Object.values(r.roles || {}).includes('mole') && <><br />(มีจอมแฝงตัวอีก 1 คนที่คุณมองไม่เห็น)</>}</p>}
       </> : <p>กดเปิดดูคนเดียว ระวังคนแอบมองจอ!</p>}
       <button className="secondary" onClick={() => setShowRole(!showRole)}>{showRole ? <EyeOff size={16} /> : <Eye size={16} />} {showRole ? 'ซ่อนบทบาท' : 'เปิดดูบทบาท'}</button>
     </div>}
@@ -184,6 +198,18 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
       {isHost && <div className="head-host"><button className="link-btn" onClick={() => hostForce('approve')}>สรุปโหวตเลย (ไม่รอ)</button></div>}
     </>}
 
+    {!res && r.phase === 'hunt' && <>
+      <h2>🗡️ ช่วงตามล่าผู้ถือตะเกียง</h2>
+      <p className="hint">นักสำรวจผ่านครบ {WIN_AT} ด่านแล้ว! แต่ฝ่ายโจรยังมีโอกาสพลิก — โจรทุกคนต้องชี้คนเดียวกัน ชี้ถูกตัวผู้ถือตะเกียง = โจรชนะ</p>
+      {bad ? <>
+        <p className="hint">เพื่อนโจร: <b>{mates.map(nameOf).join(', ') || '— ไม่มี —'}</b> • แตะชื่อเพื่อชี้ เปลี่ยนใจได้ ระบบสรุปเมื่อโจรทุกคนชี้ตรงกัน</p>
+        <div className="ex-pick">{order.filter(id => sideOf(r.roles?.[id]) !== 'bad').map(id => { const who = Object.keys(huntVotes).filter(b => huntVotes[b] === id && room.players?.[b]);
+          return <button key={id} className={'vote-row' + (huntVotes[myId] === id ? ' selected' : '')} onClick={() => hunt(id)}><span>{nameOf(id)}</span><span>{who.length ? '🎯 ' + who.map(b => b === myId ? 'คุณ' : nameOf(b)).join(', ') : 'ชี้คนนี้'}</span></button>; })}</div>
+        {huntVotes[myId] && <div className="waiting">⏳ รอเพื่อนโจรชี้ให้ตรงกัน…</div>}
+      </> : <div className="waiting">⏳ ฝ่ายโจรกำลังเลือกว่าใครคือผู้ถือตะเกียง… {myRole === 'lantern' ? 'ทำตัวเนียน ๆ ไว้!' : 'ช่วยกันมั่วให้โจรสับสน!'}</div>}
+      {isHost && <div className="head-host"><button className="link-btn" onClick={hostSkipHunt}>ฝ่ายโจรหลุดหมด — จบเกม</button></div>}
+    </>}
+
     {!res && r.phase === 'mission' && <>
       <h2>{STAGES[r.stage].icon} คณะกำลังบุก{STAGES[r.stage].name}</h2>
       <div className="ex-team">{team.map(id => <span key={id} className={id in cards ? 'done' : ''}>{nameOf(id)}{id in cards ? ' ✓' : ''}</span>)}</div>
@@ -197,7 +223,9 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
     {res && <>
       <h2>{res.winner === 'good' ? 'นักสำรวจคว้าสมบัติได้! 🏆' : 'โจรขุดสมบัติชนะ! 🗡️'}</h2>
       <div className="result-card"><div className="big-emoji">{res.winner === 'good' ? '💎' : '🏴‍☠️'}</div>
-        <p>{res.reason === 'rejects' ? `คณะถูกค้านติดกัน ${MAX_REJECT} ครั้ง จนแตกคอกันเอง` : res.winner === 'good' ? `ผ่านด่านครบ ${WIN_AT} ด่าน` : `ด่านพังครบ ${WIN_AT} ด่าน`}</p>
+        <p>{res.reason === 'rejects' ? `คณะถูกค้านติดกัน ${MAX_REJECT} ครั้ง จนแตกคอกันเอง`
+          : res.reason === 'hunt' ? (r.hunt?.skipped ? `ผ่านด่านครบ ${WIN_AT} ด่าน (ฝ่ายโจรไม่ได้ชี้ตัว)` : r.hunt?.hit ? `ผ่านด่านครบ ${WIN_AT} ด่าน แต่ฝ่ายโจรชี้ตัวผู้ถือตะเกียง ${nameOf(r.hunt.target)} ถูก! โจรพลิกชนะ 😱` : `ผ่านด่านครบ ${WIN_AT} ด่าน และโจรชี้ผิดคน (ชี้ ${nameOf(r.hunt?.target)})`)
+          : res.winner === 'good' ? `ผ่านด่านครบ ${WIN_AT} ด่าน` : `ด่านพังครบ ${WIN_AT} ด่าน`}</p>
         <h4 className="ballot-title">บทบาทของแต่ละคน</h4>
         <ul className="role-list">{players.map(p => { const ri = ROLE_INFO[r.roles?.[p.id]] || ROLE_INFO.explorer; return <li key={p.id}><span>{p.name}</span><b className={ri.side === 'bad' ? 'spy' : ''}>{ri.icon} {ri.name}</b></li>; })}</ul>
         <h4 className="ballot-title">🏅 ตารางคะแนนสะสม</h4>

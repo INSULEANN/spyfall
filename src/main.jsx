@@ -11,7 +11,7 @@ import VoicePanel from './voice.jsx';
 import { ExploreGame, makeExploreRound, teamSizes, traitorCount, needFails, EXPLORE_MIN, EXPLORE_SCORE, MAX_REJECT } from './explore.jsx';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.9';
+const APP_VERSION = '1.9.1';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -54,7 +54,7 @@ const GAMES = {
     blurb:'คณะนักสำรวจต้องผ่าน 5 ด่าน แต่มีโจรขุดสมบัติแฝงอยู่ เลือกคนไปให้ดี แล้วจับให้ได้ว่าใครก่อวินาศ',
     lead:'หัวหน้าคณะผลัดกันเลือกคนไปสำรวจ ทุกคนโหวตเห็นด้วย/ค้าน แล้วคณะส่งการ์ดลับ…ถ้ามีการ์ดก่อวินาศ ด่านนั้นพัง!',
     pills:['🧭 ทีมลับ','🗳️ โหวตคณะ','💣 ก่อวินาศ'],
-    how:[['รับฝ่ายลับ','ส่วนใหญ่เป็นนักสำรวจ ราว 1 ใน 3 เป็นโจรขุดสมบัติที่รู้จักกันเอง'],['เสนอและโหวตคณะ','หัวหน้าคณะเลือกคนไปด่านนี้ ทุกคนโหวต ถ้าเห็นด้วยไม่เกินครึ่ง หัวหน้าคนถัดไปเสนอใหม่'],['สำรวจหรือก่อวินาศ','คณะส่งการ์ดลับ มีก่อวินาศแม้ใบเดียวด่านก็พัง ผ่าน 3 ด่านนักสำรวจชนะ พัง 3 ด่านโจรชนะ']] },
+    how:[['รับฝ่ายลับ','ราว 1 ใน 3 เป็นโจรขุดสมบัติที่รู้จักกันเอง และมีผู้ถือตะเกียง 1 คนที่รู้ว่าใครเป็นโจร'],['เสนอและโหวตคณะ','หัวหน้าคณะเลือกคนไปด่านนี้ ทุกคนโหวต ถ้าเห็นด้วยไม่เกินครึ่ง หัวหน้าคนถัดไปเสนอใหม่'],['สำรวจหรือก่อวินาศ','คณะส่งการ์ดลับ มีก่อวินาศแม้ใบเดียวด่านก็พัง พัง 3 ด่านโจรชนะ ผ่าน 3 ด่านโจรยังพลิกได้ถ้าชี้ตัวผู้ถือตะเกียงถูก']] },
 };
 const HEAD_NORM = s => String(s||'').toLowerCase().replace(/[\s\-.'’]/g,'');
 // กติกาคะแนนต่อรอบ
@@ -88,7 +88,7 @@ function App() {
   const [verdict,setVerdict]=useState(null);
   const [game,setGameState]=useState(()=>{const h=location.hash.slice(1);return GAMES[h]?h:null});
   const [showCat,setShowCat]=useState(true);
-  const [exOpts,setExOpts]=useState({lantern:true,mole:false});
+  const [exOpts,setExOpts]=useState({mole:false});
   function setGame(g){setGameState(g);try{history.replaceState(null,'',g?'#'+g:location.pathname+location.search)}catch{}}
   useEffect(()=>{const f=()=>{const h=location.hash.slice(1);setGameState(GAMES[h]?h:null)};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f)},[]);
   const [newBuild,setNewBuild]=useState(false);
@@ -252,8 +252,8 @@ function App() {
         <p className="hint">เล่นได้ {EXPLORE_MIN}–12 คน • โจรขุดสมบัติราว 1 ใน 3 ของวง • คุยกันทางเสียงระหว่างเลือกคณะ</p>
         {ok&&<div className="score-rules"><b>🗺️ วงนี้ {n} คน</b><span>โจร {traitorCount(n)} คน • นักสำรวจ {n-traitorCount(n)} คน</span><span>จำนวนคนต่อด่าน: {sz.map((s,i)=>nf[i]>1?`${s}*`:s).join(' → ')}{nf.some(x=>x>1)&&' (* ต้องก่อวินาศ 2 ใบถึงพัง)'}</span><span>ค้านคณะติดกัน {MAX_REJECT} ครั้ง = โจรชนะ</span></div>}
         <div className="score-rules"><b>🎭 บทบาทพิเศษ</b>
-          <label className="cat-toggle"><input type="checkbox" className="tick" checked={exOpts.lantern} disabled={!isHost} onChange={e=>setExOpts(o=>({...o,lantern:e.target.checked,mole:e.target.checked&&o.mole}))}/> 🏮 ผู้ถือตะเกียง (ฝ่ายดี) — ส่องดูฝ่ายของ 1 คนได้ 1 ครั้ง</label>
-          <label className="cat-toggle"><input type="checkbox" className="tick" checked={exOpts.mole} disabled={!isHost||!exOpts.lantern} onChange={e=>setExOpts(o=>({...o,mole:e.target.checked}))}/> 🐍 จอมแฝงตัว (ฝ่ายโจร) — ตะเกียงส่องแล้วเห็นเป็นนักสำรวจ</label></div>
+          <span>🏮 ผู้ถือตะเกียง (ฝ่ายดี มีทุกตา) — รู้ตั้งแต่แรกว่าใครเป็นโจร แต่ถ้านักสำรวจผ่าน 3 ด่าน โจรได้ชี้ตัว 1 ครั้ง ชี้ถูก = โจรพลิกชนะ</span>
+          <label className="cat-toggle"><input type="checkbox" className="tick" checked={exOpts.mole} disabled={!isHost} onChange={e=>setExOpts(o=>({...o,mole:e.target.checked}))}/> 🐍 จอมแฝงตัว (ฝ่ายโจร) — ผู้ถือตะเกียงมองไม่เห็น</label></div>
         <div className="score-rules"><b>🏅 คะแนน</b><span>นักสำรวจชนะ: ฝ่ายนักสำรวจคนละ +{EXPLORE_SCORE.good}</span><span>โจรชนะ: ฝ่ายโจรคนละ +{EXPLORE_SCORE.bad}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🧭 ออกเดินทาง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
