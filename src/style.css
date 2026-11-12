@@ -105,3 +105,7 @@ button.brand{background:none;border:0;color:inherit;padding:0}button.brand:hover
 .score-rules small{color:var(--dim);font-size:11px}
 
 .kick-btn{flex:none;width:30px;height:30px;padding:0;margin-left:6px;border-radius:50%;border:1px solid #ff9b9b55;background:#ff5f6d1a;color:#ff9b9b;font-size:13px;line-height:1;cursor:pointer}.kick-btn:hover{background:#ff5f6d33}
+/* แถวผู้เล่น: ชื่อยาว + ปุ่มเตะ ห้ามดันจอให้กว้างเกินมือถือ */
+.player-row{min-width:0}.player-row>div{min-width:0}.player-row b,.player-row small{overflow-wrap:anywhere}
+.player-row .score-chip{margin-right:0}.player-row>*{flex-shrink:0}.player-row>div{flex-shrink:1}
+.room-grid>*{min-width:0}

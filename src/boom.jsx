@@ -64,9 +64,9 @@ function finish(cur) {
   r.phase = 'done'; r.winner = winner; cur.status = 'result'; cur.scores = sc; cur.result = { type: 'boom', winner: winner || null, second: second || null, points };
   return cur;
 }
-function eliminate(cur, id, why) {
+function eliminate(cur, id, why, act = '💥 ตูม!') {
   const r = cur.round; r.alive[id] = false; r.discard = [...(r.discard || []), ...hand(r, id)]; r.hands[id] = []; r.out = [...(r.out || []), id];
-  say(r, why, { boom: id });
+  say(r, why, { boom: id, by: id, act });
   if (r.order.filter(x => r.alive[x]).length <= 1) return finish(cur);
   if (current(r) === id) passTurn(r, 1);
   return cur;
@@ -76,11 +76,11 @@ function drawFor(cur, id, bottom, now) {
   if (!card) { endTurn(r); return cur; }
   if (T(card) === 'bomb') {
     const clip = hand(r, id).find(c => T(c) === 'clip');
-    if (clip) { take(r, id, clip); r.discard = [...(r.discard || []), clip]; r.phase = 'defuse'; r.defuse = { pid: id, bomb: card, until: now + DEFUSE_MS }; r.boom = { pid: id, at: now, saved: true }; say(r, `💥 {${id}} จั่วได้ทุเรียนตูม! แต่หนีบจมูกทัน 🧷`); return cur; }
+    if (clip) { take(r, id, clip); r.discard = [...(r.discard || []), clip]; r.phase = 'defuse'; r.defuse = { pid: id, bomb: card, until: now + DEFUSE_MS }; r.boom = { pid: id, at: now, saved: true }; say(r, `💥 {${id}} จั่วได้ทุเรียนตูม! แต่หนีบจมูกทัน 🧷`, { by: id, act: '🧷 รอดหวุดหวิด!' }); return cur; }
     r.boom = { pid: id, at: now, saved: false };
     return eliminate(cur, id, `💥 ตูม! {${id}} จั่วได้ทุเรียนตูมแล้วไม่มีที่หนีบจมูก — ตกรอบ`);
   }
-  give(r, id, card); say(r, `🃏 {${id}} จั่วไพ่${bottom ? 'ใบล่างสุด' : ''} 1 ใบ`); endTurn(r); return cur;
+  give(r, id, card); say(r, `🃏 {${id}} จั่วไพ่${bottom ? 'ใบล่างสุด' : ''} 1 ใบ`, { by: id, act: bottom ? '🃏 จั่วใบล่าง' : '🃏 จั่ว' }); endTurn(r); return cur;
 }
 export function playCards(cur, me, cards, target, named, now) {
   const r = cur.round; if (r.phase !== 'play' || r.pending || current(r) !== me || !r.alive[me]) return;
@@ -96,28 +96,28 @@ export function playCards(cur, me, cards, target, named, now) {
   if (kind === 'trio' && !BOOM_CARDS[named]) return;
   cards.forEach(c => take(r, me, c)); r.discard = [...(r.discard || []), ...cards];
   r.pending = { by: me, kind, cards, target: needTarget ? target : null, named: kind === 'trio' ? named : null, until: now + WINDOW, nopes: 0, noped: [] };
-  say(r, `🃏 {${me}} เล่น “${BOOM_CARDS[t].n}”${cards.length > 1 ? ` ×${cards.length}` : ''}${needTarget ? ` ใส่ {${target}}` : ''}`);
+  say(r, `🃏 {${me}} เล่น “${BOOM_CARDS[t].n}”${cards.length > 1 ? ` ×${cards.length}` : ''}${needTarget ? ` ใส่ {${target}}` : ''}`, { by: me, act: `${BOOM_CARDS[t].n}${cards.length > 1 ? ` ×${cards.length}` : ''}!` });
   return cur;
 }
 export function playNope(cur, me, card, now) {
   const r = cur.round; if (!r.pending || !r.alive[me] || T(card) !== 'nope' || !take(r, me, card)) return;
   r.discard = [...(r.discard || []), card]; r.pending.nopes = (r.pending.nopes || 0) + 1; r.pending.noped = [...(r.pending.noped || []), me]; r.pending.until = now + WINDOW;
-  say(r, `🙅 {${me}} ไม่เอา!${r.pending.nopes % 2 ? '' : ' (ยกเลิกการไม่เอา)'}`); return cur;
+  say(r, `🙅 {${me}} ไม่เอา!${r.pending.nopes % 2 ? '' : ' (ยกเลิกการไม่เอา)'}`, { by: me, act: '🙅 ไม่เอา!' }); return cur;
 }
 function resolve(cur, now) {
   const r = cur.round; const p = r.pending; r.pending = null;
   if ((p.nopes || 0) % 2) { say(r, `🚫 “${BOOM_CARDS[T(p.cards[0])].n}” ถูกยกเลิก`); return cur; }
   switch (p.kind) {
-    case 'skip': endTurn(r); break;
-    case 'attack': passTurn(r, 2); say(r, `👉 {${current(r)}} ต้องเล่น 2 ตาติด!`); break;
+    case 'skip': say(r, `⏭️ {${p.by}} ขอผ่าน ไม่ต้องจั่ว`, { by: p.by, act: '⏭️ ผ่าน!' }); endTurn(r); break;
+    case 'attack': passTurn(r, 2); say(r, `👉 {${current(r)}} ต้องเล่น 2 ตาติด!`, { by: current(r), act: '😱 โดน 2 ตา!' }); break;
     case 'future': r.peek = { pid: p.by, cards: (r.deck || []).slice(0, 3), at: now }; break;
     case 'shuffle': r.deck = shuffle(r.deck || []); r.peek = null; say(r, '🔀 สับกองไพ่แล้ว'); break;
     case 'favor': if (hand(r, p.target).length) { r.phase = 'favor'; r.favor = { from: p.target, to: p.by, until: now + FAVOR_MS }; } break;
     case 'bottom': return drawFor(cur, p.by, true, now);
     case 'market': { const ids = aliveIds(r, cur).filter(id => hand(r, id).length); const picks = ids.map(id => { const h = hand(r, id); return h[rint(h.length)]; });
       ids.forEach((id, i) => take(r, id, picks[i])); ids.forEach((id, i) => give(r, ids[(i + 1) % ids.length], picks[i])); say(r, '🛒 ตลาดแตก! ทุกคนส่งไพ่ให้คนถัดไป'); break; }
-    case 'pair': { const h = hand(r, p.target); if (h.length) { const c = h[rint(h.length)]; take(r, p.target, c); give(r, p.by, c); say(r, `🖐️ {${p.by}} ขโมยไพ่ 1 ใบจาก {${p.target}}`); } break; }
-    case 'trio': { const c = hand(r, p.target).find(x => T(x) === p.named); if (c) { take(r, p.target, c); give(r, p.by, c); say(r, `🎯 {${p.by}} ได้ “${BOOM_CARDS[p.named].n}” จาก {${p.target}}`); } else say(r, `😅 {${p.target}} ไม่มี “${BOOM_CARDS[p.named].n}”`); break; }
+    case 'pair': { const h = hand(r, p.target); if (h.length) { const c = h[rint(h.length)]; take(r, p.target, c); give(r, p.by, c); say(r, `🖐️ {${p.by}} ขโมยไพ่ 1 ใบจาก {${p.target}}`, { by: p.by, act: '🖐️ ขโมย!' }); } break; }
+    case 'trio': { const c = hand(r, p.target).find(x => T(x) === p.named); if (c) { take(r, p.target, c); give(r, p.by, c); say(r, `🎯 {${p.by}} ได้ “${BOOM_CARDS[p.named].n}” จาก {${p.target}}`, { by: p.by, act: '🎯 ได้แล้ว!' }); } else say(r, `😅 {${p.target}} ไม่มี “${BOOM_CARDS[p.named].n}”`); break; }
   }
   return cur;
 }
@@ -125,11 +125,11 @@ export function drawCard(cur, me, now) { const r = cur.round; if (r.phase !== 'p
 export function placeBomb(cur, me, pos) {
   const r = cur.round; if (r.phase !== 'defuse' || r.defuse?.pid !== me) return;
   const deck = [...(r.deck || [])]; deck.splice(Math.max(0, Math.min(deck.length, pos | 0)), 0, r.defuse.bomb); r.deck = deck;
-  r.phase = 'play'; r.defuse = null; say(r, `🤫 {${me}} แอบใส่ทุเรียนกลับเข้ากองแล้ว…`); endTurn(r); return cur;
+  r.phase = 'play'; r.defuse = null; say(r, `🤫 {${me}} แอบใส่ทุเรียนกลับเข้ากองแล้ว…`, { by: me, act: '🤫 ซ่อนทุเรียน' }); endTurn(r); return cur;
 }
 export function giveFavor(cur, me, card) {
   const r = cur.round; if (r.phase !== 'favor' || r.favor?.from !== me || !take(r, me, card)) return;
-  give(r, r.favor.to, card); say(r, `🎁 {${me}} ให้ไพ่ {${r.favor.to}} 1 ใบ`); r.phase = 'play'; r.favor = null; return cur;
+  give(r, r.favor.to, card); say(r, `🎁 {${me}} ให้ไพ่ {${r.favor.to}} 1 ใบ`, { by: me, act: '🎁 ให้ไพ่' }); r.phase = 'play'; r.favor = null; return cur;
 }
 // เวลาหมด (ทุกเครื่องเรียกได้ ทรานแซกชันกันซ้ำ)
 export function boomTick(cur, now) {
@@ -140,9 +140,84 @@ export function boomTick(cur, now) {
 }
 // หัวหน้าห้อง: คนที่ถึงตาหลุด/ค้าง → บังคับจั่ว หรือ ตัดออก
 export function forceDraw(cur, now) { const r = cur.round; if (r.phase !== 'play' || r.pending) return; return drawFor(cur, current(r), false, now); }
-export function kickOut(cur, id) { const r = cur.round; if (!r.alive?.[id] || cur.players?.[id]) return; return eliminate(cur, id, `🚪 {${id}} หลุดออกจากห้อง — ตัดออกจากเกม`); }
+export function kickOut(cur, id) { const r = cur.round; if (!r.alive?.[id] || cur.players?.[id]) return; return eliminate(cur, id, `🚪 {${id}} หลุดออกจากห้อง — ตัดออกจากเกม`, '🚪 ออกแล้ว'); }
 
 // ---------- หน้าจอ ----------
+// วงไพ่: ทุกคนนั่งรอบโต๊ะ (เราอยู่ล่างสุด เรียงตามลำดับตาตามเข็มนาฬิกา)
+const seatXY = (k, n) => { const a = Math.PI / 2 + (k / n) * Math.PI * 2; return { x: 50 + Math.cos(a) * 37, y: 50 + Math.sin(a) * 39 }; };
+const DECK_XY = { x: 38, y: 52 }, PILE_XY = { x: 62, y: 52 };
+const MiniBacks = ({ n }) => <span className="mini-backs">{Array.from({ length: Math.min(n, 7) }, (_, i) => <i key={i} />)}</span>;
+
+function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, pick, picked, onPick }) {
+  const order = r.order || []; const n = order.length; const meK = Math.max(0, order.indexOf(myId));
+  const pos = id => seatXY((order.indexOf(id) - meK + n) % n, n);
+  const cur = order[r.turn]; const P = r.pending; const deck = r.deck || []; const disc = r.discard || []; const top = disc[disc.length - 1];
+  const bombs = deck.filter(c => T(c) === 'bomb').length; const danger = deck.length ? Math.round(bombs / deck.length * 100) : 0;
+  // ไพ่ลอย (จั่ว/ลง/ส่งให้กัน) + ป้ายคำพูด — ดูจากความต่างของจำนวนไพ่ระหว่างสถานะเก่า/ใหม่
+  const [flies, setFlies] = useState([]); const [bubbles, setBubbles] = useState({}); const snap = useRef(null); const seq = useRef(0);
+  useEffect(() => {
+    const s = { deck: deck.length, disc: disc.length, hands: Object.fromEntries(order.map(id => [id, (r.hands?.[id] || []).length])), defuse: r.defuse?.pid || null, log: r.log || [] };
+    const p = snap.current; snap.current = s; if (!p) return;
+    const add = []; const k = () => ++seq.current;
+    let fromDeck = Math.max(0, p.deck - s.deck), toPile = Math.max(0, s.disc - p.disc); const faces = disc.slice(disc.length - toPile);
+    const gain = [], lose = [];
+    order.forEach(id => { const d = s.hands[id] - (p.hands[id] || 0); if (d > 0) gain.push([id, d]); if (d < 0) lose.push([id, -d]); });
+    gain.forEach(g => { const m = Math.min(g[1], fromDeck); for (let i = 0; i < Math.min(m, 3); i++) add.push({ k: k(), from: DECK_XY, to: pos(g[0]), delay: i * 140 }); fromDeck -= m; g[1] -= m; });
+    lose.forEach(l => { const m = Math.min(l[1], toPile); for (let i = 0; i < Math.min(m, 3); i++) add.push({ k: k(), from: pos(l[0]), to: PILE_XY, face: faces[i] || top, delay: i * 140 }); toPile -= m; l[1] -= m; });
+    const gs = gain.filter(g => g[1] > 0), ls = lose.filter(l => l[1] > 0);
+    gs.forEach((g, i) => { const l = ls[i % Math.max(1, ls.length)]; if (l) add.push({ k: k(), from: pos(l[0]), to: pos(g[0]), delay: 100 }); });
+    if (s.deck > p.deck && p.defuse) add.push({ k: k(), from: pos(p.defuse), to: DECK_XY, delay: 0 });
+    if (add.length) { setFlies(f => [...f, ...add].slice(-12)); const ks = add.map(a => a.k); setTimeout(() => setFlies(f => f.filter(x => !ks.includes(x.k))), 1300); }
+    // ป้ายคำพูดจากบันทึกใหม่
+    const fresh = s.log.length > p.log.length ? s.log.slice(p.log.length) : (s.log.length && s.log[s.log.length - 1]?.t !== p.log[p.log.length - 1]?.t ? s.log.slice(-1) : []);
+    fresh.filter(e => e.by && e.act).forEach(e => { const id = e.by, kk = k(); setBubbles(b => ({ ...b, [id]: { text: e.act, k: kk } })); setTimeout(() => setBubbles(b => (b[id]?.k === kk ? { ...b, [id]: null } : b)), 2500); });
+  });
+  // ลูกศรกลางโต๊ะชี้คนที่ถึงตา (หมุนทางที่ใกล้กว่า)
+  const angRef = useRef(null); let ang = angRef.current ?? 90;
+  if (cur && !res) { const c = pos(cur); let a = Math.atan2((c.y - 50) * 0.92, c.x - 50) * 180 / Math.PI; if (angRef.current != null) { while (a - angRef.current > 180) a -= 360; while (a - angRef.current < -180) a += 360; } ang = a; angRef.current = a; }
+  const left = P ? Math.max(0, P.until - srvNow) : 0;
+  return <div className={'rt' + (n > 6 ? ' crowd' : '')}>
+    <div className="rt-felt" />
+    {!res && <div className="rt-pointer" style={{ transform: `translate(-50%,-50%) rotate(${ang}deg)` }}><i /></div>}
+    <div className="rt-info"><span>💥 ทุเรียน {bombs} ลูก</span><b className={danger >= 25 ? 'hot' : ''}>{danger}%</b></div>
+    <button type="button" className={'rt-deck' + (canDraw ? ' can' : '')} style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }} onClick={canDraw ? onDraw : undefined} disabled={!canDraw} aria-label="กองจั่ว">
+      <CardFace back backKind="boom" size="sm" /><span className="pile-n">{deck.length}</span>{canDraw && <span className="rt-tap">แตะเพื่อจั่ว</span>}
+    </button>
+    <div className={'rt-pile' + (P ? ' live' : '') + (P && P.nopes % 2 ? ' noped' : '')} style={{ left: PILE_XY.x + '%', top: PILE_XY.y + '%' }}>
+      {top ? <Card id={top} size="sm" /> : <div className="gcard sm empty" />}{P && <span className="rt-timer">{Math.ceil(left / 1000)}</span>}
+    </div>
+    {order.map(id => {
+      const { x, y } = pos(id); const alive = !!r.alive?.[id]; const isCur = id === cur && alive && !res; const cnt = (r.hands?.[id] || []).length; const gone = !room.players?.[id];
+      const canPick = pick?.includes(id); const b = bubbles[id];
+      return <div key={id} role={canPick ? 'button' : undefined} onClick={canPick ? () => onPick(id) : undefined}
+        className={'seat' + (isCur ? ' turn' : '') + (alive ? '' : ' out') + (id === myId ? ' me' : '') + (canPick ? ' pick' : '') + (picked === id ? ' picked' : '') + (P?.target === id ? ' targeted' : '')} style={{ left: x + '%', top: y + '%' }}>
+        {isCur && <span className="seat-arrow">▼</span>}
+        <div className="seat-av"><Avatar id={id} av={av} size={40} dead={!alive} />{isCur && r.turnsLeft > 1 && <em className="seat-x">×{r.turnsLeft}</em>}{gone && alive && <span className="seat-off">📴</span>}{P?.target === id && <span className="seat-tg">🎯</span>}</div>
+        <b className="seat-name">{id === myId ? 'คุณ' : nameOf(id)}</b>
+        {alive ? <span className="seat-cards"><MiniBacks n={cnt} /><em>{cnt}</em></span> : <span className="seat-out">💥 ตกรอบ</span>}
+        {b && <span key={b.k} className="seat-bubble">{b.text}</span>}
+      </div>;
+    })}
+    {flies.map(f => <div key={f.k} className="fly" style={{ '--fx': f.from.x + '%', '--fy': f.from.y + '%', '--tx': f.to.x + '%', '--ty': f.to.y + '%', animationDelay: f.delay + 'ms' }}>{f.face ? <Card id={f.face} size="sm" /> : <CardFace back backKind="boom" size="sm" />}</div>)}
+  </div>;
+}
+
+// ไพ่ในมือแบบพัด: ซ้อนกันให้พอดีจอ แตะใบไหนใบนั้นยกขึ้น (มุมซ้ายบนมีภาพเล็กไว้ดูตอนซ้อน)
+function HandFan({ ids, selected = [], onTap }) {
+  const ref = useRef(null); const [w, setW] = useState(360);
+  useEffect(() => { const el = ref.current; if (!el) return; const f = () => setW(el.clientWidth || 360); f(); if (typeof ResizeObserver === 'undefined') return; const ro = new ResizeObserver(f); ro.observe(el); return () => ro.disconnect(); }, []);
+  const n = ids.length; const cw = w >= 640 ? 104 : Math.round(Math.max(70, Math.min(96, w * 0.25)));
+  const pad = 16; const step = n > 1 ? Math.max(cw * 0.42, Math.min(cw + 8, (w - pad * 2 - cw) / (n - 1))) : 0; const total = cw + step * Math.max(0, n - 1); const x0 = Math.max(pad, (w - total) / 2);
+  return <div className="fan" ref={ref} style={{ '--fcw': cw + 'px', height: Math.round(cw * 1.4) + 50 }}>
+    <div className="fan-in" style={{ width: Math.max(w, total + pad * 2) }}>
+      {ids.map((c, i) => { const off = i - (n - 1) / 2; const up = selected.includes(c); const rot = n > 1 ? off * Math.min(3, 20 / n) : 0; const dy = Math.round(off * off * Math.min(1.4, 9 / n));
+        return <div key={c} className={'fan-card' + (up ? ' up' : '')} style={{ left: x0 + i * step, zIndex: up ? 40 + i : i + 1, transform: `translateY(${up ? dy - 22 : dy}px) rotate(${up ? 0 : rot}deg)` }}>
+          <Card id={c} size="md" corner selected={up} onClick={onTap ? () => onTap(c) : undefined} /></div>; })}
+      {!n && <p className="hint fan-empty">ไม่มีไพ่ในมือ</p>}
+    </div>
+  </div>;
+}
+
 export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, msg, onBack, srvNow }) {
   const r = room.round; const res = room.status === 'result' && room.result;
   const [sel, setSel] = useState([]); const [target, setTarget] = useState(null); const [named, setNamed] = useState(null); const [pos, setPos] = useState(0); const [boomFx, setBoomFx] = useState(null); const fxOff = useRef(0);
@@ -160,9 +235,10 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   const lastBoom = useRef(r.boom?.at || 0);
   useEffect(() => { const b = r.boom; if (!b || b.at <= lastBoom.current) return; lastBoom.current = b.at; setBoomFx(b); sfx(sound, b.saved ? 'defuse' : 'boom'); const t = setTimeout(() => { setBoomFx(null); fxOff.current = Date.now(); }, 2600); return () => clearTimeout(t); }, [r.boom?.at]);
   const prev = useRef(null);
-  useEffect(() => { const s = { turn: `${r.turn}-${r.turnsLeft}`, pend: P ? `${P.by}-${P.nopes}` : '', res: !!res }; const p = prev.current; prev.current = s; if (!p) return;
+  useEffect(() => { const s = { turn: `${r.turn}-${r.turnsLeft}`, pend: P ? `${P.by}-${P.nopes}` : '', res: !!res, deck: deck.length }; const p = prev.current; prev.current = s; if (!p) return;
     if (s.res && !p.res) { sfx(sound, room.result?.winner === myId ? 'win' : 'lose'); return; }
     if (s.pend && s.pend !== p.pend) sfx(sound, P.nopes ? 'nope' : 'card');
+    else if (s.deck < p.deck && !r.boom?.at) sfx(sound, 'draw');
     if (s.turn !== p.turn && myTurn) setTimeout(() => sfx(sound, 'yourTurn'), 200);
   });
 
@@ -172,24 +248,23 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   const kind = sel.length === 1 && ACTIONS.includes(selType) ? selType : sel.length === 2 && !['bomb', 'clip', 'nope'].includes(selType) ? 'pair' : sel.length === 3 && !['bomb', 'clip', 'nope'].includes(selType) ? 'trio' : null;
   const needTarget = ['favor', 'pair', 'trio'].includes(kind);
   const targets = alive.filter(id => id !== myId && room.players?.[id] && (r.hands?.[id] || []).length);
-  async function play() { if (!kind) return; if (needTarget && !target) { msg('เลือกเพื่อนที่จะเล่นใส่ก่อน'); return; } if (kind === 'trio' && !named) { msg('เลือกไพ่ที่อยากได้'); return; } await tx(c => playCards(c, myId, sel, target, named, srvNow)); setSel([]); }
+  async function play() { if (!kind) return; if (needTarget && !target) { msg('เลือกเพื่อนที่จะเล่นใส่ก่อน (แตะรูปที่โต๊ะก็ได้)'); return; } if (kind === 'trio' && !named) { msg('เลือกไพ่ที่อยากได้'); return; } await tx(c => playCards(c, myId, sel, target, named, srvNow)); setSel([]); }
+  const draw = () => { sfx(sound, 'draw'); tx(c => drawCard(c, myId, srvNow)); };
   const myNope = myHand.find(c => T(c) === 'nope');
   const nopeOk = P && r.alive?.[myId] && myNope && !res;
   const kindText = { skip: 'จบตาไม่ต้องจั่ว', attack: 'โยนให้คนถัดไปเล่น 2 ตา', future: 'ดูไพ่ 3 ใบบนสุด', shuffle: 'สับกองไพ่', favor: 'ให้เพื่อนส่งไพ่ให้ 1 ใบ', bottom: 'จั่วใบล่างสุดแล้วจบตา', market: 'ทุกคนส่งไพ่สุ่มให้คนถัดไป', pair: 'ขโมยไพ่สุ่ม 1 ใบ', trio: 'ขอไพ่ที่ระบุ' };
   const danger = deck.length ? Math.round(bombs / deck.length * 100) : 0;
+  const canPlay = myTurn && r.phase === 'play' && !P; const giving = r.phase === 'favor' && r.favor?.from === myId && !res;
 
   return <div className="boom-game">
-    <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน</span><span className="cat-tag">💥 ทุเรียนในกอง {bombs} ลูก</span></div>
+    <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน</span><span className="cat-tag">↻ เวียนตามเข็มนาฬิกา</span></div>
 
-    {/* โต๊ะ: กองจั่ว / กองทิ้ง */}
-    {!res && <div className="boom-table">
-      <div className="pile"><CardFace back backKind="boom" size="md" badge={<span className="pile-n">{deck.length}</span>} /><small>กองจั่ว</small></div>
-      <div className="danger"><b className={danger >= 25 ? 'hot' : ''}>{danger}%</b><small>โอกาสเจอทุเรียน<br />ใบถัดไป</small><div className="durians">{Array.from({ length: bombs }, (_, i) => <span key={i}>💥</span>)}</div></div>
-      <div className="pile">{(r.discard || []).length ? <Card id={r.discard[r.discard.length - 1]} size="md" /> : <div className="gcard md empty" />}<small>กองทิ้ง</small></div>
-    </div>}
+    <RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} canDraw={canPlay} onDraw={draw}
+      pick={canPlay && needTarget ? targets : null} picked={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} />
 
-    {!res && (myTurn && r.phase === 'play' ? <Phase art="guess" tone="me" kicker={`🎯 ตาคุณ${r.turnsLeft > 1 ? ` (เหลือ ${r.turnsLeft} ตา)` : ''}`} title="เล่นไพ่กี่ใบก็ได้ แล้วจั่ว 1 ใบเพื่อจบตา">แตะไพ่ในมือเพื่อเลือก (ผลไม้เหมือนกัน 2–3 ใบเล่นเป็นชุดได้) • ไม่อยากเสี่ยง ใช้ขอผ่าน/โยนให้เพื่อน</Phase>
-      : <Phase art="wait" kicker={r.alive?.[myId] ? 'รอตาเพื่อน' : '💀 คุณตกรอบแล้ว'} title={<>ตาของ <Avatar id={cur} av={av} size={26} /> {nameOf(cur)}{r.turnsLeft > 1 ? ` (${r.turnsLeft} ตา)` : ''}</>}>{r.alive?.[myId] ? (myNope ? 'ถือ “ไม่เอา!” อยู่ — มีใครลงไพ่เมื่อไหร่ กดสวนได้ทันที' : 'นั่งลุ้นว่าใครจะจั่วได้ทุเรียน…') : 'ดูเพื่อนเล่นต่อได้ ห้ามใบ้นะ!'}</Phase>)}
+    {/* ตอนนี้ตาใคร */}
+    {!res && r.phase === 'play' && (myTurn ? <div className="turn-banner me"><b>🎯 ตาคุณ!{r.turnsLeft > 1 ? ` (เหลือ ${r.turnsLeft} ตา)` : ''}</b><small>แตะไพ่เพื่อเลือกเล่น (กี่ใบก็ได้) • จบตาด้วยการแตะกองไพ่หรือปุ่มจั่ว • ผลไม้เหมือนกัน 2–3 ใบเล่นเป็นชุด</small></div>
+      : <div className="turn-banner"><Avatar id={cur} av={av} size={28} /><b>ตาของ {nameOf(cur)}{r.turnsLeft > 1 ? ` (${r.turnsLeft} ตา)` : ''}</b><small>{!r.alive?.[myId] ? '💀 คุณตกรอบแล้ว — ดูเพื่อนเล่นต่อได้ ห้ามใบ้นะ!' : myNope ? '🙅 ถือ “ไม่เอา!” อยู่ — มีใครลงไพ่ กดสวนได้ทันที' : 'นั่งลุ้นว่าใครจะจั่วได้ทุเรียน…'}</small></div>)}
 
     {/* ไพ่ที่เพิ่งลง + ช่วงเวลาให้สวน */}
     {P && !res && <div className={'pending' + (P.nopes % 2 ? ' noped' : '')}>
@@ -212,21 +287,20 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
       : <div className="waiting">🤫 {nameOf(r.defuse.pid)} กำลังแอบใส่ทุเรียนกลับเข้ากอง… ({Math.ceil(Math.max(0, r.defuse.until - srvNow) / 1000)} วิ)</div>)}
 
     {/* ขอหน่อยนะ → ผู้ถูกขอเลือกไพ่ให้ */}
-    {r.phase === 'favor' && !res && (r.favor.from === myId ? <Phase art="favor" tone="me" kicker="🥺 มีคนขอไพ่" title={`เลือกไพ่ 1 ใบให้ ${nameOf(r.favor.to)}`}>แตะไพ่ในมือที่จะให้ • ไม่เลือกภายใน {Math.ceil(Math.max(0, r.favor.until - srvNow) / 1000)} วิ ระบบสุ่มให้</Phase>
+    {r.phase === 'favor' && !res && (giving ? <div className="turn-banner me"><b>🥺 เลือกไพ่ 1 ใบให้ {nameOf(r.favor.to)}</b><small>แตะไพ่ในมือที่จะให้ • ไม่เลือกภายใน {Math.ceil(Math.max(0, r.favor.until - srvNow) / 1000)} วิ ระบบสุ่มให้</small></div>
       : <div className="waiting">🥺 รอ {nameOf(r.favor.from)} เลือกไพ่ให้ {nameOf(r.favor.to)}…</div>)}
 
-    {/* ไพ่ในมือ */}
+    {/* ไพ่ในมือ (พัด) */}
     {!res && r.alive?.[myId] && <>
-      <SecH icon="🃏">ไพ่ในมือ <small>{myHand.length} ใบ</small></SecH>
-      <div className="hand-row">{myHand.map(c => <Card key={c} id={c} size="md" selected={sel.includes(c)}
-        onClick={r.phase === 'favor' && r.favor?.from === myId ? () => tx(x => giveFavor(x, myId, c)) : myTurn && r.phase === 'play' && !P ? () => toggle(c) : undefined} />)}</div>
-      {myTurn && r.phase === 'play' && !P && <div className="boom-actions">
+      <SecH icon="🃏">ไพ่ในมือคุณ <small>{myHand.length} ใบ{canPlay ? ' • แตะเพื่อเลือก' : ''}</small></SecH>
+      <HandFan ids={myHand} selected={sel} onTap={giving ? c => { sfx(sound, 'card'); tx(x => giveFavor(x, myId, c)); } : canPlay ? toggle : undefined} />
+      {canPlay && <div className="boom-actions">
         {kind && <div className="act-box"><b>เล่น “{BOOM_CARDS[selType].n}”{sel.length > 1 ? ` ×${sel.length}` : ''} — {kindText[kind]}</b>
-          {needTarget && <PlayerGrid ids={targets} av={av} nameOf={nameOf} selected={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} small note={id => `🃏 ${(r.hands?.[id] || []).length} ใบ`} />}
+          {needTarget && <><small>{target ? `เป้าหมาย: ${nameOf(target)}` : 'แตะรูปเพื่อนที่โต๊ะด้านบน หรือเลือกตรงนี้'}</small><PlayerGrid ids={targets} av={av} nameOf={nameOf} selected={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} small note={id => `🃏 ${(r.hands?.[id] || []).length} ใบ`} /></>}
           {kind === 'trio' && <div className="name-pick">{Object.keys(BOOM_CARDS).filter(t => t !== 'bomb').map(t => <Card key={t} id={t + '-q'} size="sm" selected={named === t} onClick={() => setNamed(t)} />)}</div>}
           <button className="primary wide" disabled={needTarget && !target} onClick={play}>🃏 เล่นไพ่</button></div>}
         {sel.length > 0 && !kind && <p className="hint">{['bomb', 'clip'].includes(selType) ? 'ไพ่ใบนี้เล่นเองไม่ได้ (ใช้อัตโนมัติ)' : selType === 'nope' ? '“ไม่เอา!” ใช้สวนตอนคนอื่นลงไพ่' : 'ผลไม้ใช้เป็นชุด 2–3 ใบที่เหมือนกัน'}</p>}
-        <button className="draw-btn" onClick={() => { sfx(sound, 'draw'); tx(c => drawCard(c, myId, srvNow)); }}><span>🃏</span> จั่วไพ่ (จบตา)<small>เสี่ยงเจอทุเรียน {danger}%</small></button>
+        <button className="draw-btn" onClick={draw}><span>🃏</span> จั่วไพ่ (จบตา)<small>เสี่ยงเจอทุเรียน {danger}%</small></button>
       </div>}
     </>}
 
@@ -236,13 +310,10 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
       {isHost ? <button className="primary wide" onClick={() => { if (boomFx || Date.now() - fxOff.current < 800) return; onBack(); }}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
 
-    <SecH icon="👥">ผู้เล่น <small>ลำดับตาเรียงตามนี้</small></SecH>
-    <PlayerGrid ids={r.order.filter(id => room.players?.[id] || !r.alive?.[id])} av={av} nameOf={nameOf} myId={myId} small dead={id => !r.alive?.[id]}
-      badge={id => id === cur && !res ? <span className="tag">🎯 ตานี้{r.turnsLeft > 1 ? ` ×${r.turnsLeft}` : ''}</span> : null} note={id => r.alive?.[id] ? `🃏 ${(r.hands?.[id] || []).length} ใบ` : '💥 ตกรอบ'} />
     {isHost && !res && cur && cur !== myId && r.phase === 'play' && !P && <HostBar><button className="secondary" onClick={() => { if (confirm(`บังคับ ${nameOf(cur)} จั่วไพ่ (ใช้เมื่อหลุดหรือค้าง)?`)) tx(c => forceDraw(c, srvNow)); }}>⏭️ บังคับ {nameOf(cur)} จั่ว</button>
       {r.order.filter(id => r.alive?.[id] && !room.players?.[id]).map(id => <button key={id} className="secondary" onClick={() => tx(c => kickOut(c, id))}>🚪 ตัดคนที่หลุดออก</button>)}</HostBar>}
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>
-    <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 12).map((e, i) => <li key={i} className={e.boom ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
+    <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 8).map((e, i) => <li key={i} className={e.boom ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
 
     {boomFx && <div className={'boom-fx' + (boomFx.saved ? ' saved' : '')} onClick={() => { setBoomFx(null); fxOff.current = Date.now(); }}><div className="bfx-box"><CardFace art={boomFx.saved ? 'clip' : 'bomb'} name={boomFx.saved ? 'ที่หนีบจมูก!' : 'ทุเรียนตูม!'} cat={boomFx.saved ? 'save' : 'bomb'} size="lg" /><b>{boomFx.saved ? `${nameOf(boomFx.pid)} หนีบจมูกทัน!` : `ตูม!! ${nameOf(boomFx.pid)} ตกรอบ`}</b><small>แตะเพื่อปิด</small></div></div>}
   </div>;

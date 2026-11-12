@@ -147,3 +147,72 @@
 .cg-item>div{display:grid;gap:2px;min-width:0}.cg-item b{font-size:13.5px}.cg-item small{font-size:12px;color:var(--muted);line-height:1.35}
 .cg-h{margin:12px 0 0;font-size:14px;color:var(--soft)}
 @media (max-width:480px){.card-gallery{grid-template-columns:1fr 1fr}.cg-item{flex-direction:column;text-align:center}}
+
+/* ===== วงไพ่ทุเรียนตูม: ทุกคนนั่งรอบโต๊ะ ===== */
+.rt{position:relative;width:100%;max-width:640px;margin:2px auto 12px;aspect-ratio:1/.92;user-select:none;-webkit-user-select:none;overflow-x:clip}
+@media (min-width:700px){.rt{aspect-ratio:1.5/1}}
+.rt-felt{position:absolute;inset:18% 15%;border-radius:50%;background:radial-gradient(ellipse at 50% 38%,#5d8a2a,#335614 62%,#203a0b);box-shadow:inset 0 0 0 6px #6b4220,inset 0 0 0 10px #8a5a2c,inset 0 0 0 12px #4a2a10,inset 0 10px 30px #000a,0 16px 34px #000a}
+.rt-felt:after{content:"";position:absolute;inset:13%;border-radius:50%;border:2px dashed #ffffff1c}
+.rt-pointer{position:absolute;left:50%;top:50%;width:60%;height:14px;transition:transform .7s cubic-bezier(.3,1.3,.5,1);pointer-events:none;z-index:1}
+.rt-pointer i{position:absolute;left:50%;top:0;width:50%;height:100%;background:linear-gradient(90deg,transparent 10%,#ffcf5a66 45%,#ffcf5a);clip-path:polygon(0 38%,82% 38%,82% 0,100% 50%,82% 100%,82% 62%,0 62%);filter:drop-shadow(0 0 6px #ffb03a)}
+.rt-info{position:absolute;left:50%;top:29%;transform:translate(-50%,-50%);z-index:2;display:flex;gap:8px;align-items:center;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;background:#000a;color:#fff3c0;white-space:nowrap}
+.rt-info b{font-size:13px;color:#ffd34d}.rt-info b.hot{color:#ff6b5a;animation:hotPulse .9s ease-in-out infinite}
+.rt-deck,.rt-pile{position:absolute;transform:translate(-50%,-50%);z-index:2}
+.rt .gcard.sm{--cw:clamp(46px,13.5vw,64px)}
+.rt-deck{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:default;border-radius:10px}
+.rt-deck:disabled{opacity:1}
+.rt-deck .gcard{box-shadow:0 3px 0 #2a3a10,2px 6px 0 #34480f,4px 9px 0 #22300a,0 12px 20px #0009}
+.rt-deck.can{cursor:pointer;animation:deckPulse 1.1s ease-in-out infinite}
+.rt-deck.can:active{transform:translate(-50%,-46%)}
+@keyframes deckPulse{50%{filter:drop-shadow(0 0 14px #ffcf5a)}}
+.rt-deck .pile-n{min-width:24px;height:24px;font-size:12px;bottom:-4px;right:-8px}
+.rt-tap{position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;background:var(--accent);color:var(--on-accent);padding:2px 8px;border-radius:20px;box-shadow:0 3px 8px #0008}
+.rt-pile .gcard{transition:box-shadow .2s}
+.rt-pile.live .gcard{box-shadow:0 0 0 3px #ffcf5a,0 0 24px #ffb03a;animation:popIn .3s}
+.rt-pile.noped .gcard{filter:grayscale(.7)}
+.rt-pile.noped:after{content:"🙅";position:absolute;inset:0;display:grid;place-items:center;font-size:30px;filter:drop-shadow(0 2px 4px #000)}
+.rt-timer{position:absolute;top:-9px;right:-9px;width:24px;height:24px;border-radius:50%;background:#ff5f6d;color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;box-shadow:0 2px 6px #0008;z-index:3}
+/* ที่นั่ง */
+.seat{position:absolute;transform:translate(-50%,-50%);z-index:3;display:grid;justify-items:center;gap:2px;width:72px;text-align:center}
+.rt.crowd .seat{width:64px}
+.seat-av{position:relative;border-radius:50%;padding:3px;background:#0007;box-shadow:0 4px 10px #0009;line-height:0}
+.seat.turn .seat-av{background:conic-gradient(#ffcf5a,#ff7a1a,#ffcf5a,#ff7a1a,#ffcf5a);animation:seatGlow 1.1s ease-in-out infinite}
+@keyframes seatGlow{50%{box-shadow:0 0 0 4px #ffcf5a55,0 0 26px #ffb03a}}
+.seat-arrow{position:absolute;top:-17px;color:#ffcf5a;font-size:14px;text-shadow:0 0 8px #ff7a1a;animation:arrowBob .8s ease-in-out infinite}
+@keyframes arrowBob{50%{transform:translateY(-4px)}}
+.seat-name{font-size:11.5px;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#000b;padding:1px 7px;border-radius:10px}
+.seat.me .seat-name{color:var(--accent)}
+.seat.turn .seat-name{background:#ffb03a;color:#2a1400}
+.seat-cards{display:flex;align-items:center;gap:4px}
+.mini-backs{display:flex;padding-left:5px}
+.mini-backs i{width:10px;height:14px;margin-left:-5px;border-radius:2px;background:linear-gradient(160deg,#7a9a2a,#3a5512);border:1px solid #ffb03a;box-shadow:0 1px 2px #0008}
+.seat-cards em{font-style:normal;font-weight:800;font-size:11.5px;color:#fff;background:#000a;border-radius:8px;padding:0 5px;line-height:1.4}
+.seat.out{filter:grayscale(1) brightness(.7)}
+.seat-out{font-size:10.5px;color:#ffb3a8;background:#000a;border-radius:8px;padding:0 5px}
+.seat-x{position:absolute;right:-10px;top:-4px;background:#ff5f6d;color:#fff;font-style:normal;font-weight:800;font-size:11px;line-height:1.5;padding:0 5px;border-radius:10px;box-shadow:0 2px 6px #0008}
+.seat-off,.seat-tg{position:absolute;left:-6px;top:-4px;font-size:13px;line-height:1}
+.seat-tg{left:auto;right:-8px;top:auto;bottom:-2px;animation:popIn .3s}
+.seat.pick{cursor:pointer}.seat.pick .seat-av{box-shadow:0 0 0 3px #6fb7ff,0 0 16px #6fb7ff88;animation:arrowBob 1s ease-in-out infinite}
+.seat.picked .seat-av{box-shadow:0 0 0 4px #ff5f6d,0 0 20px #ff5f6d;animation:none}
+.seat-bubble{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#2b1d10;font-weight:800;font-size:12px;line-height:1.3;padding:4px 9px;border-radius:12px;box-shadow:0 4px 12px #0009;z-index:8;pointer-events:none;animation:bubble 2.5s ease forwards}
+.seat-bubble:after{content:"";position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff;transform:translateX(-50%)}
+@keyframes bubble{0%{opacity:0;transform:translate(-50%,8px) scale(.6)}10%{opacity:1;transform:translate(-50%,0) scale(1)}85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-8px)}}
+/* ไพ่ลอยไปมาบนโต๊ะ */
+.fly{position:absolute;left:var(--fx);top:var(--fy);z-index:7;pointer-events:none;opacity:0;animation:flyTo .85s cubic-bezier(.45,.05,.3,1) both}
+.fly .gcard{--cw:40px!important;box-shadow:0 6px 14px #000a}
+@keyframes flyTo{0%{left:var(--fx);top:var(--fy);opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-25deg)}12%{opacity:1}72%{left:var(--tx);top:var(--ty);opacity:1;transform:translate(-50%,-50%) scale(1.05) rotate(0)}100%{left:var(--tx);top:var(--ty);opacity:0;transform:translate(-50%,-50%) scale(.7)}}
+/* แถบตอนนี้ตาใคร */
+.turn-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;padding:10px 14px;border-radius:16px;background:var(--inset);border:1px solid #ffffff14;text-align:center;margin-bottom:12px}
+.turn-banner b{font-size:16px}.turn-banner small{width:100%;color:var(--soft);font-size:12.5px;line-height:1.45}
+.turn-banner.me{background:linear-gradient(135deg,#ffcf5a2e,#ff7a1a22);border-color:#ffb03a;animation:mepulse 2.2s ease-in-out infinite}
+.turn-banner.me b{color:#ffcf5a;font-size:18px}
+/* ไพ่ในมือแบบพัด */
+.fan{position:relative;overflow-x:auto;overflow-y:hidden;margin:0 0 8px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.fan-in{position:relative;height:100%}
+.fan-card{position:absolute;bottom:10px;transform-origin:50% 120%;transition:transform .22s cubic-bezier(.3,1.4,.5,1),left .25s ease}
+.fan .gcard.md{--cw:var(--fcw);animation:none}
+.fan .gcard.sel{transform:none}
+.fan .gcard.tap:hover{transform:translateY(-6px)}
+.fan .gcard .gc-text{display:none}
+.fan-empty{position:absolute;inset:0;display:grid;place-items:center;margin:0}
+.gc-corner{position:absolute;left:calc(var(--cw)*.05);top:calc(var(--cw)*.05);width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);z-index:2;padding:1px;border-radius:6px;background:#ffffffe0;box-shadow:0 1px 3px #0004}

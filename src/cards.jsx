@@ -55,10 +55,11 @@ export const CARD_ART = {
 
 // ---------- กรอบไพ่ ----------
 // cat: สี/หมวดของไพ่ • back: ด้านหลัง
-export function CardFace({ art, name, text, cat = 'act', tag, size = 'md', back, backKind = 'boom', selected, dim, onClick, badge, title }) {
+export function CardFace({ art, name, text, cat = 'act', tag, size = 'md', back, backKind = 'boom', selected, dim, onClick, badge, title, corner }) {
   const cls = `gcard ${size} cat-${cat}${selected ? ' sel' : ''}${dim ? ' dim' : ''}${back ? ' back back-' + backKind : ''}${onClick ? ' tap' : ''}`;
   const inner = back ? <div className="gc-back"><span>{backKind === 'boom' ? '💥' : '👻'}</span></div> : <>
     <div className="gc-top">{tag && <span className="gc-tag">{tag}</span>}</div>
+    {corner && <svg className="gc-corner" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>}
     <svg className="gc-art" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>
     <b className="gc-name">{name}</b>
     {text && size !== 'sm' && <small className="gc-text">{text}</small>}
