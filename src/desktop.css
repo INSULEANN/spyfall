@@ -1,0 +1,76 @@
+/* 🖥️ จอคอม: ใช้พื้นที่กว้าง • ระหว่างเกม รายชื่อ+ห้องเสียงเป็นแถบขวา • เกมกระดาน/ไพ่แบ่ง 2 คอลัมน์ */
+.kbd-hint{display:none}
+kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radius:6px;border:1px solid #ffffff33;border-bottom-width:3px;background:#ffffff12;font:700 11.5px/1.5 'Kanit',sans-serif;text-align:center;color:var(--text)}
+@media (hover:hover) and (min-width:900px){.kbd-hint{display:block;margin:8px 0 0;font-size:12.5px;color:var(--muted);text-align:center}}
+
+@media (min-width:1100px){
+  .app{max-width:1560px;padding:0 32px}
+  /* หัวห้องระหว่างเล่น: เหลือแถบบาง ๆ */
+  .room-page.in-game .room-heading{padding:8px 16px;margin-bottom:14px;align-items:center}
+  .room-page.in-game .room-heading h1{font-size:24px;margin:2px 0}
+  .room-page.in-game .room-heading p,.room-page.in-game .room-heading .invite{display:none}
+  .room-page.in-game .room-heading .room-art{width:34%}
+  /* ระหว่างเล่น: เกมกว้างเต็ม รายชื่อเป็นแถบขวา (ติดจอ) */
+  .room-grid.playing{grid-template-columns:minmax(0,1fr) 290px;gap:18px}
+  .room-grid.playing .game-panel{order:-1;padding:20px 22px}
+  .room-grid.playing .players-panel{order:2;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding:14px;scrollbar-width:thin}
+  .room-grid.playing .players-panel .panel-title h2{font-size:17px}
+  .room-grid.playing .player-row{padding:8px 0;gap:9px}
+  .room-grid.playing .player-row .av{width:32px!important;height:32px!important;font-size:18px!important}
+  .room-grid.playing .player-row small{font-size:11px}
+  /* ฉากเคลื่อนไหวไม่สูงเกินจอ */
+  .game-panel .stage,.game-panel .cake-stage{max-width:760px;margin-left:auto;margin-right:auto}
+  .game-panel .replay{max-width:860px;margin-left:auto;margin-right:auto}
+  .replay .rp-scene .stage{max-width:none}
+
+  /* เกมกระดาน/ไพ่: ซ้ายกระดาน (ติดจอ) • ขวาไพ่ในมือ ปุ่ม บันทึก */
+  .gcols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,.85fr);gap:22px;align-items:start}
+  .gmain{position:sticky;top:12px}
+  .gside{min-width:0}
+  .gside>.turn-banner:first-child,.gside>.waiting:first-child{margin-top:0}
+  .gmain .rt{max-width:none;margin:0 auto;aspect-ratio:1.32/1}
+  .gmain .rt .gcard.sm{--cw:clamp(58px,5vw,80px)}
+  .gmain .seat{width:88px}.gmain .rt.crowd .seat{width:76px}
+  .gmain .seat-name{font-size:13px}
+  .gmain .seat-bubble{font-size:13.5px}
+  .gmain .rt-info{font-size:13px}.gmain .rt-info b{font-size:15px}
+  .gmain .fly .gcard{--cw:52px!important}
+
+  /* ปิดดีล: กระดานใหญ่พอดีความสูงจอ ตัวหนังสือ/ไอคอนใหญ่ขึ้น */
+  .gmain .db{width:min(100%,calc(100vh - 120px));max-width:none;gap:7px;padding:9px}
+  .gmain .dt{padding:8px 6px 9px;border-radius:12px}
+  .gmain .dt-e{font-size:clamp(24px,2.4vw,36px)}
+  .gmain .dt-v{font-size:clamp(15px,1.4vw,21px);padding:3px 6px}
+  .gmain .dt-n{font-size:clamp(12px,1.05vw,15.5px)}
+  .gmain .dt-need{gap:4px}
+  .gcols .gmain .dt-need .pd{width:clamp(20px,1.8vw,27px);height:clamp(20px,1.8vw,27px);font-size:clamp(11px,1vw,15px)}
+  .gcols .gmain .dt-need.n4 .pd{width:clamp(17px,1.5vw,23px);height:clamp(17px,1.5vw,23px);font-size:clamp(10px,.85vw,13px)}
+  .gmain .db-pawn{font-size:clamp(28px,2.6vw,42px)}
+  .gmain .mid-e{font-size:clamp(40px,4vw,64px)}
+  .gmain .mid-turn b,.gmain .mid-nego b{font-size:clamp(16px,1.5vw,22px)}
+  .gmain .mid-turn small,.gmain .mid-nego small{font-size:13.5px}
+  .gmain .mid-die{font-size:34px}
+  .gmain .db .tring{transform:scale(1.35);margin:8px 0 4px}
+  .gside .ctrl-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gside .dc-hand{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+
+  /* ปุ่มกดบนคอม: มีเงาตอนชี้ */
+  .dc.ok:hover,.pick-p button:hover,.fl-btn:hover{transform:translateY(-3px);box-shadow:0 6px 16px #0007}
+  .seat.pick:hover .seat-av{transform:scale(1.08)}
+}
+/* เกมทั่วไป: 2 คอลัมน์ไม่ติดจอ (ซ้ายส่วนที่ต้องกด • ขวาบทบาท/ข้อมูล/บันทึก) */
+@media (min-width:1100px){
+  .gcols.flow{grid-template-columns:minmax(0,1.4fr) minmax(330px,.6fr)}
+  .gcols.flow .gmain{position:static}
+  .gside .head-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gside>.role-card:first-child,.gside>.rcard:first-child,.gside>.my-fate:first-child,.gside>.ex-map:first-child{margin-top:0}
+  .gmain>.stage:first-child,.gmain>.cake-stage:first-child{margin-top:0}
+  /* สปาย: รายการสถานที่/คำ เป็นคอลัมน์กลาง */
+  .room-grid.playing.has-board{grid-template-columns:minmax(0,1fr) 330px 280px}
+  .room-grid.playing.has-board>.board{order:1;margin:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding:16px}
+  .room-grid.playing.has-board .board-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}
+  .room-grid.playing.has-board .board h2{font-size:17px}
+}
+@media (min-width:1600px){
+  .gcols{grid-template-columns:minmax(0,1.2fr) minmax(420px,.8fr)}
+}

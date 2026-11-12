@@ -180,15 +180,8 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
   return <div className="explore-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">✅ {t.ok} • 💥 {t.bad}</span></div>
 
+    <div className="gcols flow"><div className="gmain">
     <ExploreStage mode={res ? (room.result?.winner === 'good' ? 'win' : 'lose') : r.phase} stage={r.stage} hist={hist} />
-    {/* แผนที่การเดินทาง */}
-    <div className="ex-map">{STAGES.map((s, i) => { const h = hist.find(x => x.stage === i); const cur = !res && i === r.stage;
-      return <div key={i} className={'ex-stage' + (h ? (h.ok ? ' ok' : ' fail') : '') + (cur ? ' cur' : '')}>
-        <span className="ex-icon">{h ? (h.ok ? '🚩' : '💥') : s.icon}</span><b>{s.name}</b>
-        <small>{r.sizes?.[i]} คน{r.need?.[i] > 1 ? ' • พัง 2 ใบ' : ''}</small>
-      </div>; })}</div>
-    <div className="ex-score"><span className="good">นักสำรวจ {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.ok ? 'on' : ''} />)} ผ่าน {WIN_AT} ด่านชนะ</span><span className="bad">โจร {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.bad ? 'on' : ''} />)} พัง {WIN_AT} ด่านชนะ</span></div>
-    <div className="ex-rejects"><span>คณะถูกค้านติดกัน</span>{Array.from({ length: MAX_REJECT }, (_, i) => <i key={i} className={i < (r.rejects || 0) ? 'on' : ''} />)}<small>ครบ {MAX_REJECT} = คณะแตก โจรชนะ</small></div>
     {!res && r.phase !== 'hunt' && <Steps items={['หัวหน้าเลือกคณะ', 'ทุกคนโหวต', 'คณะส่งการ์ด']} at={stepAt} />}
 
     {!res && LM && r.phase !== 'mission' && <div className={'event ' + (LM.ok ? 'ok' : 'fail')}><Art name={LM.ok ? 'flag' : 'bomb'} size={46} /><span><b>ด่าน{STAGES[LM.stage].name}: {LM.ok ? 'ผ่านไปได้!' : 'พัง!'}</b><br />พบการ์ดก่อวินาศ <b>{LM.fails}</b> ใบ • คณะ: {LM.team.map(nameOf).join(', ')}</span></div>}
@@ -235,13 +228,6 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
       {isHost && <HostBar><button className="secondary" onClick={() => hostForce('mission')}>เปิดผลเลย (ไม่รอคนหลุด)</button></HostBar>}
     </>}
 
-    {/* บทบาท */}
-    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={ROLE_ART[myRole] || 'explorer'} cover="map" name={info.name} side={bad ? 'bad' : 'good'} sideLabel={bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}>
-      <p>{info.desc}</p>
-      {bad && <div className="info-line">พวกเดียวกัน: {mates.length ? <><Voters ids={mates} av={av} /> <b>{mates.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
-      {myRole === 'lantern' && <div className="info-line">🏮 โจรที่ส่องเห็น: {seen.length ? <><Voters ids={seen} av={av} /> <b className="bad">{seen.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}{Object.values(r.roles || {}).includes('mole') && <small> (มีจอมแฝงตัวอีก 1 คนที่มองไม่เห็น)</small>}</div>}
-    </RoleCard>}
-
     {/* จบเกม */}
     {res && <>
       <Outcome art={res.winner === 'good' ? 'treasure' : 'skull'} tone={res.winner === 'good' ? 'good' : 'bad'} title={res.winner === 'good' ? 'นักสำรวจคว้าสมบัติได้! 🏆' : 'โจรขุดสมบัติชนะ! 🗡️'}>
@@ -256,8 +242,25 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
 
+    </div><div className="gside">
+    {/* แผนที่การเดินทาง */}
+    <div className="ex-map">{STAGES.map((s, i) => { const h = hist.find(x => x.stage === i); const cur = !res && i === r.stage;
+      return <div key={i} className={'ex-stage' + (h ? (h.ok ? ' ok' : ' fail') : '') + (cur ? ' cur' : '')}>
+        <span className="ex-icon">{h ? (h.ok ? '🚩' : '💥') : s.icon}</span><b>{s.name}</b>
+        <small>{r.sizes?.[i]} คน{r.need?.[i] > 1 ? ' • พัง 2 ใบ' : ''}</small>
+      </div>; })}</div>
+    <div className="ex-score"><span className="good">นักสำรวจ {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.ok ? 'on' : ''} />)} ผ่าน {WIN_AT} ด่านชนะ</span><span className="bad">โจร {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.bad ? 'on' : ''} />)} พัง {WIN_AT} ด่านชนะ</span></div>
+    <div className="ex-rejects"><span>คณะถูกค้านติดกัน</span>{Array.from({ length: MAX_REJECT }, (_, i) => <i key={i} className={i < (r.rejects || 0) ? 'on' : ''} />)}<small>ครบ {MAX_REJECT} = คณะแตก โจรชนะ</small></div>
+    {/* บทบาท */}
+    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={ROLE_ART[myRole] || 'explorer'} cover="map" name={info.name} side={bad ? 'bad' : 'good'} sideLabel={bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}>
+      <p>{info.desc}</p>
+      {bad && <div className="info-line">พวกเดียวกัน: {mates.length ? <><Voters ids={mates} av={av} /> <b>{mates.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
+      {myRole === 'lantern' && <div className="info-line">🏮 โจรที่ส่องเห็น: {seen.length ? <><Voters ids={seen} av={av} /> <b className="bad">{seen.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}{Object.values(r.roles || {}).includes('mole') && <small> (มีจอมแฝงตัวอีก 1 คนที่มองไม่เห็น)</small>}</div>}
+    </RoleCard>}
+
     {hist.length > 0 && <><SecH icon="📜">บันทึกการเดินทาง</SecH><ul className="head-log">{[...hist].reverse().map((h, i) => <li key={i}>
       {STAGES[h.stage].icon} <b>{STAGES[h.stage].name}</b> — หัวหน้า {nameOf(h.leader)} พา <Voters ids={h.team} av={av} size={20} /> {h.team.map(nameOf).join(', ')} → {h.ok ? <span className="ok">ผ่าน</span> : <span className="bad">พัง</span>} (ก่อวินาศ {h.fails})
     </li>)}</ul></>}
+    </div></div>
   </div>;
 }

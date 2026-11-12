@@ -255,12 +255,19 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   const kindText = { skip: 'จบตาไม่ต้องจั่ว', attack: 'โยนให้คนถัดไปเล่น 2 ตา', future: 'ดูไพ่ 3 ใบบนสุด', shuffle: 'สับกองไพ่', favor: 'ให้เพื่อนส่งไพ่ให้ 1 ใบ', bottom: 'จั่วใบล่างสุดแล้วจบตา', market: 'ทุกคนส่งไพ่สุ่มให้คนถัดไป', pair: 'ขโมยไพ่สุ่ม 1 ใบ', trio: 'ขอไพ่ที่ระบุ' };
   const danger = deck.length ? Math.round(bombs / deck.length * 100) : 0;
   const canPlay = myTurn && r.phase === 'play' && !P; const giving = r.phase === 'favor' && r.favor?.from === myId && !res;
+  useEffect(() => {
+    const k = e => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.ctrlKey || e.metaKey || e.altKey) return; const key = e.key.toLowerCase();
+      if (key === 'n' && nopeOk) { e.preventDefault(); sfx(sound, 'nope'); tx(c => playNope(c, myId, myNope, srvNow)); }
+      else if (key === ' ' && canPlay) { e.preventDefault(); draw(); }
+      else if (key === 'enter' && canPlay && kind) { e.preventDefault(); play(); } };
+    window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
+  });
 
   return <div className="boom-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน</span><span className="cat-tag">↻ เวียนตามเข็มนาฬิกา</span></div>
 
-    <RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} canDraw={canPlay} onDraw={draw}
-      pick={canPlay && needTarget ? targets : null} picked={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} />
+    <div className="gcols"><div className="gmain"><RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} canDraw={canPlay} onDraw={draw}
+      pick={canPlay && needTarget ? targets : null} picked={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} /></div><div className="gside">
 
     {/* ตอนนี้ตาใคร */}
     {!res && r.phase === 'play' && (myTurn ? <div className="turn-banner me"><b>🎯 ตาคุณ!{r.turnsLeft > 1 ? ` (เหลือ ${r.turnsLeft} ตา)` : ''}</b><small>แตะไพ่เพื่อเลือกเล่น (กี่ใบก็ได้) • จบตาด้วยการแตะกองไพ่หรือปุ่มจั่ว • ผลไม้เหมือนกัน 2–3 ใบเล่นเป็นชุด</small></div>
@@ -301,6 +308,7 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
           <button className="primary wide" disabled={needTarget && !target} onClick={play}>🃏 เล่นไพ่</button></div>}
         {sel.length > 0 && !kind && <p className="hint">{['bomb', 'clip'].includes(selType) ? 'ไพ่ใบนี้เล่นเองไม่ได้ (ใช้อัตโนมัติ)' : selType === 'nope' ? '“ไม่เอา!” ใช้สวนตอนคนอื่นลงไพ่' : 'ผลไม้ใช้เป็นชุด 2–3 ใบที่เหมือนกัน'}</p>}
         <button className="draw-btn" onClick={draw}><span>🃏</span> จั่วไพ่ (จบตา)<small>เสี่ยงเจอทุเรียน {danger}%</small></button>
+        <p className="kbd-hint">⌨️ <kbd>Space</kbd> จั่ว • <kbd>Enter</kbd> เล่นไพ่ที่เลือก • <kbd>N</kbd> ไม่เอา!</p>
       </div>}
     </>}
 
@@ -314,6 +322,7 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
       {r.order.filter(id => r.alive?.[id] && !room.players?.[id]).map(id => <button key={id} className="secondary" onClick={() => tx(c => kickOut(c, id))}>🚪 ตัดคนที่หลุดออก</button>)}</HostBar>}
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>
     <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 8).map((e, i) => <li key={i} className={e.boom ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
+    </div></div>
 
     {boomFx && <div className={'boom-fx' + (boomFx.saved ? ' saved' : '')} onClick={() => { setBoomFx(null); fxOff.current = Date.now(); }}><div className="bfx-box"><CardFace art={boomFx.saved ? 'clip' : 'bomb'} name={boomFx.saved ? 'ที่หนีบจมูก!' : 'ทุเรียนตูม!'} cat={boomFx.saved ? 'save' : 'bomb'} size="lg" /><b>{boomFx.saved ? `${nameOf(boomFx.pid)} หนีบจมูกทัน!` : `ตูม!! ${nameOf(boomFx.pid)} ตกรอบ`}</b><small>แตะเพื่อปิด</small></div></div>}
   </div>;

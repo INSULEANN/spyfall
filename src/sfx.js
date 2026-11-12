@@ -168,6 +168,17 @@ export const THEMES = {
     win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); [0.5, 0.62, 0.74].forEach(at => pop(at, 0.1)); },
   },
   // 👻 จับผีปอป: ฆ้องต่ำ กระดิ่งลม เคาะไม้ เสียงกระซิบ
+  // 💼 ปิดดีล!: กระดิ่งเคาน์เตอร์ เต๋ากลิ้ง เสียงเงินเข้า
+  deal: {
+    start: () => { arp([523, 659, 784, 1047], 0.08, { type: 'triangle', gain: 0.07 }); bell(2093, 0.8, { at: 0.35, gain: 0.04 }); },
+    join: () => { bell(1319, 0.5, { gain: 0.04 }); bell(1760, 0.6, { at: 0.12, gain: 0.04 }); },
+    click: () => pop(0, 0.07), select: () => pop(0, 0.1),
+    confirm: () => { tone(880, 0.08, { type: 'triangle', gain: 0.06 }); tone(1320, 0.14, { type: 'triangle', gain: 0.06, at: 0.07 }); },
+    yourTurn: () => { bell(1568, 0.5, { gain: 0.06 }); bell(2093, 0.6, { at: 0.16, gain: 0.05 }); },
+    roll: () => [0, 0.08, 0.17, 0.27, 0.4].forEach((at, i) => noise(0.05, { at, gain: 0.1 - i * 0.012, freq: 2600, type: 'bandpass', q: 2 })),
+    cash: () => { noise(0.09, { gain: 0.09, freq: 3200, type: 'bandpass', q: 2 }); bell(2637, 0.9, { at: 0.08, gain: 0.06 }); bell(3136, 1.0, { at: 0.17, gain: 0.05 }); },
+    win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); [0.5, 0.64].forEach(at => bell(2637, 0.8, { at, gain: 0.05 })); },
+  },
   // 🌶️ ตำแหลก!: ครกตำป๊อก ๆ กระดิ่งรถเข็น ส้มตำมาแล้ว
   tam: {
     start: () => { knock(0); knock(0.16); knock(0.32); arp([659, 784, 988, 1319], 0.07, { type: 'triangle', gain: 0.07, at: 0.5 }); },

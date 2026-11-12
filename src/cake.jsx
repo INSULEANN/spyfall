@@ -201,6 +201,7 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
   const accIds = order.filter(id => id !== myId);
   return <div className="explore-game cake-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">{r.phase === 'night' ? (h === 0 ? '🌙 กำลังจะหลับ' : h > HOURS ? '🌅 ใกล้เช้า' : `🌙 ตี ${h}`) : res ? '🏁 จบเกม' : '☀️ เช้าแล้ว'}</span></div>
+    <div className="gcols flow"><div className="gmain">
     <Steps items={['ทอยเต๋า', 'กลางคืน', 'เช้า: โหวต', 'เฉลย']} at={res ? 3 : r.phase === 'day' ? 2 : h === 0 ? 0 : 1} />
     {r.phase === 'night' && <CakeClock r={r} h={h} myDie={myDie} srvNow={srvNow} mode="night" />}
     {/* ฉากห้องครัวเคลื่อนไหว: เห็นเฉพาะสิ่งที่ตัวเองเห็นตอนตื่น */}
@@ -227,7 +228,6 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
         : <div className="action-box"><SecH icon="🔦">แอบดูเต๋าของใครดี? <small>ดูได้ 1 คน</small></SecH><PlayerGrid ids={accIds} av={av} nameOf={nameOf} onPick={peek} badge={() => <span className="tag">🔦 ดูเต๋า</span>} /></div>)}
     </>}
     {!res && r.phase === 'night' && h > HOURS && <Phase art="day" tone="day" kicker="🌅 ใกล้เช้า" title="ไก่ขันแล้ว… กำลังจะเช้า" />}
-    {!res && r.phase === 'night' && h > myDie && {clues}}
 
     {/* ---------- เช้า ---------- */}
     {!res && r.phase === 'day' && <>
@@ -237,8 +237,6 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
         <div><Art name="notebook" size={46} /><b>2. จับผิด</b>คำให้การขัดกันไหม ใครอ้างว่าตื่นตีที่เป็นไปไม่ได้</div>
         <div><Art name="vote" size={46} /><b>3. โหวต</b>แตะรูปคนที่คิดว่าเป็นขโมย เปลี่ยนใจได้</div>
       </div>
-      {clues}
-      {testimony}
       <SecH icon="🗳️">โหวตจับขโมย <small>{votes[myId] ? `คุณโหวต ${nameOf(votes[myId])}` : 'แตะรูปเพื่อโหวต'}</small></SecH>
       <PlayerGrid ids={order.filter(id => id !== myId)} av={av} nameOf={nameOf} selected={votes[myId]} onPick={vote}
         badge={id => { const by = Object.keys(votes).filter(v => votes[v] === id); return by.length ? <Voters ids={by} av={av} size={20} /> : <span className="ptile-note">ยังไม่มีเสียง</span>; }} />
@@ -246,10 +244,6 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
       <p className="hint">เสียงมากที่สุดถูกจับ — จับถูกขโมย ฝ่ายหิวโหยได้คนละ +{CAKE_SCORE.hungry} • จับผิดคนหรือเสมอ ขโมย +{CAKE_SCORE.thief} ลูกสมุน +{CAKE_SCORE.acc}</p>
       {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('สรุปโหวตเลย? คนที่ยังไม่โหวตไม่นับ')) tx(cur => resolveVote(cur, true)); }}>สรุปโหวตเลย (ไม่รอ)</button></HostBar>}
     </>}
-
-    {/* ---------- บทบาท (ระหว่างเล่น) ---------- */}
-    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={role.art} name={role.name} side={role.side} sideLabel={role.label} cover="die" n={myDie} coverTitle="บทบาทลับของคุณ" coverText={`เต๋าของคุณ: ${myDie} (ตื่นตี ${myDie}) • กดเปิดดูบทบาทคนเดียว`}>
-      <p>{role.desc}</p><div className="info-line"><Art name="die" n={myDie} size={30} /> ตื่นตอน <b>ตี {myDie}</b></div></RoleCard>}
 
     {/* ---------- เฉลย ---------- */}
     {res && <>
@@ -268,5 +262,13 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
       <Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
+    </div><div className="gside">
+    {/* ---------- บทบาท (ระหว่างเล่น) ---------- */}
+    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={role.art} name={role.name} side={role.side} sideLabel={role.label} cover="die" n={myDie} coverTitle="บทบาทลับของคุณ" coverText={`เต๋าของคุณ: ${myDie} (ตื่นตี ${myDie}) • กดเปิดดูบทบาทคนเดียว`}>
+      <p>{role.desc}</p><div className="info-line"><Art name="die" n={myDie} size={30} /> ตื่นตอน <b>ตี {myDie}</b></div></RoleCard>}
+
+    {!res && (r.phase === 'day' || (r.phase === 'night' && h > myDie)) && clues}
+    {!res && r.phase === 'day' && testimony}
+    </div></div>
   </div>;
 }

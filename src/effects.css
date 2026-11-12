@@ -24,6 +24,8 @@
 /* ทุเรียนตูม: ประกายไฟจากชนวน ลอยขึ้นแล้ววูบ */
 [data-amb="boom"] i{width:calc(4px*var(--s));height:calc(4px*var(--s));background:#ffcf5a;box-shadow:0 0 8px 2px #ff7a1aaa;animation-duration:calc(var(--d)*.8)}
 [data-amb="boom"] i:nth-child(3n){background:#a3b13a;box-shadow:0 0 6px #a3b13a88;width:calc(7px*var(--s));height:calc(7px*var(--s));border-radius:30%;transform:rotate(45deg)}
+/* ปิดดีล!: เหรียญทองลอยขึ้นช้า ๆ */
+[data-amb="deal"] i{width:calc(6px*var(--s));height:calc(6px*var(--s));border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,#f5c451 55%,#b8862a);box-shadow:0 0 8px #f5c45166;animation-duration:calc(var(--d)*1.4)}
 /* ตำแหลก!: เศษพริก มะนาว น้ำตาลปี๊บ ปลิวตกลงมา */
 [data-amb="tam"] i{bottom:auto;top:-20px;width:calc(7px*var(--s));height:calc(3px*var(--s));border-radius:40% 60% 40% 60%;background:#ff4a2a;animation-name:amb-fall;animation-duration:calc(var(--d)*1.2)}
 [data-amb="tam"] i:nth-child(3n+1){background:#7fd34a}[data-amb="tam"] i:nth-child(3n+2){background:#ffcf45;width:calc(4px*var(--s));height:calc(4px*var(--s));border-radius:50%}

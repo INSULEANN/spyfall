@@ -257,15 +257,8 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
   return <div className={'curse-game' + (r.phase === 'night' ? ' is-night' : '')}>
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน • คืนเดือนดับมาแล้ว {r.nightN || 0} ครั้ง</span><span className="cat-tag">{res ? '🏁 จบเกม' : r.phase === 'night' ? '🌑 กลางคืน' : r.phase === 'reveal' ? '⚖️ ไต่สวน' : '☀️ กลางวัน'}</span></div>
 
+    <div className="gcols flow"><div className="gmain">
     <CurseStage mode={res ? (res.winner === 'town' ? 'townWin' : 'popWin') : r.phase === 'night' ? 'night' : r.phase === 'reveal' ? 'reveal' : 'day'} />
-
-    {/* ไพ่ดวงของฉัน */}
-    {!res && <div className="my-fate">
-      <div className="mf-head"><b>🔮 ไพ่ดวงของคุณ</b><button className="link-btn" onClick={() => setPeek(p => !p)}>{peek ? 'ซ่อน' : 'แอบดู'}</button></div>
-      {peek ? <><div className="hand-row">{myFate.map((c, i) => <Fate key={i} t={c.t} size="sm" tag={c.open ? 'เปิดแล้ว' : 'คว่ำอยู่'} dim={c.open} />)}</div>
-        <p className={'mf-who ' + (iDark ? 'bad' : 'good')}>{!r.alive?.[me] ? '💀 คุณตายแล้ว — ดูต่อได้ ห้ามใบ้' : iDark ? <>👻 คุณคือ <b>ผีปอป</b>{darkMates.length ? <> • พวกเดียวกัน: <b>{darkMates.map(nameOf).join(', ')}</b></> : ' (คนเดียว)'} — ทำให้ชาวบ้านสงสัยกันเอง</> : iShaman ? <>📿 คุณคือ <b>หมอธรรม</b> (ฝั่งชาวบ้าน) — คืนเดือนดับคุ้มกันได้ 1 คน</> : <>🌸 คุณคือ <b>ชาวบ้าน</b> — หาตัวผีปอปให้เจอ</>}</p></>
-        : <div className="hand-row">{myFate.map((c, i) => c.open ? <Fate key={i} t={c.t} size="sm" tag="เปิดแล้ว" dim /> : <CardFace key={i} back backKind="curse" size="sm" />)}</div>}
-    </div>}
 
     {/* ไต่สวน: ครบ 7 แต้ม ต้องเปิดไพ่ดวง */}
     {r.phase === 'reveal' && !res && (r.reveal.by === me ? <div className="reveal-box"><Phase art="evidence" tone="me" kicker="⚖️ ไต่สวน" title={`เลือกเปิดไพ่ดวงของ ${nameOf(r.reveal.target)} 1 ใบ`}>คุณไม่รู้ว่าใบไหนเป็นอะไร เลือกตามดวง • {Math.ceil(Math.max(0, r.reveal.until - srvNow) / 1000)} วิ</Phase>
@@ -319,10 +312,20 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
 
+    </div><div className="gside">
+    {/* ไพ่ดวงของฉัน */}
+    {!res && <div className="my-fate">
+      <div className="mf-head"><b>🔮 ไพ่ดวงของคุณ</b><button className="link-btn" onClick={() => setPeek(p => !p)}>{peek ? 'ซ่อน' : 'แอบดู'}</button></div>
+      {peek ? <><div className="hand-row">{myFate.map((c, i) => <Fate key={i} t={c.t} size="sm" tag={c.open ? 'เปิดแล้ว' : 'คว่ำอยู่'} dim={c.open} />)}</div>
+        <p className={'mf-who ' + (iDark ? 'bad' : 'good')}>{!r.alive?.[me] ? '💀 คุณตายแล้ว — ดูต่อได้ ห้ามใบ้' : iDark ? <>👻 คุณคือ <b>ผีปอป</b>{darkMates.length ? <> • พวกเดียวกัน: <b>{darkMates.map(nameOf).join(', ')}</b></> : ' (คนเดียว)'} — ทำให้ชาวบ้านสงสัยกันเอง</> : iShaman ? <>📿 คุณคือ <b>หมอธรรม</b> (ฝั่งชาวบ้าน) — คืนเดือนดับคุ้มกันได้ 1 คน</> : <>🌸 คุณคือ <b>ชาวบ้าน</b> — หาตัวผีปอปให้เจอ</>}</p></>
+        : <div className="hand-row">{myFate.map((c, i) => c.open ? <Fate key={i} t={c.t} size="sm" tag="เปิดแล้ว" dim /> : <CardFace key={i} back backKind="curse" size="sm" />)}</div>}
+    </div>}
+
     <SecH icon="🏘️">ชาวนาดง <small>⚖️ ความสงสัย • ไพ่ดวง (เปิดแล้ว/คว่ำ) • 🧿 ตะกรุด 🙏 บวช 💞 ผูกเสี่ยว 🔒 ติดคอก</small></SecH>
     <PlayerGrid ids={r.order.filter(id => room.players?.[id] || !r.alive?.[id])} av={av} nameOf={nameOf} myId={me} small dead={id => !r.alive?.[id]} badge={id => <>{id === cur && r.phase === 'play' && !res && <span className="tag">☀️ ตานี้</span>}{tile(id)}</>} note={id => r.alive?.[id] ? `🃏 ${hand(r, id).length} ใบ` : '⚰️ ตายแล้ว'} />
     <SecH icon="📜">บันทึกหมู่บ้าน</SecH>
     <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 14).map((e, i) => <li key={i} className={e.dead ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
+    </div></div>
   </div>;
 }
 

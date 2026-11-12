@@ -240,6 +240,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
 
   return <div className="explore-game wolf-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span><span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
+    <div className="gcols flow"><div className="gmain">
     {!res && <Steps items={['🌙 กลางคืน', '☀️ ประกาศ', '⚖️ โหวตประหาร']} at={r.phase === 'night' ? 0 : r.phase === 'hunter' ? 1 : 2} />}
     <WolfStage mode={res ? (res.winner === 'wolf' ? 'wolfWin' : res.winner === 'fool' ? 'foolWin' : 'villageWin') : r.phase === 'night' ? 'night' : r.phase === 'hunter' ? 'hunter' : 'day'} dead={(r.dawn?.dead?.length || 0) + (r.dawn?.love?.length || 0)} />
 
@@ -290,15 +291,6 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
       {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('สรุปโหวตเลย? คนที่ยังไม่โหวตไม่นับ')) tx(cur => resolveDay(cur, true)); }}>สรุปโหวตเลย (ไม่รอ)</button></HostBar>}
     </>}
 
-    {/* ---------- บทบาท ---------- */}
-    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : info.side === 'fool' ? 'warn' : 'good'} sideLabel={SIDE_LABEL[info.side]}>
-      <p>{info.desc}</p>
-      {myLove && <div className="info-line">💞 คู่รักของคุณ: <Avatar id={myLove} av={av} size={22} /> <b>{nameOf(myLove)}</b> (ไม่รู้บทบาทของกันและกัน)</div>}
-      {myRole === 'cupid' && lovers.length === 2 && <div className="info-line">💘 คู่ที่คุณจับ: <b>{nameOf(lovers[0])} ❤ {nameOf(lovers[1])}</b></div>}
-      {myRole === 'wolf' && <div className="info-line">เพื่อนหมาป่า: {wolves.filter(id => id !== myId).length ? <><Voters ids={wolves.filter(id => id !== myId)} av={av} /> <b>{wolves.filter(id => id !== myId).map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
-      {myRole === 'seer' && (r.seerLog || []).length > 0 && <div className="seer-log">{r.seerLog.map((s, i) => <span key={i} className={s.wolf ? 'bad' : 'good'}>คืนที่ {s.day}: <Avatar id={s.target} av={av} size={22} /> <b>{nameOf(s.target)}</b> {s.wolf ? '🐺 เป็นหมาป่า!' : '🙂 ไม่ใช่หมาป่า'}</span>)}</div>}
-    </RoleCard>}
-
     {/* ---------- จบเกม ---------- */}
     {res && <>
       <Outcome art={res.winner === 'village' ? 'villager' : res.winner === 'fool' ? 'fool' : 'wolf'} tone={res.winner === 'village' ? 'good' : 'bad'} title={WIN_TXT[res.winner] || WIN_TXT.wolf}>
@@ -311,6 +303,16 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
 
+    </div><div className="gside">
+    {/* ---------- บทบาท ---------- */}
+    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : info.side === 'fool' ? 'warn' : 'good'} sideLabel={SIDE_LABEL[info.side]}>
+      <p>{info.desc}</p>
+      {myLove && <div className="info-line">💞 คู่รักของคุณ: <Avatar id={myLove} av={av} size={22} /> <b>{nameOf(myLove)}</b> (ไม่รู้บทบาทของกันและกัน)</div>}
+      {myRole === 'cupid' && lovers.length === 2 && <div className="info-line">💘 คู่ที่คุณจับ: <b>{nameOf(lovers[0])} ❤ {nameOf(lovers[1])}</b></div>}
+      {myRole === 'wolf' && <div className="info-line">เพื่อนหมาป่า: {wolves.filter(id => id !== myId).length ? <><Voters ids={wolves.filter(id => id !== myId)} av={av} /> <b>{wolves.filter(id => id !== myId).map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
+      {myRole === 'seer' && (r.seerLog || []).length > 0 && <div className="seer-log">{r.seerLog.map((s, i) => <span key={i} className={s.wolf ? 'bad' : 'good'}>คืนที่ {s.day}: <Avatar id={s.target} av={av} size={22} /> <b>{nameOf(s.target)}</b> {s.wolf ? '🐺 เป็นหมาป่า!' : '🙂 ไม่ใช่หมาป่า'}</span>)}</div>}
+    </RoleCard>}
+
     {!res && <><SecH icon="🏘️">ชาวบ้าน <small>ยังอยู่ {liveIds.length} • ตาย {order.length - liveIds.length}</small></SecH>
       <PlayerGrid ids={order} av={av} nameOf={nameOf} myId={myId} small dead={id => !alive[id]} note={id => showRoleOf(id) ? roleTxt(id) : alive[id] ? 'ยังมีชีวิต' : 'ตายแล้ว'} /></>}
 
@@ -320,5 +322,6 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
       {e.t === 'shot' && <>🏹 นายพราน {nameOf(e.by)} ยิง <span className="bad">{deadNames(e.dead)}</span></>}
       {e.t === 'love' && <>💔 <span className="bad">{deadNames(e.dead)}</span> ตรอมใจตายตาม {nameOf(e.by)}</>}
     </li>)}</ul></>}
+    </div></div>
   </div>;
 }

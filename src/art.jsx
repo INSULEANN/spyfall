@@ -235,6 +235,27 @@ function BoomScene() {
     <g className="peek"><g transform="translate(352 150)"><circle r="26" fill="#ffd2a8" /><path d="M-26 -6 Q-24 -30 0 -30 Q24 -30 26 -6 Q14 -18 0 -16 Q-14 -18 -26 -6 Z" fill="#2b1d10" /><path d="M-12 -4 l6 4 l-6 4 M12 -4 l-6 4 l6 4" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><rect x="-5" y="2" width="10" height="16" rx="3" fill="#d9a66a" /><path d="M-9 20 q9 6 18 0" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><g stroke="#9ab03a" strokeWidth="3" strokeLinecap="round" fill="none" opacity=".8"><path d="M-46 -20 q-6 -8 2 -14" /><path d="M-52 4 q-8 -6 0 -12" /></g></g></g>
   </S>;
 }
+// ---------- 💼 ปิดดีล!: ตึกสูงยามค่ำ โต๊ะประชุม มือจับกัน เหรียญทอง หมวกเจ้าสัว ----------
+function DealScene() {
+  return <S id="deal" label="ตึกสูงยามค่ำคืน มีมือสองข้างจับกันปิดดีล เหรียญทองลอยอยู่">
+    <defs><linearGradient id="dl-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0a1030" /><stop offset=".7" stopColor="#1d3270" /><stop offset="1" stopColor="#6a4a90" /></linearGradient>
+      <radialGradient id="dl-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffe08a" stopOpacity=".55" /><stop offset="1" stopColor="#f5c451" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="url(#dl-sky)" />
+    <circle cx="330" cy="50" r="22" fill="#ffe9a8" opacity=".85" />
+    <g fill="#0b1230">{[[0, 140, 40], [36, 100, 34], [66, 150, 30], [92, 80, 38], [126, 120, 30], [262, 110, 32], [290, 70, 40], [326, 130, 34], [356, 96, 44]].map(([x, y, w], i) => <rect key={i} x={x} y={y} width={w} height={260 - y} />)}<path d="M305 70 L310 36 L315 70 Z" /></g>
+    <g className="tw" fill="#ffd76a">{Array.from({ length: 40 }, (_, i) => <rect key={i} x={(i * 41) % 396 + 2} y={96 + ((i * 29) % 120)} width="4" height="5" opacity={0.4 + ((i * 3) % 5) / 10} />)}</g>
+    <circle className="glow" cx="200" cy="150" r="96" fill="url(#dl-glow)" />
+    <rect x="40" y="206" width="320" height="18" rx="6" fill="#5a3a1a" /><rect x="60" y="224" width="12" height="36" fill="#3a2410" /><rect x="328" y="224" width="12" height="36" fill="#3a2410" />
+    {/* มือจับกัน */}
+    <g className="bob"><path d="M96 176 L150 150 L168 168 L112 196 Z" fill="#2a3a6a" /><path d="M304 176 L250 150 L232 168 L288 196 Z" fill="#3a2a5a" />
+      <path d="M148 150 Q170 136 196 146 L214 140 Q236 138 252 152 L236 172 Q214 180 196 174 Q172 182 164 170 Z" fill="#ffd2a8" />
+      <g stroke="#c98a5a" strokeWidth="2.5" fill="none" strokeLinecap="round"><path d="M188 150 q8 6 18 4" /><path d="M194 160 q8 6 18 4" /><path d="M200 168 q8 4 16 2" /></g>
+      <rect x="140" y="146" width="12" height="28" rx="3" fill="#fff" transform="rotate(-25 146 160)" /><rect x="250" y="146" width="12" height="28" rx="3" fill="#fff" transform="rotate(25 256 160)" /></g>
+    {/* หมวกเจ้าสัว + เหรียญ */}
+    <g className="float"><g transform="translate(200 82)"><ellipse rx="40" ry="9" fill="#141418" /><path d="M-24 0 V-40 Q0 -46 24 -40 V0 Z" fill="#1d1d24" /><rect x="-24" y="-12" width="48" height="8" fill="#c0392b" /></g></g>
+    {[[90, 110], [320, 150], [128, 64], [282, 92]].map(([x, y], i) => <g key={i} className="float"><circle cx={x} cy={y} r="13" fill="#f5c451" stroke="#b8862a" strokeWidth="3" /><text x={x} y={y + 5} textAnchor="middle" fontSize="14" fontWeight="900" fill="#8a5a10" fontFamily="sans-serif">฿</text></g>)}
+  </S>;
+}
 // ---------- 🌶️ ตำแหลก!: แผงส้มตำ ครกดินเผาใบโต สากตำขึ้นลง ไพ่ 4 รสปลิวว่อน ป้าย +10 ----------
 const TamC = ({ x, y, r, c1, c2, t }) => <g transform={`translate(${x} ${y}) rotate(${r})`}><rect x="-18" y="-25" width="36" height="50" rx="5" fill="#fff8ea" /><rect x="-15.5" y="-22.5" width="31" height="45" rx="4" fill={c1} />
   <path d="M-12 -7 h24 q0 17 -12 19 q-12 -2 -12 -19 z" fill="#fff8ea" /><text y="7" textAnchor="middle" fontSize={t.length > 1 ? 10 : 14} fill={c2} fontFamily="Chonburi,Kanit,sans-serif">{t}</text></g>;
@@ -318,5 +339,5 @@ function CurseScene() {
     <g className="peek"><path d="M314 176 q-6 -12 6 -18 h22 q10 0 10 10 v4 q0 10 -10 10 h-12 l-8 8 l2 -8 q-10 0 -10 -6 Z" fill="#eef8ec" opacity=".9" /><text x="332" y="172" textAnchor="middle" fontSize="13" fontWeight="900" fill="#3a0d14" fontFamily="sans-serif">ปอป!</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene };
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

@@ -311,6 +311,13 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
   };
   const drawOrTake = () => { sfx(sound, 'draw'); tx(c => (r.stack > 0 ? takeStack(c, myId, srvNow) : drawUntil(c, myId, srvNow))); };
   const pickMine = r.pick?.by === myId && meIn && !res;
+  useEffect(() => {
+    const k = e => { if (!myTurn || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === ' ') { e.preventDefault(); if (r.stack > 0 || !r.drew) drawOrTake(); else { sfx(sound, 'click'); tx(c => passTurn(c, myId, srvNow)); } }
+      else if (e.key === 'Enter' && sel) { e.preventDefault(); const p = parse(sel); if (p.c || p.v === 'ru') play(sel); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ok2 = sorted.filter(ok); if (!ok2.length) return; e.preventDefault(); const i = ok2.indexOf(sel); const j = i < 0 ? 0 : (i + (e.key === 'ArrowRight' ? 1 : -1) + ok2.length) % ok2.length; sfx(sound, 'click'); setSel(ok2[j]); } };
+    window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
+  });
   const swapTo = id => { if (!confirm(`แลกไพ่ทั้งมือกับ ${nameOf(id)} (${hand(r, id).length} ใบ)?`)) return; sfx(sound, 'confirm'); tx(c => swap7(c, myId, id, srvNow)); };
   const pickWho = r.phase === 'play' ? cur : r.pick?.by;
   const nextId = r.order[stepFrom(r, r.turn, 1)];
@@ -318,8 +325,8 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
   return <div className="boom-game tam-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน • ไพ่ถึง {MERCY} ใบ = ตกรอบ</span><span className="cat-tag">{r.dir < 0 ? '↺ ทวนเข็ม' : '↻ ตามเข็ม'}</span></div>
 
-    <TamTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} res={res} canDraw={myTurn && (r.stack > 0 || !r.drew)} onDraw={drawOrTake}
-      pick={r.phase === 'pick7' && pickMine ? alive.filter(id => id !== myId) : null} onPick={swapTo} />
+    <div className="gcols"><div className="gmain"><TamTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} res={res} canDraw={myTurn && (r.stack > 0 || !r.drew)} onDraw={drawOrTake}
+      pick={r.phase === 'pick7' && pickMine ? alive.filter(id => id !== myId) : null} onPick={swapTo} /></div><div className="gside">
 
     {/* ตอนนี้ตาใคร */}
     {!res && r.phase === 'play' && (myTurn ? <div className={'turn-banner me tam-tb' + (r.stack > 0 ? ' hot' : '')}><TimerRing secs={secs} total={TURN_MS / 1000} size={48} />
@@ -344,6 +351,7 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
         {r.stack > 0 ? <button className="draw-btn hot" onClick={drawOrTake}><span>🥵</span> รับ +{r.stack} ใบ (จบตา)<small>{myHand.length + r.stack >= MERCY ? `⚠️ รับแล้วถึง ${MERCY} ใบ = ตกรอบ!` : `หรือซ้อนไพ่บวก +${r.stackMin} ขึ้นไปส่งต่อ`}</small></button>
           : !r.drew ? <button className="draw-btn" onClick={drawOrTake}><span>🃏</span> จั่วจนกว่าจะได้ใบที่ลงได้<small>จั่วแล้วจะลงต่อหรือผ่านก็ได้</small></button>
             : <button className="secondary wide" onClick={() => { sfx(sound, 'click'); tx(c => passTurn(c, myId, srvNow)); }}>⏩ ผ่าน (เก็บไพ่ไว้ในมือ)</button>}
+        <p className="kbd-hint">⌨️ <kbd>←</kbd><kbd>→</kbd> เลือกไพ่ • <kbd>Enter</kbd> ลง • <kbd>Space</kbd> {r.stack > 0 ? 'รับ' : r.drew ? 'ผ่าน' : 'จั่ว'}</p>
       </div>}
     </>}
 
@@ -360,6 +368,7 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
       {alive.filter(id => !room.players?.[id]).map(id => <button key={id} className="secondary" onClick={() => tx(c => kickTam(c, id, srvNow))}>🚪 ตัด {nameOf(id)} ออก</button>)}</HostBar>}
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>
     <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 8).map((e, i) => <li key={i} className={e.out ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
+    </div></div>
   </div>;
 }
 
