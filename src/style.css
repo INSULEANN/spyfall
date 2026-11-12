@@ -103,3 +103,5 @@ button.brand{background:none;border:0;color:inherit;padding:0}button.brand:hover
 .cake-hour.past{opacity:.45}.cake-hour.now{border-color:#8f9bff;background:#1b1f3a;box-shadow:0 0 0 2px #8f9bff33}.cake-hour.mine{border-style:dashed;border-color:color-mix(in srgb,var(--accent) 53%,transparent)}
 .cake-memory{display:grid;gap:4px;margin:14px 0;padding:12px 14px;border-radius:12px;background:#ffffff06;border:1px solid #ffffff10;font-size:13px;color:var(--soft)}.cake-memory b{color:var(--text)}
 .score-rules small{color:var(--dim);font-size:11px}
+
+.kick-btn{flex:none;width:30px;height:30px;padding:0;margin-left:6px;border-radius:50%;border:1px solid #ff9b9b55;background:#ff5f6d1a;color:#ff9b9b;font-size:13px;line-height:1;cursor:pointer}.kick-btn:hover{background:#ff5f6d33}
