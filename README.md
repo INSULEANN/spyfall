@@ -24,7 +24,7 @@ npm install
 2. ใน Project settings > General > Your apps ให้เพิ่ม Web app แล้วคัดลอก firebaseConfig
 3. ไปที่ Build > Realtime Database > Create Database เลือก region ใกล้ไทย เช่น Singapore/Asia Southeast
 4. คัดลอก `.env.example` เป็นไฟล์ชื่อ `.env` ที่รากโปรเจกต์ แล้วใส่ค่า `apiKey`, `authDomain`, `databaseURL`, `projectId`, `appId` ให้ตรงกับ Firebase project
-5. ใน Realtime Database > Rules ให้ใช้กฎชั่วคราวสำหรับเดโมตาม `firebase.rules.json` แล้วกด Publish
+5. ใน Realtime Database > Rules ให้ใช้กฎตาม `firebase.rules.json` แล้วกด Publish (หรือสั่ง `firebase deploy --only database`) — กฎนี้ให้เว็บลบห้องที่ไม่มีใครใช้เกิน 24 ชม. ได้
 
 > **คำเตือนด้านความปลอดภัย:** กฎในไฟล์ตัวอย่างเปิดอ่าน/เขียนได้เพื่อให้เดโมทำงานง่าย ทุกคนที่รู้ URL ฐานข้อมูลอาจอ่านหรือแก้ข้อมูลห้องได้ ไม่ควรใช้กับเกมสาธารณะจริงโดยไม่มีระบบยืนยันตัวตนและกฎที่เข้มงวดขึ้น ก่อนเปิดให้คนทั่วไปเล่นควรเพิ่ม Firebase Authentication, ตรวจสอบสิทธิ์ host และย้ายการสุ่มบทบาท/การนับคะแนนไปฝั่ง server (เช่น Cloud Functions) เพื่อไม่ให้ผู้เล่นที่แก้เว็บดูข้อมูลลับได้
 

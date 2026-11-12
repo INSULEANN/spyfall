@@ -125,3 +125,22 @@
   .amb,.confetti,.outcome-rays{display:none}
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ---------- อีโมจิลอย ---------- */
+.room-page{padding-bottom:84px}
+.rx-bar{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;gap:2px;padding:5px 8px;border-radius:999px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);box-shadow:0 10px 30px #0009;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);max-width:calc(100vw - 20px);overflow-x:auto;scrollbar-width:none}
+.rx-bar::-webkit-scrollbar{display:none}
+.rx-bar button{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:none;font-size:22px;line-height:1;padding:0;display:grid;place-items:center}
+.rx-bar button:hover{background:#ffffff12;transform:translateY(-3px) scale(1.15)}
+.rx-bar button:active{transform:scale(.85)}
+.rx-bar.off{padding:10px 16px;font-size:12px;color:var(--muted)}
+.rx-layer{position:fixed;inset:0;z-index:75;pointer-events:none;overflow:hidden}
+.rx{position:absolute;bottom:70px;display:grid;justify-items:center;gap:2px;animation:rxup 2.8s cubic-bezier(.2,.7,.3,1) forwards}
+.rx b{font-size:46px;line-height:1;filter:drop-shadow(0 6px 12px #0008);animation:rxwob .6s ease-in-out 3 alternate}
+.rx span{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px 2px 2px;border-radius:20px;background:#000a;color:#fff;white-space:nowrap}
+@keyframes rxup{0%{transform:translateY(30px) scale(.4);opacity:0}12%{transform:translateY(0) scale(1.15);opacity:1}25%{transform:translateY(-30px) scale(1)}80%{opacity:1}100%{transform:translateY(-62vh) scale(.9);opacity:0}}
+@keyframes rxwob{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
+.off-tag{color:#ff9b9b}
+@media(max-width:760px){.rx-bar button{width:36px;height:36px;font-size:20px}}
+.rx{translate:-50% 0}.rx span{max-width:130px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:420px){.rx-bar{gap:0;padding:4px 6px}.rx-bar button{width:33px;height:36px;font-size:19px}}

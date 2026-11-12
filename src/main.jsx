@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, get, update, onValue, remove, runTransaction } from 'firebase/database';
+import { getDatabase, ref, set, get, update, onValue, remove, runTransaction, onDisconnect, serverTimestamp, query, orderByChild, endAt, startAt, limitToFirst, push, onChildAdded } from 'firebase/database';
 import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut } from 'lucide-react';
 import './style.css';
 import './themes.css';
@@ -22,7 +22,7 @@ import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS 
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.14';
+const APP_VERSION = '1.15';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -89,6 +89,7 @@ const COPY = {
   cake:{stamp:'ห้ามแตะเค้ก!',floatSub:'จำเวลาที่ตื่นไว้ให้ดี',joinH:'ชวนรูมเมทเข้าบ้าน',howH:'กติกาบ้านนี้'},
 };
 Object.keys(COPY).forEach(k=>Object.assign(GAMES[k],COPY[k]));
+const pickHost = list => { const on = list.filter(p => p.online !== false); return ([...(on.length ? on : list)].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0))[0] || {}).id || null; };
 const HEAD_NORM = s => String(s||'').toLowerCase().replace(/[\s\-.'’]/g,'');
 // กติกาคะแนนต่อรอบ
 const SCORE = { teamWin: 1, rightVote: 1, spyEscape: 2, spyGuess: 2 };
@@ -139,7 +140,7 @@ function App() {
   useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),500);return()=>clearInterval(t)},[]);
   useEffect(()=>{if(!db)return;return onValue(ref(db,'.info/serverTimeOffset'),s=>setSkew(s.val()||0))},[]);
   useEffect(()=>{if(!db||!roomCode)return; const code=roomCode;liveCode.current=code; const unsub=onValue(ref(db,`rooms/${code}`),s=>{if(liveCode.current!==code)return;const v=s.val();if(v&&v.players?.[myId]){setRoom(v);setScreen('room')}else{if(v)msg('คุณไม่ได้อยู่ในห้องนี้แล้ว');else if(roomCode)msg('ห้องนี้ถูกปิดแล้ว');setRoom(null);setRoomCode('');setScreen('home')}});return()=>unsub();},[roomCode]);
-  const players=room?.players ? Object.values(room.players) : [];
+  const players=room?.players ? Object.values(room.players).filter(p=>p&&p.id&&p.name) : [];
   const gid=room?(room.game||'spyfall'):(game||'spyfall');const G=GAMES[gid]||GAMES.spyfall;const I=G.item,U=G.unit;
   const me=players.find(p=>p.id===myId);
   // คำนวณรูปใหม่เมื่อมีคนเข้า/ออก หรือเปลี่ยนรูป
@@ -184,7 +185,7 @@ function App() {
     if(!db){msg('ยังไม่ได้ตั้งค่า Firebase ตาม README');return}
     const n=clean(name);if(!n){msg('ใส่ชื่อเล่นก่อนนะ');return}
     const code=rid().slice(0,5);const a0=freeAv([],myAv);if(a0!==myAv)saveAv(a0);const player={id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION,av:a0};
-    const data={code,game:gid,v:APP_VERSION,hostId:myId,status:'lobby',createdAt:Date.now(),players:{[myId]:player},packs:G.packs,round:null,votes:null,settings:{duration}};
+    const data={code,game:gid,v:APP_VERSION,hostId:myId,status:'lobby',createdAt:Date.now(),active:serverTimestamp(),players:{[myId]:player},packs:G.packs,round:null,votes:null,settings:{duration}};
     await set(ref(db,`rooms/${code}`),data);localStorage.setItem('sf-name',n);setRoomCode(code);setScreen('room');sfx(sound,'join');
   }
   async function joinRoom(){
@@ -194,11 +195,12 @@ function App() {
     const data=snap.val();if((data.v||'1.0')!==APP_VERSION){msg(`ห้องนี้ใช้เวอร์ชัน ${data.v||'เก่า'} แต่เครื่องคุณเป็น ${APP_VERSION} — ให้ทุกคนรีเฟรชหน้าเว็บก่อน`);return}if(data.status!=='lobby' && !data.players?.[myId]){msg('เกมเริ่มแล้ว รอรอบหน้าก่อนนะ');return}
     if(Object.keys(data.players||{}).length>=12 && !data.players?.[myId]){msg('ห้องเต็มแล้ว (สูงสุด 12 คน)');return}
     const a1=freeAv(Object.values(data.players||{}),myAv??data.players?.[myId]?.av,myId);if(myAv==null)saveAv(a1);
-    await update(ref(db,`rooms/${code}/players/${myId}`),{id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION,av:a1});if(myAv!=null&&a1!==myAv)msg(`รูปที่คุณเลือกมีคนใช้แล้ว ได้รูป ${AVATARS[a1].e} แทน (แตะรูปตัวเองเพื่อเปลี่ยน)`);
+    await update(ref(db,`rooms/${code}/players/${myId}`),{id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION,av:a1,online:true});update(ref(db,`rooms/${code}`),{active:serverTimestamp()}).catch(()=>{});if(myAv!=null&&a1!==myAv)msg(`รูปที่คุณเลือกมีคนใช้แล้ว ได้รูป ${AVATARS[a1].e} แทน (แตะรูปตัวเองเพื่อเปลี่ยน)`);
     localStorage.setItem('sf-name',n);setGame(data.game||'spyfall');try{if(location.search)history.replaceState(null,'',location.pathname+location.hash)}catch{}setRoomCode(code);setScreen('room');sfx(sound,'join');
   }
   async function startGame(){
     if(!isHost||players.length<G.min){msg(`ต้องมีผู้เล่นอย่างน้อย ${G.min} คน`);return}if(outdated.length){msg('ยังมีคนใช้เวอร์ชันเก่า ให้รีเฟรชก่อน');return}
+    update(ref(db,`rooms/${roomCode}`),{active:serverTimestamp()}).catch(()=>{});
     // ตัวร้าย 2 ตาล่าสุด → ลดโอกาสได้ตัวร้ายซ้ำ (ดู rand.js)
     const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
     if(G.type==='cake'){const rd=makeCakeRound(ids,{...ckOpts,hist},(room.round?.number||0)+1,Date.now()+skew);
@@ -235,8 +237,29 @@ function App() {
   async function pickAv(i){if(room){const other=players.find(p=>p.id!==myId&&av.idxOf(p.id)===i);if(other){msg(`${other.name} ใช้รูปนี้อยู่`);return}
     try{await update(ref(db,`rooms/${roomCode}/players/${myId}`),{av:i})}catch{msg('เปลี่ยนรูปไม่สำเร็จ ลองใหม่อีกที');return}}
     saveAv(i);setAvOpen(false);sfx(sound,'select');msg(`เปลี่ยนรูปเป็น ${AVATARS[i].e} ${AVATARS[i].n} แล้ว`)}
-  async function leaveRoom(){const code=roomCode,host=isHost;liveCode.current='';setRoomCode('');setRoom(null);setScreen('home');if(db&&code&&myId){if(host){await remove(ref(db,`rooms/${code}`));}else{await remove(ref(db,`rooms/${code}/players/${myId}`));}}}
+  async function leaveRoom(){const code=roomCode;liveCode.current='';setRoomCode('');setRoom(null);setScreen('home');if(!db||!code||!myId)return;
+    try{await onDisconnect(ref(db,`rooms/${code}/players/${myId}/online`)).cancel()}catch{}
+    await runTransaction(ref(db,`rooms/${code}`),cur=>{if(!cur)return cur;const ps={...(cur.players||{})};delete ps[myId];const left=Object.values(ps).filter(p=>p&&p.id);
+      if(!left.length)return null; // คนสุดท้ายออก → ลบห้อง
+      cur.players=ps;if(cur.hostId===myId)cur.hostId=pickHost(left);if(cur.voice?.members)delete cur.voice.members[myId];return cur}).catch(()=>{})}
   const canEdit=isHost&&room?.status==='lobby';
+  // ออนไลน์/หลุด: เน็ตหลุดหรือปิดแท็บ Firebase จะตั้ง online=false ให้เอง
+  useEffect(()=>{if(!db||!roomCode)return;const code=roomCode;const pRef=ref(db,`rooms/${code}/players/${myId}`);const oRef=ref(db,`rooms/${code}/players/${myId}/online`);
+    const unsub=onValue(ref(db,'.info/connected'),s=>{if(s.val()!==true)return;onDisconnect(oRef).set(false).then(()=>runTransaction(pRef,p=>p&&p.id?{...p,online:true}:undefined)).catch(()=>{})});
+    return()=>{unsub();onDisconnect(oRef).cancel().catch(()=>{})}},[roomCode]);
+  // หัวหน้าห้องหลุดเกิน 12 วิ → คนที่ออนไลน์และเข้าห้องก่อนสุดรับตำแหน่งแทน
+  const hostP=room?.players?.[room?.hostId];const hostGone=!!room&&(!hostP||hostP.online===false);
+  useEffect(()=>{if(!hostGone||!db||!roomCode)return;const code=roomCode;const t=setTimeout(()=>{runTransaction(ref(db,`rooms/${code}`),cur=>{if(!cur)return;const h=cur.players?.[cur.hostId];if(h&&h.online!==false)return;
+      const next=pickHost(Object.values(cur.players||{}).filter(p=>p&&p.id&&p.online!==false));if(next!==myId)return;cur.hostId=myId;return cur}).then(r=>{if(r?.committed)msg('หัวหน้าห้องหลุด — คุณเป็นหัวหน้าห้องแทนแล้ว 👑')}).catch(()=>{})},12000);return()=>clearTimeout(t)},[hostGone,roomCode]);
+  const prevHost=useRef(null);
+  useEffect(()=>{const h=room?.hostId;const p=prevHost.current;prevHost.current=h;if(p&&h&&p!==h&&h!==myId&&room?.players?.[h])msg(`👑 ${room.players[h].name} เป็นหัวหน้าห้องคนใหม่`)},[room?.hostId]);
+  // ลบห้องที่ไม่มีใครใช้เกิน 24 ชม. (ต้องตั้งกฎใน firebase.rules.json ก่อน — ถ้ายังไม่ได้ตั้ง จะข้ามไปเงียบ ๆ)
+  useEffect(()=>{if(!db)return;const t=setTimeout(async()=>{try{const old=await get(query(ref(db,'rooms'),orderByChild('active'),endAt(Date.now()-25*3600e3),limitToFirst(25)));const jobs=[];old.forEach(c=>{jobs.push(remove(c.ref).catch(()=>{}))});await Promise.all(jobs)}catch{}},7000);return()=>clearTimeout(t)},[]);
+  // อีโมจิลอย
+  const [floats,setFloats]=useState([]);const rxLast=useRef(0);
+  useEffect(()=>{if(!db||!roomCode)return;const code=roomCode;const unsub=onChildAdded(query(ref(db,`rooms/${code}/rx`),orderByChild('t'),startAt(Date.now()+skew-3000)),s=>{const v=s.val();if(!v?.e)return;const id=s.key;
+      setFloats(f=>[...f.slice(-14),{id,e:v.e,by:v.by,x:14+Math.random()*72}]);setTimeout(()=>setFloats(f=>f.filter(x=>x.id!==id)),2800);if(v.by!==myId)sfx(sound,'click')});return()=>unsub()},[roomCode]);
+  async function react(e){const t=Date.now();if(t-rxLast.current<600||!db||!roomCode)return;rxLast.current=t;const r=push(ref(db,`rooms/${roomCode}/rx`));await set(r,{by:myId,e,t:serverTimestamp()}).catch(()=>{});setTimeout(()=>remove(r).catch(()=>{}),5000)}
   async function togglePlace(pi,qi){if(!canEdit)return;await set(ref(db,`rooms/${roomCode}/off/p${pi}/i${qi}`),isOn(pi,qi)?true:null);sfx(sound,'click')}
   async function togglePack(pi){if(!canEdit)return;const n=(packs[pi]?.places||[]).length;const allOn=packOnCount(pi)===n;
     if(allOn){const o={};for(let q=0;q<n;q++)o['i'+q]=true;await set(ref(db,`rooms/${roomCode}/off/p${pi}`),o)}else await set(ref(db,`rooms/${roomCode}/off/p${pi}`),null);sfx(sound,'click')}
@@ -303,6 +326,11 @@ function App() {
     {newBuild&&<button className="update-bar" onClick={()=>location.reload()}>🔄 มีเวอร์ชันใหม่ — แตะเพื่ออัปเดต</button>}
     {notice&&<div className="toast">{notice}</div>}
     {avOpen&&<AvatarPicker current={room?av.idxOf(myId):myAv} takenBy={room?Object.fromEntries(players.filter(p=>p.id!==myId).map(p=>[av.idxOf(p.id),p.name])):{}} onPick={pickAv} onClose={()=>setAvOpen(false)}/>}
+    {screen==='room'&&room&&<>
+      <div className="rx-layer" aria-hidden="true">{floats.map(f=><div key={f.id} className="rx" style={{left:f.x+'%'}}><b>{f.e}</b><span><Avatar id={f.by} av={av} size={22}/>{nameOf(f.by)}</span></div>)}</div>
+      {cakeNight||wolfNight?<div className="rx-bar off">🤫 กลางคืน — ปิดอีโมจิไว้ (กันรู้ว่าใครตื่นอยู่)</div>
+        :<div className="rx-bar" role="toolbar" aria-label="ส่งอีโมจิ">{['😂','😱','🤨','🤔','👀','😡','👏','💀','🔥','🙏'].map(e=><button key={e} type="button" onClick={()=>react(e)} aria-label={'ส่ง '+e}>{e}</button>)}</div>}
+    </>}
     {verdict&&<div className={'verdict '+(verdict.right?'right':'wrong')} onClick={()=>setVerdict(null)} key={verdict.key}><div className="verdict-box"><div className="verdict-emoji">{verdict.right?'🧠':'🤡'}</div><div className="verdict-text">{verdict.right?'ฉลาดจริงๆเลยไอโง่':'มึงนี่โง่จริงๆเลยนะ'}</div><small>{verdict.right?'โหวตถูกตัวสายลับ':'โหวตผิดคน'} • แตะเพื่อปิด</small></div></div>}
     {screen==='home'&&!game&&<main className="home hub">
       <section className="hub-hero"><HubArt/><span className="eyebrow"><Sparkles size={15}/> PARTY GAMES • เล่นข้ามเครื่อง <span className="version-tag">v{APP_VERSION}</span></span><h1>{BRAND}</h1><p>รวมบอร์ดเกมปาร์ตี้ไว้เล่นกับแก๊งเพื่อน เลือกเกมแล้วสร้างห้อง หรือใส่รหัสห้องที่เพื่อนส่งมาได้เลย</p></section>
@@ -333,7 +361,7 @@ function App() {
     </main>}
     {screen==='room'&&room&&<main className="room-page">
       <div className="room-heading"><div className="room-art"><SceneArt id={G.id}/></div><div><span className="eyebrow">{G.emoji} {G.name} • ห้องเล่นส่วนตัว</span><h1>ห้อง <span className="room-code">{roomCode}</span> <button className="icon-btn" onClick={copy}><Copy size={17}/></button></h1><p>ส่งรหัสนี้ให้เพื่อน หรือกดส่งลิงก์ชวนได้เลย</p><button className="invite" onClick={invite}>📤 ชวนเพื่อน</button></div><button className="secondary" onClick={leaveRoom} aria-label="ออกจากห้อง" title="ออกจากห้อง"><LogOut size={16}/><span className="leave-text">ออกจากห้อง</span></button></div>
-      <div className={'room-grid'+(room.status!=='lobby'?' playing':'')}><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/12</span></div>{players.map((p,i)=><div className="player-row" key={p.id}>{p.id===myId?<button type="button" className="av-edit" onClick={()=>setAvOpen(true)} title="เปลี่ยนรูปโปรไฟล์" aria-label="เปลี่ยนรูปโปรไฟล์"><Avatar id={p.id} av={av} size={40} dead={room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]}/><i>✏️</i></button>:<Avatar id={p.id} av={av} size={40} dead={room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]}/>}<div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}{p.id===myId?' • แตะรูปเพื่อเปลี่ยน':''}{room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]?' • 💀 ตายแล้ว':''}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg} gate={voiceGate}/></section>
+      <div className={'room-grid'+(room.status!=='lobby'?' playing':'')}><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/12</span></div>{players.map((p,i)=><div className="player-row" key={p.id}>{p.id===myId?<button type="button" className="av-edit" onClick={()=>setAvOpen(true)} title="เปลี่ยนรูปโปรไฟล์" aria-label="เปลี่ยนรูปโปรไฟล์"><Avatar id={p.id} av={av} size={40} dead={room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]}/><i>✏️</i></button>:<Avatar id={p.id} av={av} size={40} dead={room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]}/>}<div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}{p.id===myId?' • แตะรูปเพื่อเปลี่ยน':''}{room.round?.kind==='wolf'&&room.round.alive&&!room.round.alive[p.id]?' • 💀 ตายแล้ว':''}{p.online===false?<span className="off-tag"> • 📴 หลุด</span>:''}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg} gate={voiceGate}/></section>
       <section className="panel game-panel">{room.status==='lobby'&&G.type==='head'&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน แล้วค่อยเดาคำบนหัว</h2><p className="hint">ตอนเริ่ม ระบบจะสุ่ม 1 หมวดจากที่ติ๊กไว้ แล้วแจกคำให้ทุกคนคนละคำ (เล่นได้ 2–12 คน)</p><div className="score-rules"><b>🏅 คะแนน</b><span>ทายถูกอันดับ 1 ได้ (จำนวนคน − 1) แต้ม อันดับถัดไปลดลงทีละ 1</span><span>ยังทายไม่ได้ตอนจบเกม = 0 แต้ม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<G.min||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {room.status==='lobby'&&!G.type&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน เดี๋ยวค่อยโป๊ะ</h2><label>เวลาต่อรอบ</label><select value={duration} onChange={e=>setDuration(+e.target.value)}><option value={3}>3 นาที</option><option value={5}>5 นาที</option><option value={8}>8 นาที</option><option value={10}>10 นาที</option></select><p className="hint">หัวหน้าห้องเป็นคนเริ่มเกมและเพิ่มชุด{I} • หมดเวลาแล้วจะเข้าหน้าโหวตอัตโนมัติ</p><div className="score-rules"><b>🏅 กติกาคะแนน</b><span>จับสายลับได้: ชาวบ้านทุกคน +{SCORE.teamWin}</span><span>โหวตถูกตัวสายลับ: +{SCORE.rightVote}</span><span>สายลับรอด: +{SCORE.spyEscape} • เดา{I}ถูก: +{SCORE.spyGuess}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{!G.roles&&<label className="cat-toggle"><input type="checkbox" className="tick" checked={showCat} disabled={!isHost} onChange={e=>setShowCat(e.target.checked)}/> บอกหมวดหมู่ให้ทุกคนรู้ (สายลับเดาง่ายขึ้น)</label>}{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<3||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {active&&!G.type&&room.round&&(()=>{const spy=role?.type==='spy';const low=secondsLeft<=30;return <>

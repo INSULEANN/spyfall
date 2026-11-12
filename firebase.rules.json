@@ -1,9 +1,12 @@
 {
   "rules": {
     "rooms": {
+      ".indexOn": ["active"],
+      ".read": "query.orderByChild == 'active' && query.endAt != null && query.endAt <= now - 86400000 && query.limitToFirst != null && query.limitToFirst <= 50",
       "$room": {
         ".read": true,
-        ".write": true
+        ".write": true,
+        "rx": { ".indexOn": ["t"] }
       }
     }
   }
