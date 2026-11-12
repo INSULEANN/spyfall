@@ -1,0 +1,71 @@
+/* 🌶️ ตำแหลก! — ไพ่ 4 รส บนกระด้ง */
+.gcard.tc{--tc1:#777;--tc2:#444;padding:0;gap:0;justify-content:center;color:#fff;background:linear-gradient(165deg,var(--tc1),var(--tc2));border:calc(var(--cw)*.05) solid #fff8ea;box-shadow:0 4px 0 color-mix(in srgb,var(--tc2) 55%,#000),0 8px 18px #0006}
+.gcard.tc:before{display:none}
+.gcard.tc:after{content:"";position:absolute;inset:0;background:radial-gradient(circle,#ffffff26 0 1.2px,transparent 2px) 0 0/calc(var(--cw)*.2) calc(var(--cw)*.2);pointer-events:none}
+.gcard.tc-r{--tc1:#ff6a45;--tc2:#c4241a}
+.gcard.tc-g{--tc1:#8fd650;--tc2:#2e8a2c}
+.gcard.tc-y{--tc1:#ffcf45;--tc2:#d97c12}
+.gcard.tc-b{--tc1:#55bdf0;--tc2:#1d5aa6}
+.gcard.tc-w{--tc1:#4a3424;--tc2:#170f09}
+.gcard.tc-empty{--tc1:#ffffff12;--tc2:#ffffff08;border-style:dashed;box-shadow:none}
+/* ครกตรงกลางไพ่ */
+.tc-mortar{position:absolute;left:13%;right:13%;top:27%;height:47%;border-radius:14% 14% 50% 50%/12% 12% 62% 62%;background:#fff8ea;box-shadow:inset 0 calc(var(--cw)*-.05) 0 #00000022,0 calc(var(--cw)*.035) 0 #00000040;display:grid;place-items:center;z-index:1}
+.tc-mortar:before{content:"";position:absolute;left:-6%;right:-6%;top:-5%;height:16%;border-radius:40%;background:#f0dcc0;box-shadow:0 1px 0 #00000022}
+.tc-w .tc-mortar{background:conic-gradient(from 45deg,#ff6a45 0 25%,#8fd650 0 50%,#ffcf45 0 75%,#55bdf0 0)}
+.tc-w .tc-mortar:before{background:#2a1c12}
+.tc-big{position:relative;font-family:'Chonburi','Kanit',sans-serif;font-size:calc(var(--cw)*.4);line-height:1;color:var(--tc2);margin-top:calc(var(--cw)*.05)}
+.tc-big.plus{font-size:calc(var(--cw)*.27);letter-spacing:-.5px}
+.tc-big.ico{font-size:calc(var(--cw)*.27);font-family:inherit}
+.tc-w .tc-big{color:#fff;text-shadow:0 2px 0 #000a,0 0 6px #000c}
+.tc-ix{position:absolute;left:8%;top:4%;font-family:'Chonburi','Kanit',sans-serif;font-size:calc(var(--cw)*.17);line-height:1.1;color:#fff;text-shadow:0 1px 0 #0007;z-index:2}
+.tc-fl{position:absolute;right:6%;top:4%;font-size:calc(var(--cw)*.15);line-height:1.1;z-index:2;filter:drop-shadow(0 1px 1px #0006)}
+.tc-lb{position:absolute;left:3%;right:3%;bottom:5%;font-family:'Kanit',sans-serif;font-size:calc(var(--cw)*.115);font-weight:800;line-height:1.1;color:#fff;text-shadow:0 1px 2px #0009;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard.sm.tc .tc-lb{font-size:calc(var(--cw)*.13)}
+/* ด้านหลัง: ลายใบตอง */
+.gcard.tc-back{padding:0;justify-content:center;gap:0;background:repeating-linear-gradient(115deg,#3f9a35 0 5px,#2f7f28 5px 9px) padding-box,linear-gradient(#fff8ea,#fff8ea) border-box;border:calc(var(--cw)*.05) solid transparent;box-shadow:0 3px 0 #1d4a18,0 8px 16px #0007}
+.gcard.tc-back:before{display:none}
+.tc-back span{font-size:calc(var(--cw)*.36);line-height:1.1;filter:drop-shadow(0 2px 2px #0008)}
+.tc-back b{font-family:'Chonburi','Kanit',sans-serif;font-weight:400;font-size:calc(var(--cw)*.14);color:#fff8ea;text-shadow:0 1px 2px #000a}
+
+/* กระด้ง + ทิศทาง */
+.tam-rt .rt-felt{background:radial-gradient(circle at 50% 50%,#00000000 55%,#0000002a 70%),repeating-conic-gradient(from 0deg,#d9a35a 0 5deg,#c58d45 5deg 10deg);box-shadow:inset 0 0 0 7px #8a5a2c,inset 0 0 0 11px #b07a3c,inset 0 0 0 13px #5a3a18,inset 0 10px 30px #0008,0 16px 34px #000a}
+.tam-rt .rt-felt:after{border-color:#5a3a1833}
+.tam-dir{position:absolute;left:50%;top:50%;width:66%;aspect-ratio:1;border-radius:50%;border:2px dashed #ffcf5a40;pointer-events:none;z-index:1;animation:tamSpin 10s linear infinite}
+.tam-dir.ccw{animation-direction:reverse}
+.tam-dir i{position:absolute;font-style:normal;font-size:15px;line-height:1;color:#ffcf5a;text-shadow:0 0 6px #ff7a1a}
+.tam-dir i:nth-child(1){left:50%;top:-8px;transform:translateX(-50%)}
+.tam-dir i:nth-child(2){left:50%;bottom:-8px;transform:translateX(-50%) rotate(180deg)}
+.tam-dir.ccw i:nth-child(1){transform:translateX(-50%) scaleX(-1)}
+.tam-dir.ccw i:nth-child(2){transform:translateX(-50%) rotate(180deg) scaleX(-1)}
+@keyframes tamSpin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.tam-info{gap:6px;padding:3px 6px}
+.fl-chip{padding:1px 9px;border-radius:20px;color:#fff;font-weight:800;text-shadow:0 1px 1px #0007}
+.fl-r{--flc:#ff5a3c}.fl-g{--flc:#6fc63a}.fl-y{--flc:#f5b52a}.fl-b{--flc:#3aa6e8}
+.fl-chip{background:var(--flc)}
+.tam-pile .gcard{box-shadow:0 0 0 3px var(--flc),0 0 22px var(--flc);animation:popIn .3s cubic-bezier(.3,1.6,.5,1)}
+.tam-stack{position:absolute;left:63%;top:67%;transform:translate(-50%,-50%);z-index:5;font-family:'Chonburi','Kanit',sans-serif;font-size:20px;line-height:1.25;color:#fff;background:#e0303a;padding:1px 12px;border-radius:20px;box-shadow:0 0 0 3px #ffcf5a,0 6px 16px #000a;animation:stackPop .55s cubic-bezier(.3,1.7,.5,1) both;pointer-events:none}
+.tam-stack.mega{font-size:26px;background:linear-gradient(#ff3a2a,#a0100a);animation:stackPop .55s cubic-bezier(.3,1.7,.5,1) both,stackShake .5s .55s ease-in-out infinite}
+@keyframes stackPop{from{transform:translate(-50%,-50%) scale(2.4) rotate(-12deg);opacity:0}}
+@keyframes stackShake{25%{transform:translate(-52%,-50%) rotate(-3deg)}75%{transform:translate(-48%,-50%) rotate(3deg)}}
+.tam-game .mini-backs i{background:linear-gradient(160deg,#3f9a35,#1f5a1a);border-color:#fff8ea}
+.tam-game .seat-cards em.hot{background:#e0303a;animation:hotPulse .9s ease-in-out infinite}
+.tam-game .seat-cards em.one{background:#ffcf45;color:#2a1400}
+
+/* แถบตา + ปุ่ม */
+.tam-tb{flex-wrap:nowrap;justify-content:flex-start;text-align:left;gap:10px}
+.tam-tb>div{display:grid;gap:2px;min-width:0}
+.tam-tb small{line-height:1.45}
+.tam-tb.hot{background:#3a1012;border-color:#ff5a3c88;box-shadow:0 0 0 2px #ff5a3c33,0 8px 24px #ff3a2a33}
+.tb-secs{font-size:12px;font-weight:700;opacity:.75;margin-left:4px}
+.draw-btn.hot{background:linear-gradient(180deg,#ff5a3c,#c4241a);color:#fff;box-shadow:0 6px 0 #7a1410,0 10px 22px #0007}
+.tam-act{display:grid;gap:8px}
+.fl-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fl-btn{display:grid;justify-items:center;gap:2px;padding:10px 4px;border-radius:14px;border:0;font:inherit;font-weight:800;font-size:13.5px;color:#fff;background:var(--flc);box-shadow:0 4px 0 color-mix(in srgb,var(--flc) 55%,#000);cursor:pointer;text-shadow:0 1px 1px #0007}
+.fl-btn span{font-size:26px;line-height:1.1}
+.fl-btn.on{outline:3px solid #fff;outline-offset:2px}
+.fl-btn:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--flc) 55%,#000)}
+.tam-left{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.tam-left span{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 4px;border-radius:20px;background:var(--inset);font-size:13px}
+.tam-left span.out{opacity:.6}
+.tam-gallery .cg-item .gcard.tc{--cw:52px}
+@media (prefers-reduced-motion:reduce){.tam-dir,.tam-stack{animation:none}}

@@ -24,6 +24,9 @@
 /* ทุเรียนตูม: ประกายไฟจากชนวน ลอยขึ้นแล้ววูบ */
 [data-amb="boom"] i{width:calc(4px*var(--s));height:calc(4px*var(--s));background:#ffcf5a;box-shadow:0 0 8px 2px #ff7a1aaa;animation-duration:calc(var(--d)*.8)}
 [data-amb="boom"] i:nth-child(3n){background:#a3b13a;box-shadow:0 0 6px #a3b13a88;width:calc(7px*var(--s));height:calc(7px*var(--s));border-radius:30%;transform:rotate(45deg)}
+/* ตำแหลก!: เศษพริก มะนาว น้ำตาลปี๊บ ปลิวตกลงมา */
+[data-amb="tam"] i{bottom:auto;top:-20px;width:calc(7px*var(--s));height:calc(3px*var(--s));border-radius:40% 60% 40% 60%;background:#ff4a2a;animation-name:amb-fall;animation-duration:calc(var(--d)*1.2)}
+[data-amb="tam"] i:nth-child(3n+1){background:#7fd34a}[data-amb="tam"] i:nth-child(3n+2){background:#ffcf45;width:calc(4px*var(--s));height:calc(4px*var(--s));border-radius:50%}
 /* จับผีปอป: ดวงไฟผีสีเขียวลอยวูบวาบ + ตาแดงกะพริบในความมืด + หมอก */
 [data-amb="curse"] i{bottom:auto;top:calc(20% + var(--y)*0.75);width:calc(6px*var(--s));height:calc(6px*var(--s));background:#c8ff9a;box-shadow:0 0 14px 4px #5fc96a88;animation-name:amb-fly;animation-duration:calc(var(--d)*1.3)}
 [data-amb="curse"] i:nth-child(5n){width:4px;height:3px;border-radius:50%;background:#ff3b3b;box-shadow:7px 0 0 #ff3b3b,0 0 8px 2px #ff3b3b66;animation:amb-twinkle calc(var(--d)/2) ease-in-out var(--dl) infinite}

@@ -21,13 +21,14 @@ import { WolfGame, makeWolfRound, wolfPlan, WOLF_MIN, WOLF_SCORE } from './werew
 import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS } from './cake.jsx';
 import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } from './boom.jsx';
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
+import { TamGame, TamLobby, makeTamRound, TAM_MIN, TAM_MAX, TAM_SCORE, MERCY } from './tam.jsx';
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.17';
+const APP_VERSION = '1.18';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -91,6 +92,11 @@ const GAMES = {
     lead:'ไม่มีใครรู้ว่าใครถูกปอปสิง…ซุบซิบ หาหลักฐาน ใส่ความกันให้ครบ 7 แต้มแล้วเปิดไพ่ดวง ส่วนผีปอปจะออกหากินตับตอนคืนเดือนดับ หมอธรรมช่วยได้แค่คืนละคน',
     pills:['🃏 เกมไพ่','👻 ผีปอป','📿 หมอธรรม'],
     how:[['ไพ่ดวงคว่ำ','ทุกคนได้ไพ่ดวง 2–4 ใบคว่ำไว้ ใครมี “ปอปสิง” คือผีปอป (รู้จักกันเอง) มีหมอธรรม 1 คนคอยคุ้มกันชาวบ้าน'],['ซุบซิบใส่ความ','ตาของคุณ จั่ว 2 ใบ หรือ เล่นไพ่: แดงใส่ความสงสัย เขียวใช้ทันที ฟ้าติดตัว ใครโดนครบ 7 แต้ม คนใส่ต้องเลือกเปิดไพ่ดวงของเขา 1 ใบ'],['คืนเดือนดับ','จั่วได้คืนเดือนดับ ทุกคนหลับ ผีปอปออกหากิน เลือกเหยื่อ หมอธรรมคุ้มกัน ใครกลัวตายสาบานตนเปิดดวงได้ เปิดปอปสิงได้ครบ ชาวบ้านชนะ']] },
+  tam: { id:'tam', type:'tam', name:'ตำแหลก!', emoji:'🌶️', packs:[], item:'ไพ่', unit:'ใบ', roles:false, min:TAM_MIN, max:TAM_MAX, h1:['ตำแหลก!','ไพ่โหดไม่เลี้ยง'], art:'🌶️', float:'+10 ไหวไหม?',
+    blurb:'ไพ่ 4 รส เผ็ด เปรี้ยว หวาน เค็ม ลงให้ตรงรสหรือตรงเลข ใครหมดมือก่อนชนะ แต่ระวัง! ไพ่บวกซ้อนกันได้ไม่จำกัด ถือไพ่ถึง 25 ใบตกรอบทันที',
+    lead:'ตำให้แหลก! ลงไพ่ตรงรสตรงเลข ซ้อน +2 +4 +6 +10 ใส่เพื่อน 7 แลกมือ 0 ส่งไพ่ทั้งวง สุ่มรสใส่คนถัดไป ใครถือไพ่ถึง 25 ใบ เผ็ดจนทนไม่ไหว ตกรอบ!',
+    pills:['🃏 เกมไพ่','🔥 ซ้อน +10','🥵 25 ใบตกรอบ'],
+    how:[['ลงให้ตรง','ลงไพ่ที่รสหรือเลขตรงกับใบบนกอง ไพ่ดำลงได้ทุกเมื่อแล้วเลือกรสใหม่ ไม่มีให้ลงต้องจั่วไปเรื่อย ๆ จนกว่าจะได้ใบที่ลงได้'],['ซ้อนไพ่บวก','โดน +2 +4 +6 +10 ซ้อนไพ่บวกที่เท่ากันหรือมากกว่าส่งต่อได้ ไม่งั้นต้องรับทั้งหมด'],['โหดไม่เลี้ยง','7 แลกมือ • 0 ส่งไพ่ทั้งวง • เหมาร้านข้ามทุกคน • เทกระจาดทิ้งทั้งรส • ถือไพ่ถึง 25 ใบตกรอบ • หมดมือก่อนหรือรอดคนสุดท้ายชนะ']] },
 };
 // เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
 const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
@@ -103,6 +109,7 @@ const COPY = {
   werewolf:{stamp:'อย่าออกจากบ้าน!',floatSub:'ใครโกหก ใครพูดจริง',joinH:'รวมชาวบ้านก่อนพระอาทิตย์ตก',howH:'กฎของหมู่บ้าน'},
   cake:{stamp:'ห้ามแตะเค้ก!',floatSub:'จำเวลาที่ตื่นไว้ให้ดี',joinH:'ชวนรูมเมทเข้าบ้าน',howH:'กติกาบ้านนี้'},
   boom:{stamp:'ห้ามจั่วมั่ว!',floatSub:'มีที่หนีบจมูกหรือยัง?',joinH:'ชวนแก๊งมาลุ้นทุเรียน',howH:'กติกาแผงทุเรียน'},
+  tam:{stamp:'ไม่ไว้หน้าใคร!',floatSub:'ซ้อนบวกได้ไม่จำกัด',joinH:'เรียกแก๊งมาล้อมครก',howH:'กติกาครกแตก'},
   curse:{stamp:'ปอปอยู่ในหมู่บ้าน!',floatSub:'ซุบซิบให้ถึง 7 แต้ม',joinH:'ตีกลองเรียกชาวบ้านมาศาลา',howH:'กฎบ้านนาดง'},
 };
 Object.keys(COPY).forEach(k=>Object.assign(GAMES[k],COPY[k]));
@@ -225,6 +232,8 @@ function App() {
     // ตัวร้าย 2 ตาล่าสุด → ลดโอกาสได้ตัวร้ายซ้ำ (ดู rand.js)
     const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
+    if(G.type==='tam'){const rd=makeTamRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='boom'){const rd=makeBoomRound(ids,{},(room.round?.number||0)+1);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='curse'){const rd=makeCurseRound(ids,{...csOpts,hist},(room.round?.number||0)+1);
@@ -473,6 +482,14 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌙 เข้านอน ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
       {G.type==='cake'&&room.status!=='lobby'&&room.round?.kind==='cake'&&<CakeGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='tam'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=TAM_MIN&&n<=TAM_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ครกพร้อม…ใครจะโดนตำ?</h2>
+        <p className="hint">เล่นได้ {TAM_MIN}–{TAM_MAX} คน • ลงไพ่ตรงรสหรือตรงเลข หมดมือก่อนชนะ • ไพ่บวกซ้อนกันได้ • ถือไพ่ถึง {MERCY} ใบตกรอบ</p>
+        {n>TAM_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {TAM_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <TamLobby n={n}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>หมดมือก่อน หรือรอดคนสุดท้าย +{TAM_SCORE.win}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌶️ สับไพ่แล้วแจก ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่อยู่</div>}</>})()}
+      {G.type==='tam'&&room.status!=='lobby'&&room.round?.kind==='tam'&&<TamGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='boom'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=BOOM_MIN&&n<=BOOM_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ทุเรียนลูกไหน…จะตูมใส่ใคร?</h2>
         <p className="hint">เล่นได้ {BOOM_MIN}–{BOOM_MAX} คน • ผลัดกันจั่ว ใครจั่วได้ทุเรียนตูมแล้วไม่มีที่หนีบจมูก = ตกรอบ • รอดคนสุดท้ายชนะ • “ไม่เอา!” กดสวนได้ทุกเมื่อแม้ไม่ใช่ตาตัวเอง</p>
         {n>BOOM_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {BOOM_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -491,8 +508,8 @@ function App() {
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section></div>
       {!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>

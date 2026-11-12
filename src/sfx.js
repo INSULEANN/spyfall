@@ -168,6 +168,15 @@ export const THEMES = {
     win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); [0.5, 0.62, 0.74].forEach(at => pop(at, 0.1)); },
   },
   // 👻 จับผีปอป: ฆ้องต่ำ กระดิ่งลม เคาะไม้ เสียงกระซิบ
+  // 🌶️ ตำแหลก!: ครกตำป๊อก ๆ กระดิ่งรถเข็น ส้มตำมาแล้ว
+  tam: {
+    start: () => { knock(0); knock(0.16); knock(0.32); arp([659, 784, 988, 1319], 0.07, { type: 'triangle', gain: 0.07, at: 0.5 }); },
+    join: () => { knock(0); knock(0.13); },
+    click: () => pop(0, 0.07), select: () => pop(0, 0.1),
+    confirm: () => { knock(0); bell(1568, 0.5, { at: 0.05, gain: 0.04 }); },
+    yourTurn: () => { knock(0); bell(1319, 0.5, { at: 0.08, gain: 0.06 }); bell(1760, 0.6, { at: 0.24, gain: 0.05 }); },
+    win: () => { [0, 0.14, 0.28].forEach(at => knock(at)); arp([659, 784, 988, 1319, 1568], 0.08, { type: 'triangle', gain: 0.08, at: 0.4 }); },
+  },
   curse: {
     start: () => { gong(0, 0.1); bell(1175, 2.2, { at: 0.5, gain: 0.04 }); bell(1109, 2.2, { at: 0.9, gain: 0.035 }); },
     join: () => [1568, 1760, 2093].forEach((f, i) => bell(f, 1.2, { at: i * 0.11, gain: 0.03 })),

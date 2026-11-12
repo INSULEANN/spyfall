@@ -235,6 +235,42 @@ function BoomScene() {
     <g className="peek"><g transform="translate(352 150)"><circle r="26" fill="#ffd2a8" /><path d="M-26 -6 Q-24 -30 0 -30 Q24 -30 26 -6 Q14 -18 0 -16 Q-14 -18 -26 -6 Z" fill="#2b1d10" /><path d="M-12 -4 l6 4 l-6 4 M12 -4 l-6 4 l6 4" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><rect x="-5" y="2" width="10" height="16" rx="3" fill="#d9a66a" /><path d="M-9 20 q9 6 18 0" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><g stroke="#9ab03a" strokeWidth="3" strokeLinecap="round" fill="none" opacity=".8"><path d="M-46 -20 q-6 -8 2 -14" /><path d="M-52 4 q-8 -6 0 -12" /></g></g></g>
   </S>;
 }
+// ---------- 🌶️ ตำแหลก!: แผงส้มตำ ครกดินเผาใบโต สากตำขึ้นลง ไพ่ 4 รสปลิวว่อน ป้าย +10 ----------
+const TamC = ({ x, y, r, c1, c2, t }) => <g transform={`translate(${x} ${y}) rotate(${r})`}><rect x="-18" y="-25" width="36" height="50" rx="5" fill="#fff8ea" /><rect x="-15.5" y="-22.5" width="31" height="45" rx="4" fill={c1} />
+  <path d="M-12 -7 h24 q0 17 -12 19 q-12 -2 -12 -19 z" fill="#fff8ea" /><text y="7" textAnchor="middle" fontSize={t.length > 1 ? 10 : 14} fill={c2} fontFamily="Chonburi,Kanit,sans-serif">{t}</text></g>;
+function TamScene() {
+  return <S id="tam" label="ครกส้มตำใบใหญ่บนแผงริมทาง มีไพ่สี่รสปลิวออกมา">
+    <defs>
+      <linearGradient id="tm-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a0e08" /><stop offset=".6" stopColor="#8a2a10" /><stop offset="1" stopColor="#e0661a" /></linearGradient>
+      <radialGradient id="tm-burst" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffe08a" stopOpacity=".8" /><stop offset=".55" stopColor="#ff7a3a" stopOpacity=".32" /><stop offset="1" stopColor="#ff3a1a" stopOpacity="0" /></radialGradient>
+    </defs>
+    <rect width="400" height="260" fill="url(#tm-sky)" />
+    <path d="M0 22 H400 V46 Q380 60 360 46 Q340 60 320 46 Q300 60 280 46 Q260 60 240 46 Q220 60 200 46 Q180 60 160 46 Q140 60 120 46 Q100 60 80 46 Q60 60 40 46 Q20 60 0 46 Z" fill="#2f8a2c" />
+    <g fill="#fff8ea">{[0, 80, 160, 240, 320].map(x => <path key={x} d={`M${x + 40} 22 H${x + 80} V46 Q${x + 60} 60 ${x + 40} 46 Z`} />)}</g>
+    <circle className="glow" cx="200" cy="140" r="112" fill="url(#tm-burst)" />
+    <g><rect x="0" y="200" width="400" height="60" fill="#6a3a14" /><g stroke="#4a2408" strokeWidth="3">{[216, 236].map(y => <path key={y} d={`M0 ${y} H400`} />)}</g></g>
+    {/* ไพ่ 4 รสปลิว */}
+    <g className="float"><TamC x={76} y={112} r={-18} c1="#ff6a45" c2="#c4241a" t="7" /></g>
+    <g className="float"><TamC x={126} y={74} r={-7} c1="#8fd650" c2="#2e8a2c" t="+4" /></g>
+    <g className="float"><TamC x={278} y={76} r={8} c1="#ffcf45" c2="#d97c12" t="0" /></g>
+    <g className="float"><TamC x={328} y={116} r={20} c1="#55bdf0" c2="#1d5aa6" t="+2" /></g>
+    {/* ครกดินเผา + ส้มตำ */}
+    <path d="M126 140 H274 Q270 196 200 205 Q130 196 126 140 Z" fill="#b5652c" />
+    <path d="M140 162 Q200 176 260 162" stroke="#8a4a1c" strokeWidth="3" fill="none" /><path d="M150 182 Q200 192 250 182" stroke="#8a4a1c" strokeWidth="2.5" fill="none" />
+    <rect x="168" y="200" width="64" height="9" rx="3" fill="#8a4a1c" />
+    <ellipse cx="200" cy="140" rx="74" ry="14" fill="#8a4a1c" /><ellipse cx="200" cy="140" rx="63" ry="10" fill="#4a2208" />
+    <path d="M156 138 q10 -12 22 -3 q8 -11 20 -2 q10 -9 22 0 q8 -7 18 2" stroke="#d8f0a0" strokeWidth="5" fill="none" strokeLinecap="round" />
+    <path d="M168 133 q6 -12 17 -10" stroke="#e0303a" strokeWidth="5" fill="none" strokeLinecap="round" /><circle cx="232" cy="131" r="7" fill="#7fd34a" /><circle cx="214" cy="134" r="5" fill="#ff5a3c" />
+    {/* สาก */}
+    <g className="bob"><path d="M214 128 L258 40" stroke="#d9b07a" strokeWidth="14" strokeLinecap="round" /><path d="M218 120 L224 108" stroke="#a07a4a" strokeWidth="15" strokeLinecap="round" /></g>
+    {/* ป้าย +10 */}
+    <g className="tw"><g transform="translate(200 66) rotate(-6)"><path d="M-36 -18 L-26 -8 L-42 0 L-26 6 L-32 22 L-12 12 L0 28 L10 12 L32 22 L24 6 L42 0 L26 -8 L34 -18 L14 -14 L0 -30 L-12 -14 Z" fill="#ffd34d" /><text y="8" textAnchor="middle" fontSize="20" fill="#c4241a" fontFamily="Chonburi,Kanit,sans-serif">+10</text></g></g>
+    {/* พริก มะนาว มะเขือเทศ */}
+    <g className="float"><path d="M58 198 q22 -4 36 -26 q4 -6 -2 -8 q-10 18 -34 26 z" fill="#e0303a" /><path d="M92 165 q4 -7 11 -7" stroke="#3f8a2c" strokeWidth="3" fill="none" /></g>
+    <g className="float"><circle cx="334" cy="184" r="16" fill="#7fd34a" /><circle cx="334" cy="184" r="11" fill="#c8f08a" /><g stroke="#7fd34a" strokeWidth="1.5">{[0, 60, 120].map(a => <path key={a} d="M334 173 V195" transform={`rotate(${a} 334 184)`} />)}</g></g>
+    <g className="float"><circle cx="302" cy="194" r="10" fill="#ff5a3c" /><path d="M297 185 l5 3 l5 -3" stroke="#3f8a2c" strokeWidth="2" fill="none" /></g>
+  </S>;
+}
 // ---------- 👻 จับผีปอป: หมู่บ้านอีสานยามค่ำ บ้านใต้ถุนสูง ผีปอปลอยกลางดง หมอธรรมถือไต้ เงาคนกระซิบ ----------
 function CurseScene() {
   return <S id="curse" label="หมู่บ้านอีสานยามค่ำคืน มีผีปอปลอยอยู่กลางหมู่บ้าน หมอธรรมถือไต้ไฟ">
@@ -282,5 +318,5 @@ function CurseScene() {
     <g className="peek"><path d="M314 176 q-6 -12 6 -18 h22 q10 0 10 10 v4 q0 10 -10 10 h-12 l-8 8 l2 -8 q-10 0 -10 -6 Z" fill="#eef8ec" opacity=".9" /><text x="332" y="172" textAnchor="middle" fontSize="13" fontWeight="900" fill="#3a0d14" fontFamily="sans-serif">ปอป!</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene };
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

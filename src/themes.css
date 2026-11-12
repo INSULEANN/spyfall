@@ -85,6 +85,16 @@
   --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%23a8f07a' stroke-opacity='.05' stroke-width='1.5'%3E%3Ccircle cx='32' cy='32' r='10'/%3E%3Cpath d='M32 14v8M32 42v8M14 32h8M42 32h8'/%3E%3C/g%3E%3C/svg%3E");
 }
 
+/* 🌶️ ตำแหลก! — แผงส้มตำริมทาง ป้ายไม้ ครกดินเผา พริกแดง มะนาวเขียว */
+[data-theme="tam"]{
+  --display:'Chonburi',serif;--display-weight:400;--radius:20px;
+  --bg:#130b07;--panel:#1f130c;--inset:#180e08;--chip:#2e1c11;--glow:#5a1a0c;
+  --text:#fff5ea;--soft:#f1dcc6;--muted:#c09c7c;--dim:#7d634c;
+  --accent:#ff5a3c;--accent-hi:#ff8a5a;--accent-2:#7fd34a;--on-accent:#2a0800;
+  --hero-1:#2a0d06;--hero-2:#6a1c0c;--hero-3:#2f6a1a;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M12 30q9-1 15-11q2-4-1-5q-5 8-14 10z' fill='%23ff5a3c' fill-opacity='.07'/%3E%3Ccircle cx='42' cy='40' r='5' fill='%237fd34a' fill-opacity='.05'/%3E%3C/svg%3E");
+}
+
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}
 body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}
@@ -210,6 +220,8 @@ body{min-height:100vh}
 /* เกมไพ่: ตกแต่งตามธีม */
 [data-theme="boom"] .phase.me{border-color:#ffb03a;box-shadow:0 0 0 2px #ffb03a44,0 10px 34px #ff7a1a33}
 [data-theme="boom"] .game-panel h2,[data-theme="boom"] .hero h1 em{letter-spacing:.3px}
+[data-theme="tam"] .phase.me{border-color:#ff5a3c;box-shadow:0 0 0 2px #ff5a3c44,0 10px 34px #ff3a1a33}
+[data-theme="tam"] .hero h1,[data-theme="tam"] .game-panel h2{letter-spacing:.2px;text-shadow:0 2px 0 #00000070}
 [data-theme="curse"] .phase.me{border-color:#a8f07a;box-shadow:0 0 0 2px #a8f07a33,0 10px 34px #5fc96a33}
 [data-theme="curse"] .ex-side.bad,[data-theme="curse"] .rv-role.bad{color:var(--blood)!important}
 [data-theme="curse"] .hero h1,[data-theme="curse"] .game-panel h2{text-shadow:0 2px 0 #00000080,0 0 24px #a8f07a40}
