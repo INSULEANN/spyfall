@@ -1,15 +1,16 @@
 /* 💼 ปิดดีล! — กระดานดีลเรียงรอบขอบ ตรงกลางเป็นสถานะ */
 .db{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:5px;aspect-ratio:1;width:100%;max-width:560px;margin:4px auto 12px;padding:7px;border-radius:18px;background:linear-gradient(160deg,#1c2a56,#0d1430);box-shadow:inset 0 0 0 2px #c9a24a55,0 14px 30px #000a}
-.dt{position:relative;display:grid;grid-template-rows:auto 1fr auto;align-items:center;justify-items:center;gap:1px;padding:5px 3px 6px;border-radius:10px;background:linear-gradient(#f6f1e6,#e3dccb);color:#1d2340;box-shadow:0 3px 0 #a99f88,0 5px 10px #0006;min-width:0;min-height:0;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.dt{position:relative;display:grid;grid-template-rows:auto 1fr auto auto;align-items:center;justify-items:center;gap:1px;padding:5px 3px 6px;border-radius:10px;background:linear-gradient(#f6f1e6,#e3dccb);color:#1d2340;box-shadow:0 3px 0 #a99f88,0 5px 10px #0006;min-width:0;min-height:0;overflow:hidden;transition:transform .25s,box-shadow .25s}
 .dt-top{display:flex;width:100%;justify-content:space-between;align-items:center;padding:0 2px}
 .dt-e{font-size:clamp(15px,4.8vw,26px);line-height:1}
 .dt-v{font-family:'Chakra Petch','Kanit',sans-serif;font-size:clamp(12px,3.6vw,18px);line-height:1;color:#0c5226;background:#d4efc2;border-radius:7px;padding:2px 4px}
 .dt-v small{font-size:.62em;margin-left:1px}
 .dt-n{font-size:clamp(9px,2.6vw,12.5px);font-weight:700;line-height:1.15;text-align:center;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%;word-break:break-word}
 .dt-need{display:flex;flex-wrap:nowrap;justify-content:center;gap:2px;max-width:100%}
-.dt-need .pd{width:17px;height:17px;font-size:10px}.dt-need.n3 .pd{width:15px;height:15px;font-size:9px}.dt-need.n4 .pd{width:13px;height:13px;font-size:8px}.dt-need.n2 .pd{width:17px;height:17px}
-.pd{display:inline-grid;place-items:center;border-radius:50%;background:var(--pc);box-shadow:inset 0 0 0 2px #ffffff70,0 1px 2px #0005;line-height:1;flex:none}
+.dt-need .pd{width:19px;height:19px}.dt-need.n3 .pd{width:16px;height:16px}.dt-need.n4 .pd{width:13.5px;height:13.5px}
+.pd{display:inline-block;vertical-align:middle;flex:none;border-radius:50%;filter:drop-shadow(0 1.5px 1.5px #0007);overflow:visible}
 .pd.off{filter:grayscale(1);opacity:.4}
+.cd-badge{filter:drop-shadow(0 2px 2px #0008)}
 .dt.here{box-shadow:0 0 0 3px #ffcf5a,0 0 16px #ffcf5a88}
 .dt.live{transform:scale(1.05);z-index:2;box-shadow:0 0 0 3px #ffcf5a,0 0 26px #ffcf5a;animation:dtLive 1.2s ease-in-out infinite}
 @keyframes dtLive{50%{box-shadow:0 0 0 3px #ffcf5a,0 0 8px #ffcf5a55}}
@@ -60,7 +61,7 @@
 .nego-h{display:flex;gap:10px;align-items:center;margin-bottom:10px}
 .nego-e{font-size:36px;line-height:1}
 .nego-h b{display:block;font-size:16px}
-.nego-h small{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px;opacity:.85}
+.nego-h small{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px;opacity:.85}
 .seats{display:grid;gap:6px;margin-bottom:10px}
 .seat-p{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:color-mix(in srgb,var(--pc) 15%,var(--panel));border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);min-width:0}
 .seat-p>span{display:grid;min-width:0}
@@ -82,17 +83,81 @@
 
 /* การ์ด */
 .dc-hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:10px}
-.dc{display:grid;justify-items:center;align-content:start;gap:2px;padding:9px 6px 8px;border-radius:14px;border:2px solid color-mix(in srgb,var(--pc,#c9a24a) 75%,transparent);background:linear-gradient(#fbf6ea,#e6dcc4);color:#1d2340;font:inherit;text-align:center;box-shadow:0 3px 0 #a99f88;white-space:normal;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .2s}
-.dc-e{font-size:26px;line-height:1.15}
-.dc b{font-size:13px;line-height:1.2}
-.dc small{font-size:10.5px;line-height:1.3;opacity:.72}
-.dc.ok{animation:dcIn .3s ease-out}
-.dc.dim{opacity:.5;filter:grayscale(.5)}
-.dc.sel{transform:translateY(-4px);box-shadow:0 0 0 3px var(--accent),0 8px 18px #0007}
+.dc-hand .dc{position:relative;display:grid;grid-template-rows:auto auto 1fr;align-content:start;justify-items:center;gap:0;padding:0;border-radius:14px;overflow:hidden;border:2px solid var(--k1);background:#fbf7ee;color:#1d2340;font:inherit;text-align:center;white-space:normal;cursor:pointer;box-shadow:0 4px 0 color-mix(in srgb,var(--k2) 75%,#000),0 8px 18px #0006;transition:transform .15s,box-shadow .15s,opacity .2s,filter .2s}
+.dcard.t-boss{--k1:#f5c451;--k2:#a8771c}.dcard.t-stop{--k1:#ef4a4a;--k2:#9e1c22}.dcard.t-take{--k1:#4a78d9;--k2:#1f3f8a}.dcard.t-link{--k1:var(--pc,#3fbf7f);--k2:color-mix(in srgb,var(--pc,#3fbf7f) 55%,#000)}
+.dcard .dc-art{display:block;width:100%;aspect-ratio:100/76;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--k1) 55%,#fff) 0,var(--k1) 50%,var(--k2) 100%)}
+.dcard.t-boss .dc-art{background:radial-gradient(circle at 50% 42%,#4a3d7a 0,#26305e 55%,#141a3a 100%)}
+.dcard.t-take .dc-art{background:radial-gradient(circle at 50% 40%,#cfe0ff 0,#7fa3ea 55%,#3a5fb5 100%)}
+.dcard .dc-art svg{display:block;width:100%;height:100%}
+.dcard b{font-family:var(--display),'Kanit',sans-serif;font-weight:800;font-size:14px;line-height:1.2;margin:7px 6px 2px;color:#1d2340}
+.dcard small{font-size:10.5px;line-height:1.35;color:#4a4f68;margin:0 7px 9px}
+.dcard.ok{animation:dcIn .3s ease-out}
+.dcard.dim{opacity:.5;filter:grayscale(.55)}
+.dcard.sel{transform:translateY(-5px);box-shadow:0 0 0 3px var(--accent),0 10px 22px #0008}
 .dc-hand.lobby .dc{cursor:default;animation:none}
-@keyframes dcIn{from{transform:scale(.9);opacity:.5}}
+@keyframes dcIn{from{transform:scale(.92);opacity:.5}}
 .pick-p{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin-top:6px}
 .pick-p button{display:grid;justify-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:2px solid var(--pc);background:color-mix(in srgb,var(--pc) 18%,var(--inset));color:inherit;font:inherit;font-weight:700;white-space:normal}
 .pick-p small{font-size:11px;opacity:.8}
 .head-log li.win-line{color:#9ff0a8}
 @media (prefers-reduced-motion:reduce){.db-pawn,.dt.live,.big-roll{animation:none}}
+
+/* หุ้นส่วนตัวเลือกบนช่องดีล */
+.dt-opt{display:flex;align-items:center;justify-content:center;gap:2px;max-width:100%;margin-top:2px;padding:1px 4px;border-radius:9px;border:1.5px dashed #7a6aa866;background:#7a6aa812}
+.dt-opt em{font-style:normal;font-size:8.5px;font-weight:800;line-height:1;color:#5a4a8a;margin-right:1px;white-space:nowrap}
+.dt-opt .pd{width:14px;height:14px}.dt-opt.n4 .pd{width:12px;height:12px}
+@media (max-width:699px){.dt-n{-webkit-line-clamp:1}}
+/* แผงเจรจา: ที่นั่งจำเป็น/ตัวเลือก */
+.seats-h{display:block;font-size:12.5px;font-weight:800;color:var(--soft);margin:4px 2px 0}
+.seats-h small{display:block;font-weight:600;color:var(--muted);font-size:11.5px}
+.seat-p.cand{opacity:.78;border-style:dashed}
+.seat-p.chosen{box-shadow:0 0 0 2px var(--pc)}
+.seat-p>span{flex:1}
+.deal-game button.opt-btn{width:auto;flex:none;min-height:0;padding:7px 12px;border-radius:12px;font-size:12.5px;font-weight:800;border:1px solid var(--pc);background:color-mix(in srgb,var(--pc) 22%,transparent);color:inherit}
+.deal-game button.opt-btn.on{background:var(--pc);color:#fff}
+.deal-game button.opt-btn:disabled{opacity:.35}
+.opt-st{flex:none;font-size:11.5px;color:var(--muted)}
+.dt>*{min-width:0;max-width:100%}
+@media (max-width:699px){
+  .dt-opt{position:relative;gap:1.5px;padding:2px 3px 1px;margin-top:4px}
+  .dt-opt em{position:absolute;left:-4px;top:-7px;margin:0;padding:0 4px;border-radius:7px;background:#5a4a8a;font-size:0;line-height:1}
+  .dt-opt em::after{content:'เลือก ' attr(data-n);font-size:7.5px;line-height:1.5;color:#fff;font-weight:800}
+  .dt-opt .pd{width:12px;height:12px}.dt-opt.n4 .pd{width:11px;height:11px}
+  .dt-need .pd{width:17px;height:17px}.dt-need.n3 .pd{width:15px;height:15px}
+  .dt{padding:4px 3px 5px}.dt-e{font-size:16px}.dt-v{font-size:12px;padding:1px 3px}.dt-n{font-size:9.5px}
+}
+
+/* เปิดการ์ดเงินตอนปิดดีล */
+.pay-fx{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:#050816cc;backdrop-filter:blur(3px);animation:payIn .25s ease-out;cursor:pointer}
+@keyframes payIn{from{opacity:0}}
+.pay-box{display:grid;justify-items:center;gap:12px;width:min(420px,100%);padding:20px 18px 14px;border-radius:22px;background:linear-gradient(160deg,#1c2a56,#0d1430);border:1px solid #f5c45166;box-shadow:0 20px 60px #000c,0 0 0 1px #ffffff12 inset;text-align:center}
+.pay-deal{font-family:var(--display),'Kanit',sans-serif;font-weight:800;font-size:18px;color:#ffd76a}
+.money-card{width:150px;height:200px;perspective:800px}
+.mc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:mcFlip 1.1s cubic-bezier(.3,1.3,.5,1) .25s both}
+@keyframes mcFlip{from{transform:rotateY(0) scale(.85)}to{transform:rotateY(180deg) scale(1)}}
+.mc-back,.mc-front{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center;box-shadow:0 10px 26px #000a}
+.mc-back{background:repeating-linear-gradient(45deg,#2f8a4f 0 8px,#277a44 8px 16px);border:4px solid #fbf7ee;font-size:56px}
+.mc-front{transform:rotateY(180deg);align-content:center;gap:2px;background:radial-gradient(circle at 50% 35%,#e9ffd8,#a8e08a 55%,#5aa84a);border:4px solid #fbf7ee;color:#0f3a1a}
+.mc-front small{font-size:13px;font-weight:800;letter-spacing:.5px}
+.mc-front b{font-family:'Chakra Petch','Kanit',sans-serif;font-size:76px;line-height:1;text-shadow:0 3px 0 #ffffff88}
+.mc-front em{font-style:normal;font-size:13px;font-weight:800}
+.pay-list{list-style:none;margin:0;padding:0;display:grid;gap:6px;width:100%}
+.pay-list li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:#ffffff10;color:#f2f5ff;animation:payRow .4s ease-out both}
+.pay-list li .pn{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pay-list li small{font-size:12px;color:#aab6dc}
+.pay-list li b{font-family:'Chakra Petch','Kanit',sans-serif;font-size:17px;color:#9ff0a8;min-width:74px;text-align:right}
+@keyframes payRow{from{opacity:0;transform:translateY(8px)}}
+.pay-close{font-size:12px;color:#8f9cc4}
+.nego-h small+small{margin-top:2px}
+@media (prefers-reduced-motion:reduce){.mc-in{animation:none;transform:rotateY(180deg)}}
+
+/* การ์ดจบเกม */
+.end-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 10px;padding:8px 12px;border-radius:14px;background:linear-gradient(90deg,#3a1020,#1a1430);border:1px solid #ff6b6b55}
+.er-h{font-weight:800;font-size:13px;color:#ffb3b8}
+.er-cards{display:flex;gap:5px;align-items:center}
+.er-cards em{font-style:normal;font-size:12px;color:var(--muted)}
+.end-card{display:grid;place-items:center;width:26px;height:34px;border-radius:6px;background:linear-gradient(160deg,#ff6b6b,#b0203a);color:#fff;font-family:'Chakra Petch','Kanit',sans-serif;font-size:18px;box-shadow:0 2px 0 #6a1020,0 0 0 2px #fff3;animation:popIn .4s cubic-bezier(.3,1.6,.5,1)}
+.end-row small{flex-basis:100%;font-size:11.5px;color:var(--muted)}
+.mid-end{color:#ffb3b8!important;font-weight:800}
+.mc-front.end{background:radial-gradient(circle at 50% 35%,#ffe0e0,#ff8a8a 55%,#c0303a);color:#4a0a14}
+.end-now{font-weight:800;color:#ffb3b8}

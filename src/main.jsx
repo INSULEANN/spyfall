@@ -23,7 +23,7 @@ import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS 
 import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } from './boom.jsx';
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
 import { TamGame, TamLobby, makeTamRound, TAM_MIN, TAM_MAX, TAM_SCORE, MERCY } from './tam.jsx';
-import { DealGame, DealLobby, makeDealRound, DEAL_MIN, DEAL_MAX, DEAL_SCORE, GOAL as DEAL_GOAL } from './deal.jsx';
+import { DealGame, DealLobby, makeDealRound, DEAL_MIN, DEAL_MAX, DEAL_SCORE } from './deal.jsx';
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
@@ -101,9 +101,9 @@ const GAMES = {
     how:[['ลงให้ตรง','ลงไพ่ที่รสหรือเลขตรงกับใบบนกอง ไพ่ดำลงได้ทุกเมื่อแล้วเลือกรสใหม่ ไม่มีให้ลงต้องจั่วไปเรื่อย ๆ จนกว่าจะได้ใบที่ลงได้'],['ซ้อนไพ่บวก','โดน +2 +4 +6 +10 ซ้อนไพ่บวกที่เท่ากันหรือมากกว่าส่งต่อได้ ไม่งั้นต้องรับทั้งหมด'],['โหดไม่เลี้ยง','7 แลกมือ • 0 ส่งไพ่ทั้งวง • เหมาร้านข้ามทุกคน • เทกระจาดทิ้งทั้งรส • ถือไพ่ถึง 25 ใบตกรอบ • หมดมือก่อนหรือรอดคนสุดท้ายชนะ']] },
   deal: { id:'deal', type:'deal', name:'ปิดดีล!', emoji:'💼', packs:[], item:'ดีล', unit:'ดีล', roles:false, min:DEAL_MIN, max:DEAL_MAX, h1:['ปิดดีล!','ใครคุมดีล ใครรวย'], art:'💼', float:'ดีลนี้แบ่งกันยังไง?',
     blurb:'เกมเจรจาธุรกิจ! เดินหมวกเจ้าสัวไปเจอดีล รวบรวมหุ้นส่วนให้ครบ ต่อรองแบ่งเงินให้ทุกคนยอม แต่ระวังเพื่อนแย่งดีล กันหุ้นส่วน หรือส่งเด็กเส้นมาแทรก',
-    lead:'ธนาคาร รับเหมา สื่อ ทนาย ขนส่ง ไอที — ใครคุมหุ้นส่วนไหน ดีลไหนต้องใช้ใคร เจ้าของดีลต้องเสนอส่วนแบ่งให้ถูกใจทุกคน ระหว่างนั้นใครก็ขัดขาได้ ปิดดีลครบ 6 ดีล ใครรวยสุดชนะ',
+    lead:'ธนาคาร รับเหมา สื่อ ทนาย ขนส่ง ไอที — ใครคุมหุ้นส่วนไหน ดีลไหนต้องใช้ใคร เจ้าของดีลต้องเสนอส่วนแบ่งให้ถูกใจทุกคน ระหว่างนั้นใครก็ขัดขาได้ ทอยโดนเลขการ์ดจบเกม (เปิดทุก 5 ตา) หรือปิดดีลครบทุกช่อง = จบ ใครรวยสุดชนะ',
     pills:['🤝 เจรจาต่อรอง','🎩 แย่งดีล','💰 ใครรวยสุดชนะ'],
-    how:[['เดินไปเจอดีล','ตาของคุณ ทอยเต๋าเดินหมวกเจ้าสัวไปเจอดีล แล้วคุณเป็นเจ้าของดีลนั้น หรือจะจั่วการ์ด 2 ใบแทนก็ได้'],['รวบรวมหุ้นส่วน','ดีลต้องใช้หุ้นส่วนตามไอคอน คนที่คุมหุ้นส่วนนั้นต้องเข้าดีล เจ้าของดีลเสนอแบ่งเงิน ทุกคนกดตกลงครบ = ปิดดีล รับเงิน'],['ขัดขาได้ทุกเมื่อ','ระหว่างเจรจา ใครก็เล่นการ์ดได้: แย่งเป็นเจ้าของดีล กันหุ้นส่วน ส่งเด็กเส้นเข้าแทน หรือซื้อกิจการหุ้นส่วนมาเป็นของตัวเอง']] },
+    how:[['เดินไปเจอดีล','ตาของคุณ ทอยเต๋าเดินหมวกเจ้าสัวไปเจอดีล แล้วคุณเป็นเจ้าของดีลนั้น หรือจะจั่วการ์ด 2 ใบแทนก็ได้'],['รวบรวมหุ้นส่วน','แต่ละดีลมีหุ้นส่วนจำเป็น + กลุ่มตัวเลือก (เจ้าของดีลเลือกเองว่าจะเอาใคร) คนที่คุมหุ้นส่วนนั้นต้องเข้าดีล ช่องดีลเป็นตัวคูณ ×N = แบ่ง N ส่วน เจ้าของดีลเสนอแบ่งส่วน ทุกคนกดตกลงครบ = ปิดดีล แล้วเปิดการ์ดเงินสุ่มมาคูณ'],['ขัดขาได้ทุกเมื่อ','ระหว่างเจรจา ใครก็เล่นการ์ดได้: แย่งเป็นเจ้าของดีล กันหุ้นส่วน ส่งเด็กเส้นเข้าแทน หรือซื้อกิจการหุ้นส่วนมาเป็นของตัวเอง']] },
 };
 // เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
 const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
@@ -208,6 +208,23 @@ function App() {
     runTransaction(ref(db,`rooms/${roomCode}/status`),s=>s==='playing'?'voting':undefined).catch(()=>{})},[timeUp]);
   const customPlaces=useMemo(()=>packPlaces.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,80),[packPlaces]);
   function msg(s){setNotice(s);setTimeout(()=>setNotice(''),3200)}
+  // ปุ่มย้อนกลับของเบราว์เซอร์ (รวมปัดย้อนบนมือถือ) ไม่ให้หลุดออกจากเว็บ:
+  // อยู่ในห้อง = อยู่ต่อ (เตือนให้กดปุ่มออกจากห้อง) • หน้าเกม = กลับหน้ารวมเกม • หน้ารวมเกม = กดซ้ำภายใน 2.5 วิ ถึงออกจากเว็บ
+  // ใส่ URL ที่ตรงกับหน้าจอปัจจุบันลงประวัติทุกครั้ง เพื่อให้ตัวฟัง hashchange (ที่ยิงตามหลัง popstate) อ่าน # ได้ถูก
+  const navRef=useRef({});navRef.current={screen,game,msg};
+  useEffect(()=>{
+    const urlFor=g=>location.pathname+location.search+(g?'#'+g:'');
+    const guard=g=>{try{history.pushState({sfGuard:1},'',urlFor(g))}catch{}};
+    guard(navRef.current.screen==='room'||navRef.current.game?navRef.current.game:null);let last=0;
+    const onPop=()=>{const s=navRef.current;
+      if(s.screen==='room'){guard(s.game);s.msg('อยู่ในห้องอยู่ — ถ้าจะออก กดปุ่ม “ออกจากห้อง” ด้านบน');return}
+      if(s.game){guard(null);setGameState(null);return}
+      const t=Date.now();if(t-last<2500){history.back();return}
+      last=t;guard(null);s.msg('กดย้อนกลับอีกครั้งเพื่อออกจากเว็บ')};
+    window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop)},[]);
+  // ระหว่างเล่นเกม: ปิดแท็บ/รีเฟรช/พิมพ์ URL อื่น → เบราว์เซอร์ถามยืนยันก่อน
+  const midGame=screen==='room'&&!!room&&room.status!=='lobby';
+  useEffect(()=>{if(!midGame)return;const f=e=>{e.preventDefault();e.returnValue=''};window.addEventListener('beforeunload',f);return()=>window.removeEventListener('beforeunload',f)},[midGame]);
   // เปิดจากลิงก์ชวนเพื่อน (?join=รหัส) → บอกให้ใส่ชื่อแล้วกดเข้าห้อง
   useEffect(()=>{if(joinCode&&screen==='home')setTimeout(()=>msg(`ได้รับคำชวนเข้าห้อง ${joinCode} — ใส่ชื่อแล้วกด “เข้าห้อง” ได้เลย`),600)},[]);
   // ปุ่มชวนเพื่อน: มือถือเปิดเมนูแชร์ของเครื่อง / คอมคัดลอกลิงก์
@@ -493,7 +510,7 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌙 เข้านอน ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
       {G.type==='cake'&&room.status!=='lobby'&&room.round?.kind==='cake'&&<CakeGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='deal'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=DEAL_MIN&&n<=DEAL_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ห้องประชุมพร้อม…ใครจะคุมดีล?</h2>
-        <p className="hint">เล่นได้ {DEAL_MIN}–{DEAL_MAX} คน • เปิดห้องเสียงไว้ต่อรองกันสด ๆ จะสนุกที่สุด • ปิดดีลครบ {DEAL_GOAL} ดีล ใครรวยสุดชนะ</p>
+        <p className="hint">เล่นได้ {DEAL_MIN}–{DEAL_MAX} คน • เปิดห้องเสียงไว้ต่อรองกันสด ๆ จะสนุกที่สุด • เกมจบเมื่อทอยได้เลขการ์ดจบเกม หรือปิดดีลครบทุกช่อง ใครรวยสุดชนะ</p>
         {n>DEAL_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {DEAL_MAX} คน — ตอนนี้มี {n} คน</div>}
         <DealLobby n={n}/>
         <div className="score-rules"><b>🏅 คะแนน</b><span>รวยที่สุด +{DEAL_SCORE.win} • อันดับ 2 +{DEAL_SCORE.second}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>

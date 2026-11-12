@@ -44,6 +44,8 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   .gmain .dt-n{font-size:clamp(12px,1.05vw,15.5px)}
   .gmain .dt-need{gap:4px}
   .gcols .gmain .dt-need .pd{width:clamp(20px,1.8vw,27px);height:clamp(20px,1.8vw,27px);font-size:clamp(11px,1vw,15px)}
+  .gcols .gmain .dt-opt .pd{width:clamp(15px,1.3vw,20px);height:clamp(15px,1.3vw,20px)}.gcols .gmain .dt-opt.n4 .pd{width:clamp(14px,1.15vw,18px);height:clamp(14px,1.15vw,18px)}
+  .gmain .dt-opt em{font-size:clamp(9px,.8vw,11.5px)}
   .gcols .gmain .dt-need.n4 .pd{width:clamp(17px,1.5vw,23px);height:clamp(17px,1.5vw,23px);font-size:clamp(10px,.85vw,13px)}
   .gmain .db-pawn{font-size:clamp(28px,2.6vw,42px)}
   .gmain .mid-e{font-size:clamp(40px,4vw,64px)}
@@ -55,7 +57,7 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   .gside .dc-hand{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
 
   /* ปุ่มกดบนคอม: มีเงาตอนชี้ */
-  .dc.ok:hover,.pick-p button:hover,.fl-btn:hover{transform:translateY(-3px);box-shadow:0 6px 16px #0007}
+  .dc-hand .dc.ok:hover,.pick-p button:hover,.fl-btn:hover{transform:translateY(-3px);box-shadow:0 6px 16px #0007}
   .seat.pick:hover .seat-av{transform:scale(1.08)}
 }
 /* เกมทั่วไป: 2 คอลัมน์ไม่ติดจอ (ซ้ายส่วนที่ต้องกด • ขวาบทบาท/ข้อมูล/บันทึก) */
