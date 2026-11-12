@@ -7,6 +7,7 @@ import { play as sfx } from './sfx.js';
 import { shuffle, rint, pickBad } from './rand.js';
 import { Avatar, Phase, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, RevealGrid } from './ui.jsx';
 import { CardFace } from './cards.jsx';
+import { CurseStage } from './stages.jsx';
 
 export const CURSE_MIN = 4, CURSE_MAX = 12;
 export const CURSE_SCORE = { town: 1, dark: 2 };
@@ -225,6 +226,8 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
 
   return <div className={'curse-game' + (r.phase === 'night' ? ' is-night' : '')}>
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน • คืนเดือนดับมาแล้ว {r.nightN || 0} ครั้ง</span><span className="cat-tag">{res ? '🏁 จบเกม' : r.phase === 'night' ? '🌑 กลางคืน' : r.phase === 'reveal' ? '⚖️ ไต่สวน' : '☀️ กลางวัน'}</span></div>
+
+    <CurseStage mode={res ? (res.winner === 'town' ? 'townWin' : 'popWin') : r.phase === 'night' ? 'night' : r.phase === 'reveal' ? 'reveal' : 'day'} />
 
     {/* ไพ่ดวงของฉัน */}
     {!res && <div className="my-fate">

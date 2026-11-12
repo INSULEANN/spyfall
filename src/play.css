@@ -218,3 +218,24 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .avopt.taken{opacity:.38;cursor:not-allowed}.avopt.taken span{color:#ff9b9b}
 .avopt.taken:disabled{opacity:.38}
 @media(max-width:760px){.avpick-grid{grid-template-columns:repeat(5,1fr);gap:6px}.avopt{padding:8px 0 6px}.avopt .av{width:44px!important;height:44px!important;font-size:25px!important}.avpick{padding:14px}}
+
+/* SPY: ตาใบ้คำทีละคน */
+.clue-turn{margin:12px 0;padding:14px;border-radius:20px;background:linear-gradient(150deg,color-mix(in srgb,var(--accent) 10%,var(--inset)),var(--inset));border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);display:grid;gap:10px}
+.clue-turn.me{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent),0 10px 30px color-mix(in srgb,var(--accent) 20%,transparent);animation:mepulse 2.2s ease-in-out infinite}
+.ct-main{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.ct-av{position:relative;animation:popIn .35s cubic-bezier(.3,1.5,.5,1)}
+.ct-av .av{box-shadow:0 0 0 4px var(--accent),0 0 22px color-mix(in srgb,var(--accent) 50%,transparent)}
+.ct-mic{position:absolute;right:-6px;bottom:-4px;font-size:22px;animation:arrowBob 1s ease-in-out infinite}
+.ct-text{display:grid;gap:2px;min-width:0}.ct-kicker{font-size:12px;font-weight:700;color:var(--accent)}
+.ct-text h2{margin:0;font-size:clamp(18px,5vw,24px);line-height:1.2;overflow-wrap:anywhere}.ct-text small{color:var(--soft);font-size:12.5px;line-height:1.45}
+.ct-bar{height:8px;border-radius:8px;background:#ffffff14;overflow:hidden}.ct-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s linear}.ct-bar i.low{background:#ff5f6d}
+@keyframes ctBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.ct-order{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ct-chip{position:relative;display:inline-flex;align-items:center;gap:3px;padding:3px 7px 3px 3px;border-radius:20px;background:#ffffff0c;opacity:.6;font-size:11px}
+.ct-chip.now{opacity:1;background:color-mix(in srgb,var(--accent) 25%,transparent);box-shadow:0 0 0 2px var(--accent)}.ct-chip.mine b{color:var(--accent)}
+@media (max-width:420px){.ct-main{gap:8px}.ct-av .av{width:56px!important;height:56px!important;font-size:30px!important}}
+/* ปุ่มพร้อมจับสปาย */
+.call-vote{display:grid;gap:8px;margin:10px 0}
+.cv-meter{display:grid;gap:6px;font-size:13px;color:var(--soft);text-align:center}.cv-meter b{color:var(--accent)}
+.cv-bar{height:8px;border-radius:8px;background:#ffffff14;overflow:hidden}.cv-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8a5a,#ff5f6d);transition:width .4s}
+.cv-who{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}

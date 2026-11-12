@@ -5,6 +5,7 @@ import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
 import { TimerRing, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Avatar, Voters } from './ui.jsx';
 import { play as sfx } from './sfx.js';
+import { CakeStage } from './cakestage.jsx';
 import { shuffle, rint, pickBad } from './rand.js';
 
 export const CAKE_MIN = 4;
@@ -167,6 +168,8 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">{r.phase === 'night' ? (h === 0 ? '🌙 กำลังจะหลับ' : h > HOURS ? '🌅 ใกล้เช้า' : `🌙 ตี ${h}`) : res ? '🏁 จบเกม' : '☀️ เช้าแล้ว'}</span></div>
     <Steps items={['ทอยเต๋า', 'กลางคืน', 'เช้า: โหวต', 'เฉลย']} at={res ? 3 : r.phase === 'day' ? 2 : h === 0 ? 0 : 1} />
     {r.phase === 'night' && <CakeClock r={r} h={h} myDie={myDie} srvNow={srvNow} mode="night" />}
+    {/* ฉากห้องครัวเคลื่อนไหว: เห็นเฉพาะสิ่งที่ตัวเองเห็นตอนตื่น */}
+    {!res && <CakeStage mode={r.phase === 'day' ? 'morning' : awakeNow ? (iThief ? 'thief' : cakeSeen) : 'sleep'} hour={r.phase === 'night' && h >= 1 && h <= HOURS ? h : 0} />}
 
     {/* ---------- กลางคืน ---------- */}
     {!res && r.phase === 'night' && h === 0 && <Phase art="bed" tone="night" kicker="🌙 คืนนี้" title="ทุกคนเข้านอน…" aside={<TimerRing secs={secLeft} total={h === 0 ? 8 : Math.round(r.hourMs / 1000)} label="วินาที" />}>

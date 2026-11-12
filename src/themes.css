@@ -214,3 +214,6 @@ body{min-height:100vh}
 [data-theme="curse"] .ex-side.bad,[data-theme="curse"] .rv-role.bad{color:var(--blood)!important}
 [data-theme="curse"] .hero h1,[data-theme="curse"] .game-panel h2{text-shadow:0 2px 0 #00000080,0 0 24px #a8f07a40}
 [data-theme="curse"] .hero h1 em{color:var(--blood)}
+/* รหัสห้อง/ชื่อเว็บ ต้องอ่านง่ายเสมอ (ฟอนต์ตกแต่งบางธีมอ่านตัวอังกฤษยาก) */
+.room-code{font-family:"Kanit",sans-serif!important;font-weight:800;letter-spacing:2px}
+[data-theme="curse"] .brand,[data-theme="curse"] .brand *{font-family:"Kanit",sans-serif!important;font-weight:800}

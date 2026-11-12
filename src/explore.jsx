@@ -5,6 +5,7 @@ import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
 import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters, Choice } from './ui.jsx';
 import { play as sfx } from './sfx.js';
+import { ExploreStage } from './stages.jsx';
 import { shuffle, pickBad } from './rand.js';
 
 export const STAGES = [
@@ -179,6 +180,7 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
   return <div className="explore-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">✅ {t.ok} • 💥 {t.bad}</span></div>
 
+    <ExploreStage mode={res ? (room.result?.winner === 'good' ? 'win' : 'lose') : r.phase} stage={r.stage} hist={hist} />
     {/* แผนที่การเดินทาง */}
     <div className="ex-map">{STAGES.map((s, i) => { const h = hist.find(x => x.stage === i); const cur = !res && i === r.stage;
       return <div key={i} className={'ex-stage' + (h ? (h.ok ? ' ok' : ' fail') : '') + (cur ? ' cur' : '')}>

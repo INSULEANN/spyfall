@@ -21,6 +21,9 @@ import { WolfGame, makeWolfRound, wolfCount, WOLF_MIN, WOLF_SCORE } from './were
 import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS } from './cake.jsx';
 import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } from './boom.jsx';
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
+import { ClueTurns, CallVote } from './spyturns.jsx';
+import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
+import { CakeStage } from './cakestage.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
@@ -245,7 +248,7 @@ function App() {
     const pool=cat?(packs[pi].places||[]).filter((pl,qi)=>pl&&isOn(pi,qi)):placePool;
     const deck=shuffle(ROLES[place]||GENERIC_ROLES);let k=0;
     players.forEach(p=>roles[p.id]=p.id===spy?{type:'spy'}:G.roles?{type:'player',place,role:deck[(k++)%deck.length]}:{type:'player',place});
-    await update(ref(db,`rooms/${roomCode}`),{status:'playing',badHist:nextHist([spy]),round:{number:(room.round?.number||0)+1,place,roles,pool,cat,startedAt:Date.now(),endsAt:Date.now()+duration*60*1000,phase:'question'},votes:null,ready:null,spyGuess:null,result:null});
+    await update(ref(db,`rooms/${roomCode}`),{status:'playing',badHist:nextHist([spy]),round:{number:(room.round?.number||0)+1,place,roles,pool,cat,startedAt:Date.now(),endsAt:Date.now()+duration*60*1000,phase:'question',turns:G.id==='spy'?{order:shuffle(players.map(p=>p.id)),i:0,at:Date.now()+skew}:null},votes:null,ready:null,spyGuess:null,result:null});
     setShowRole(false);setVote('');setAccuse('');setSpyGuess('');sfx(sound,'start');
   }
   // คำบนหัว: สุ่ม 1 หมวด (ที่มีคำพอสำหรับทุกคน) แล้วแจกคำไม่ซ้ำกันให้ทุกคน
@@ -389,26 +392,30 @@ function App() {
     {screen==='room'&&room&&<main className="room-page">
       <div className="room-heading"><div className="room-art"><SceneArt id={G.id}/></div><div><span className="eyebrow">{G.emoji} {G.name} • ห้องเล่นส่วนตัว</span><h1>ห้อง <span className="room-code">{roomCode}</span> <button className="icon-btn" onClick={copy}><Copy size={17}/></button></h1><p>ส่งรหัสนี้ให้เพื่อน หรือกดส่งลิงก์ชวนได้เลย</p><button className="invite" onClick={invite}>📤 ชวนเพื่อน</button></div><button className="secondary" onClick={leaveRoom} aria-label="ออกจากห้อง" title="ออกจากห้อง"><LogOut size={16}/><span className="leave-text">ออกจากห้อง</span></button></div>
       <div className={'room-grid'+(room.status!=='lobby'?' playing':'')}><section className="panel players-panel"><div className="panel-title"><h2><Users size={20}/> แก๊งนี้มีใครบ้าง</h2><span>{players.length}/{G.max||12}</span></div>{players.map((p,i)=><div className="player-row" key={p.id}>{p.id===myId?<button type="button" className="av-edit" onClick={()=>setAvOpen(true)} title="เปลี่ยนรูปโปรไฟล์" aria-label="เปลี่ยนรูปโปรไฟล์"><Avatar id={p.id} av={av} size={40} dead={['wolf','boom','curse'].includes(room.round?.kind)&&room.round.alive&&!room.round.alive[p.id]}/><i>✏️</i></button>:<Avatar id={p.id} av={av} size={40} dead={['wolf','boom','curse'].includes(room.round?.kind)&&room.round.alive&&!room.round.alive[p.id]}/>}<div><b>{p.name} {p.id===myId&&'(คุณ)'}</b><small>{p.id===room.hostId?'👑 หัวหน้าห้อง':'ผู้เล่น'}{p.id===myId?' • แตะรูปเพื่อเปลี่ยน':''}{['wolf','boom','curse'].includes(room.round?.kind)&&room.round.alive&&!room.round.alive[p.id]?(room.round.kind==='boom'?' • 💥 ตกรอบ':' • 💀 ตายแล้ว'):''}{p.online===false?<span className="off-tag"> • 📴 หลุด</span>:''}</small></div><span className="score-chip">{scores[p.id]||0} แต้ม</span>{p.v!==APP_VERSION&&<span className="old-tag">เวอร์ชันเก่า</span>}{p.id===room.hostId&&<span className="host-tag">HOST</span>}{isHost&&p.id!==myId&&<button type="button" className="kick-btn" onClick={()=>kickPlayer(p)} title={"เตะ "+p.name+" ออก"} aria-label={"เตะ "+p.name+" ออก"}>✕</button>}</div>)}{players.length<G.min&&<p className="hint">รอเพื่อนอีก {G.min-players.length} คน… เกมเริ่มได้เมื่อครบ {G.min} คน</p>}<VoicePanel key={roomCode} db={db} roomCode={roomCode} myId={myId} members={room.voice?.members} nameOf={nameOf} msg={msg} gate={voiceGate}/></section>
-      <section className="panel game-panel">{room.status==='lobby'&&G.type==='head'&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน แล้วค่อยเดาคำบนหัว</h2><p className="hint">ตอนเริ่ม ระบบจะสุ่ม 1 หมวดจากที่ติ๊กไว้ แล้วแจกคำให้ทุกคนคนละคำ (เล่นได้ 2–12 คน)</p><div className="score-rules"><b>🏅 คะแนน</b><span>ทายถูกอันดับ 1 ได้ (จำนวนคน − 1) แต้ม อันดับถัดไปลดลงทีละ 1</span><span>ยังทายไม่ได้ตอนจบเกม = 0 แต้ม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<G.min||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
+      <section className="panel game-panel">{room.status==='lobby'&&<LobbyStage gid={G.id} ids={players.map(p=>p.id)} av={av} Cake={CakeStage}/>}{room.status==='lobby'&&G.type==='head'&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน แล้วค่อยเดาคำบนหัว</h2><p className="hint">ตอนเริ่ม ระบบจะสุ่ม 1 หมวดจากที่ติ๊กไว้ แล้วแจกคำให้ทุกคนคนละคำ (เล่นได้ 2–12 คน)</p><div className="score-rules"><b>🏅 คะแนน</b><span>ทายถูกอันดับ 1 ได้ (จำนวนคน − 1) แต้ม อันดับถัดไปลดลงทีละ 1</span><span>ยังทายไม่ได้ตอนจบเกม = 0 แต้ม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<G.min||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {room.status==='lobby'&&!G.type&&<><span className="eyebrow">พร้อมยัง?</span><h2>ตั้งวงก่อน เดี๋ยวค่อยโป๊ะ</h2><label>เวลาต่อรอบ</label><select value={duration} onChange={e=>setDuration(+e.target.value)}><option value={3}>3 นาที</option><option value={5}>5 นาที</option><option value={8}>8 นาที</option><option value={10}>10 นาที</option></select><p className="hint">หัวหน้าห้องเป็นคนเริ่มเกมและเพิ่มชุด{I} • หมดเวลาแล้วจะเข้าหน้าโหวตอัตโนมัติ</p><div className="score-rules"><b>🏅 กติกาคะแนน</b><span>จับสายลับได้: ชาวบ้านทุกคน +{SCORE.teamWin}</span><span>โหวตถูกตัวสายลับ: +{SCORE.rightVote}</span><span>สายลับรอด: +{SCORE.spyEscape} • เดา{I}ถูก: +{SCORE.spyGuess}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>{!G.roles&&<label className="cat-toggle"><input type="checkbox" className="tick" checked={showCat} disabled={!isHost} onChange={e=>setShowCat(e.target.checked)}/> บอกหมวดหมู่ให้ทุกคนรู้ (สายลับเดาง่ายขึ้น)</label>}{outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}{isHost?<button className="primary wide" disabled={players.length<3||outdated.length>0} onClick={startGame}>🎲 เริ่มเกมเลย ({players.length} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>}
       {active&&!G.type&&room.round&&(()=>{const spy=role?.type==='spy';const low=secondsLeft<=30;return <>
         <div className="round-top"><span className="eyebrow">รอบที่ {room.round.number}</span>{room.round.cat&&<span className="cat-tag">หมวด: {room.round.cat}</span>}</div>
         <Steps items={['ดูบทบาท','ถาม–ตอบ','โหวต','เฉลย']} at={showRole?1:0}/>
+        <SpyStage game={G.id} mode="talk" ids={players.map(p=>p.id)} av={av} speaker={(()=>{const t=room.round.turns;const o=(t?.order||[]).filter(id=>room.players?.[id]);return o.length?o[(t.i||0)%o.length]:null})()}/>
         <Phase art={G.roles?'magnifier':'bubble'} kicker="🕵️ ภารกิจ" title={spy&&showRole?'เนียนให้รอด แล้วเดาให้ถูก':'ถามตอบให้เนียน หาตัวคนที่ไม่รู้'} aside={<TimerRing secs={secondsLeft} total={Math.max(1,Math.round(((room.round.endsAt||0)-(room.round.startedAt||0))/1000))} label="เวลาที่เหลือ"/>}>
           {G.roles?'ผลัดกันถามเพื่อนเกี่ยวกับสถานที่ ตอบให้รู้ว่าเรารู้ แต่อย่าใบ้ตรงจนสายลับเดาได้':'ใบ้คำแบบอ้อม ๆ ให้รู้ว่าเรารู้ แต่อย่าตรงจนสายลับเดาคำได้'}</Phase>
+        {G.id==='spy'&&<ClueTurns db={db} room={room} roomCode={roomCode} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} isHost={isHost} sound={sound}/>}
         <RoleCard show={showRole} onToggle={()=>setShowRole(!showRole)} art={spy?'spy':G.roles?'pin':'bubble'} cover={G.roles?'pin':'bubble'}
           name={spy?'คุณคือสายลับ!':G.roles?'สถานที่ของคุณ':'คำลับของคุณ'} side={spy?'bad':'good'} sideLabel={spy?'🕵️ สายลับ':'🙂 คนรู้ความลับ'}>
           {spy?<><strong className="secret">ไม่รู้{I} 🤫</strong><p>ฟังคำถามคำตอบให้ดี ทำตัวเนียน ๆ แล้วเดา{I}ตอนโหวต (เดาถูก +{SCORE.spyGuess})</p></>
             :<><strong className="secret">{role?.place}</strong>{role?.role&&<p>บทบาทของคุณ: <b>{role.role}</b></p>}<p>ห้ามพูด{I}ตรง ๆ — สายลับฟังอยู่!</p></>}
         </RoleCard>
         <div className="howto">
-          <div><Art name="think" size={46}/><b>ถามทีละคน</b>เช่น “ที่นี่ต้องจ่ายเงินไหม?” “มาบ่อยไหม?”</div>
+          {G.id==='spy'?<div><Art name="timer" size={46}/><b>ใบ้ทีละคน ตาละ 10 วิ</b>พูดใบ้ในห้องเสียง พูดจบกดข้ามได้</div>:<div><Art name="think" size={46}/><b>ถามทีละคน</b>เช่น “ที่นี่ต้องจ่ายเงินไหม?” “มาบ่อยไหม?”</div>}
           <div><Art name="magnifier" size={46}/><b>จับผิด</b>ใครตอบกว้าง ๆ มั่ว ๆ หรือถามย้อน น่าสงสัย</div>
-          <div><Art name="vote" size={46}/><b>เปิดโหวต</b>สงสัยพอแล้วให้หัวหน้าห้องเปิดโหวตได้เลย</div>
+          <div><Art name="vote" size={46}/><b>มั่นใจแล้วโหวตเลย</b>กดพร้อมจับสปายเกินครึ่ง หรือหัวหน้าห้องเปิดโหวต</div>
         </div>
         <p className="joke">😂 {joke}</p>
-        <div className="vote-actions">{isHost?<button className="primary wide" onClick={()=>update(ref(db,`rooms/${roomCode}`),{status:'voting',votes:null,ready:null,spyGuess:null})}><Vote size={16}/> เปิดโหวตให้ทุกคน</button>:<div className="waiting" style={{width:'100%'}}>🗳️ ถามตอบกันให้พอ แล้วรอหัวหน้าห้องเปิดโหวต (หรือรอหมดเวลา)</div>}</div></>})()}
+        <CallVote db={db} room={room} roomCode={roomCode} myId={myId} av={av} nameOf={nameOf} players={players} sound={sound}/>
+        <div className="vote-actions">{isHost?<button className="secondary wide" onClick={()=>update(ref(db,`rooms/${roomCode}`),{status:'voting',votes:null,ready:null,spyGuess:null})}><Vote size={16}/> เปิดโหวตให้ทุกคน</button>:<div className="waiting" style={{width:'100%'}}>🗳️ หัวหน้าห้องเปิดโหวตได้ หรือรอหมดเวลา</div>}</div></>})()}
       {room.status==='voting'&&(()=>{const done=!!room.ready?.[myId];const spy=role?.type==='spy';return <>
+        <SpyStage game={G.id} mode="vote" ids={players.map(p=>p.id)} av={av} done={players.filter(p=>room.ready?.[p.id]).map(p=>p.id)}/>
         <div className="round-top"><span className="eyebrow">รอบที่ {room.round?.number}</span>{room.round?.endsAt&&now>=room.round.endsAt&&<span className="timeout-tag">⏰ หมดเวลาถามตอบ</span>}</div>
         <Steps items={['ดูบทบาท','ถาม–ตอบ','โหวต','เฉลย']} at={2}/>
         <Phase art={spy?'spy':'vote'} tone={done?'good':'me'} kicker="🗳️ ลงคะแนน" title={done?'ยืนยันแล้ว รอเพื่อน…':spy?'แตะรูปคนที่จะโหวต แล้วเดา'+I:'ใครคือสายลับ? แตะรูปเพื่อโหวต'}>
@@ -421,6 +428,7 @@ function App() {
         {allReady&&<div className="waiting">กำลังไปหน้าเฉลย…</div>}
         {isHost&&!allReady&&<HostBar><button className="secondary" onClick={()=>{if(confirm('สรุปผลเลยโดยไม่รอคนที่ยังไม่ยืนยัน?'))finishVote()}}>สรุปผลเลย (ไม่รอ)</button></HostBar>}</>})()}
       {room.status==='result'&&!G.type&&room.result&&(()=>{const R=room.result;const spyWins=R.spyWins??!R.caught;const tally=players.map(p=>({p,n:R.votes?.[p.id]||0})).sort((a,b)=>b.n-a.n);return <>
+        <SpyStage game={G.id} mode={spyWins?'escape':'caught'} ids={players.filter(p=>p.id!==R.spyId).map(p=>p.id)} av={av}/>
         <div className="round-top"><span className="eyebrow">ผลการจับโป๊ะ • รอบที่ {room.round?.number}</span></div>
         <Steps items={['ดูบทบาท','ถาม–ตอบ','โหวต','เฉลย']} at={3}/>
         <Outcome art={spyWins?'escape':'handcuffs'} tone={spyWins?'bad':'good'} title={spyWins?'สายลับชนะ! 😭':'จับสายลับได้! 🎉'}>
@@ -535,6 +543,7 @@ function HeadGame({room,roomCode,myId,players,isHost,scores,sound,av,nameOf,msg,
     </div>};
   return <div className="head-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">หมวด: {r.cat}</span></div>
+    <HeadStage mode={res?'end':'ask'} a={av(turnId)} word={r.words?.[turnId]} mine={turnId===myId} others={order.filter(id=>id!==turnId)} av={av}/>
     {/* ลำดับการเล่น */}
     <div className="turn-strip">{order.map((id,i)=><React.Fragment key={id}>{i>0&&<i className="ts-arrow">›</i>}<span className={'ts'+(id===turnId&&!res?' now':'')+(solved[id]?' done':'')} title={nameOf(id)}><Avatar id={id} av={av} size={id===turnId&&!res?40:30}/>{solved[id]?<em>{medal(solved[id])}</em>:id===turnId&&!res?<em>ตานี้</em>:null}</span></React.Fragment>)}</div>
 

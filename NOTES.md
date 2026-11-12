@@ -20,6 +20,9 @@
 - `src/cake.jsx` — เกม เค้กหายไปไหน (ตรรกะเกม + component `CakeGame`)
 - `src/boom.jsx` — เกมไพ่ ทุเรียนตูม! (ตรรกะเกม + `BoomGame` + `BoomLobby`) 2–10 คน
 - `src/curse.jsx` — เกมไพ่ จับผีปอป (ตรรกะเกม + `CurseGame` + `CurseLobby`) 4–12 คน
+- `src/stages.jsx` + `src/stages.css` — ฉากเคลื่อนไหวประกอบเกม (SpyStage / WolfStage / CurseStage / ExploreStage / HeadStage / LobbyStage) เปลี่ยนตามช่วงของเกม แสดงหน้าผู้เล่นจริง ไม่เผยข้อมูลลับ
+- `src/cakestage.jsx` + `src/cakestage.css` — ฉากห้องครัวเกมเค้ก (หลับ / เค้กยังอยู่ / หนูขโมยคามือ / เค้กหาย / ขโมยกิน / เช้า) ตามสิ่งที่ผู้เล่นคนนั้นเห็น
+- `src/spyturns.jsx` — SPY: ผลัดกันใบ้ทีละคน ตาละ 10 วิ (`round.turns`) + ปุ่ม “มั่นใจแล้ว” เกินครึ่งห้อง = เข้าหน้าโหวต (`round.callVote`, ใช้ทั้ง Spyfall/SPY)
 - `src/cards.jsx` + `src/cardgames.css` — กรอบไพ่ `CardFace` + ภาพวาดไพ่ทุกใบ `CARD_ART` (play-art.jsx ใช้เป็นภาพสำรองได้ด้วย)
 - `src/sfx.js` — ซาวด์เอฟเฟกต์สังเคราะห์ (`SFX` เสียงกลาง, `THEMES` เสียงเฉพาะเกม, `setSfxTheme`, `play`)
 - `src/rand.js` — ตัวสุ่มกลาง (crypto) + `pickBad` ลดตัวร้ายซ้ำ

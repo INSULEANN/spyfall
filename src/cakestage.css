@@ -1,0 +1,36 @@
+/* ฉากห้องครัวเคลื่อนไหวของเกมเค้ก */
+.cake-stage{position:relative;margin:10px 0 12px;border-radius:20px;overflow:hidden;aspect-ratio:400/190;border:1px solid #ffffff1a;box-shadow:0 10px 28px #0008;background:#1d1640}
+.cake-stage svg{display:block;width:100%;height:100%}
+.cs-cap{position:absolute;left:10px;bottom:8px;padding:3px 10px;border-radius:20px;background:#000a;color:#fff;font-weight:800;font-size:12.5px}
+.cs-vanish .cs-cap,.cs-gone .cs-cap{background:#5a1f2acc}.cs-there .cs-cap{background:#1d4a33cc}
+/* ประตูตู้เย็นเปิด (บานพับซ้าย) */
+.cs-door{transform-box:fill-box;transform-origin:0 50%;transition:transform .8s cubic-bezier(.3,1.3,.5,1)}
+.cs-door.open{animation:csDoor 1s cubic-bezier(.3,1.3,.5,1) both}
+@keyframes csDoor{from{transform:scaleX(1)}to{transform:scaleX(.16) skewY(-6deg)}}
+.cs-beam{animation:csBeam 1s ease-out both}@keyframes csBeam{from{opacity:0}}
+.cs-cake-glow{animation:csGlow 1.6s ease-in-out infinite}@keyframes csGlow{50%{filter:drop-shadow(0 0 6px #fff4c9)}}
+.cs-q{animation:csQ 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes csQ{50%{transform:translateY(-4px)}}
+.cs-tw circle{animation:csTw 2.5s ease-in-out infinite}.cs-tw circle:nth-child(2){animation-delay:-1s}@keyframes csTw{50%{opacity:.2}}
+.cs-min{transform-origin:0 0;animation:csSpin 6s linear infinite}@keyframes csSpin{to{transform:rotate(360deg)}}
+.cs-sun{animation:csSun 3s ease-out both}@keyframes csSun{from{transform:translateY(20px)}}
+/* หลับ: Zzz ลอย */
+.cs-z text{animation:csZ 2.4s ease-in-out infinite;opacity:0}.cs-z text:nth-child(2){animation-delay:.6s}.cs-z text:nth-child(3){animation-delay:1.2s}
+@keyframes csZ{0%{opacity:0;transform:translate(0,6px)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-10px)}}
+/* หนูเดินเข้ามาหยิบเค้ก แล้ววิ่งหนี (วนทุก 5 วิ) */
+.cs-run{animation:csRun 5s ease-in-out infinite}
+@keyframes csRun{0%{transform:translate(440px,146px)}38%{transform:translate(268px,146px)}52%{transform:translate(268px,146px)}100%{transform:translate(460px,146px)}}
+.cs-flip{animation:csFlip 5s steps(1) infinite}@keyframes csFlip{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(-1)}}
+.cs-hold{animation:csHold 5s steps(1) infinite}@keyframes csHold{0%{opacity:0}44%{opacity:1}100%{opacity:1}}
+.cs-cake-in{animation:csCakeIn 5s steps(1) infinite}@keyframes csCakeIn{0%{opacity:1}44%{opacity:0}100%{opacity:0}}
+.cs-leg{animation:csLeg .22s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}.cs-leg.b{animation-delay:-.11s}
+@keyframes csLeg{from{transform:translateY(-2px)}to{transform:translateY(1px)}}
+.cs-tail{animation:csTail .6s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0 50%}@keyframes csTail{to{transform:rotate(-14deg)}}
+.cs-mouse-body{animation:csBob .3s ease-in-out infinite alternate}@keyframes csBob{to{transform:translateY(-2px)}}
+.cs-steps g{animation:csStep 2.5s ease-in-out infinite;opacity:0}@keyframes csStep{20%,70%{opacity:1}100%{opacity:0}}
+.cs-tailout{animation:csTailOut 1.4s ease-in-out infinite alternate}@keyframes csTailOut{to{transform:translateX(10px)}}
+/* หนูกินเค้ก (ตัวเราเป็นขโมย) */
+.cs-eat .cs-mouse-body{animation:csChew .25s ease-in-out infinite alternate}@keyframes csChew{to{transform:translateY(-2px) rotate(-3deg)}}
+.cs-bite{animation:csBite 3s steps(4) infinite;transform-box:fill-box;transform-origin:100% 50%}@keyframes csBite{0%{transform:scaleX(1)}100%{transform:scaleX(.2)}}
+.cs-crumbs circle{animation:csCrumb .5s ease-out infinite}.cs-crumbs circle:nth-child(2){animation-delay:.15s}.cs-crumbs circle:nth-child(3){animation-delay:.3s}
+@keyframes csCrumb{from{transform:translate(0,0);opacity:1}to{transform:translate(-8px,10px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cake-stage *{animation-duration:0s!important;animation-iteration-count:1!important}}

@@ -5,6 +5,7 @@ import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
 import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters } from './ui.jsx';
 import { play as sfx } from './sfx.js';
+import { WolfStage } from './stages.jsx';
 import { shuffle, pickBad } from './rand.js';
 
 export const WOLF_MIN = 5;
@@ -154,6 +155,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   return <div className="explore-game wolf-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span><span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
     {!res && <Steps items={['🌙 กลางคืน', '☀️ ประกาศ', '⚖️ โหวตประหาร']} at={r.phase === 'night' ? 0 : r.phase === 'hunter' ? 1 : 2} />}
+    <WolfStage mode={res ? (room.result?.winner === 'wolf' ? 'wolfWin' : 'villageWin') : r.phase === 'night' ? 'night' : r.phase === 'hunter' ? 'hunter' : 'day'} dead={r.dawn?.dead?.length || 0} />
 
     {/* เมื่อวานใครถูกประหาร (แสดงตอนกลางคืน) */}
     {!res && r.phase === 'night' && r.lastVote && r.lastVote.day === r.day - 1 && <div className={'event ' + (r.lastVote.out ? 'fail' : 'ok')}><Art name={r.lastVote.out ? 'gavel' : 'shield'} size={46} /><span><b>เมื่อวาน: {r.lastVote.out ? `${deadNames([r.lastVote.out])} ถูกประหาร` : 'ไม่มีใครถูกประหาร'}</b>{r.shot?.target && !r.dawn ? ` • นายพรานยิง ${deadNames([r.shot.target])}` : ''}

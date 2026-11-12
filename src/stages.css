@@ -1,0 +1,85 @@
+/* ฉากเคลื่อนไหวประกอบเกม */
+.stage{position:relative;margin:4px 0 12px;border-radius:20px;overflow:hidden;aspect-ratio:400/190;border:1px solid #ffffff1a;box-shadow:0 10px 28px #0008;background:#14121f;animation:stIn .5s ease-out}
+.stage svg{display:block;width:100%;height:100%}
+@keyframes stIn{from{opacity:0;transform:translateY(6px)}}
+.st-cap{position:absolute;left:10px;top:8px;max-width:calc(100% - 20px);padding:3px 11px;border-radius:20px;background:#000b;color:#fff;font-weight:800;font-size:12.5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-cap.good{background:#1d4a33dd}.st-cap.bad{background:#5a1f2add}
+.stage g,.stage text,.stage rect,.stage circle,.stage path{transform-box:fill-box}
+
+/* พื้นหลัง */
+.st-tw circle{animation:stTw 2.6s ease-in-out infinite}.st-tw circle:nth-child(2n){animation-delay:-1.1s}.st-tw circle:nth-child(3n){animation-delay:-1.9s}
+@keyframes stTw{50%{opacity:.15}}
+.st-pulse{transform-origin:center;animation:stPulse 2s ease-in-out infinite}@keyframes stPulse{50%{opacity:.55;transform:scale(1.08)}}
+.st-spin{transform-origin:center;animation:stSpin 14s linear infinite}@keyframes stSpin{to{transform:rotate(360deg)}}
+.st-drift{animation:stDrift 9s ease-in-out infinite alternate}.st-drift.slow{animation-duration:13s}@keyframes stDrift{to{transform:translateX(26px)}}
+.st-rise{animation:stRise 3s ease-out both}@keyframes stRise{from{transform:translateY(30px);opacity:.4}}
+.st-win{animation:stWin 3.4s ease-in-out infinite}.st-win.w1{animation-delay:-1.3s}.st-win.w2{animation-delay:-2.2s}.st-win.w3{animation-delay:-.6s}@keyframes stWin{40%{opacity:1}50%{opacity:.25}60%{opacity:1}}
+
+/* ใบหน้า / คน */
+.st-face{transform-origin:center}
+.st-bob{animation:stBob 2.4s ease-in-out infinite}.st-face.st-bob:nth-child(1){animation-delay:-.4s}
+@keyframes stBob{50%{transform:translateY(-3px)}}
+.stage g:nth-child(2n)>.st-bob{animation-delay:-1.2s}.stage g:nth-child(3n)>.st-bob{animation-delay:-.7s}
+.st-speak{animation:stSpeak .5s ease-in-out infinite alternate}@keyframes stSpeak{to{transform:translateY(-4px) scale(1.06)}}
+.st-dim{opacity:.55}
+.st-ring{transform-origin:center;animation:stRing 1.2s ease-out infinite}@keyframes stRing{from{opacity:1;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}
+.st-think{animation:stThink 1.8s ease-in-out infinite;transform-origin:50% 100%}@keyframes stThink{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+.st-jump{animation:stJump .7s ease-in-out infinite alternate}.st-jump.j1,.stage g:nth-child(2n)>.st-jump{animation-delay:-.35s}@keyframes stJump{to{transform:translateY(-8px)}}
+.st-shake{animation:stShake .35s ease-in-out infinite}@keyframes stShake{25%{transform:translateX(-2px) rotate(-2deg)}75%{transform:translateX(2px) rotate(2deg)}}
+.st-argue{transform-origin:50% 100%;animation:stArgue 1.4s ease-in-out infinite}.st-argue.a1{animation-delay:-.4s}.st-argue.a2{animation-delay:-.9s}.st-argue.a3{animation-delay:-.2s}
+@keyframes stArgue{30%{transform:rotate(-5deg) translateY(-2px)}60%{transform:rotate(4deg)}}
+.st-whisper{transform-origin:50% 100%;animation:stWhisper 2.2s ease-in-out infinite}.st-whisper.a1{animation-direction:reverse}.st-whisper.a2{animation-delay:-1.1s}.st-whisper.a3{animation-delay:-.5s;animation-direction:reverse}
+@keyframes stWhisper{50%{transform:rotate(8deg) translateX(2px)}}
+
+/* คำพูด */
+.st-bubble{transform-origin:50% 100%}
+.st-pop{animation:stPop .5s cubic-bezier(.3,1.6,.5,1) both,stBob 1.4s ease-in-out .5s infinite}@keyframes stPop{from{opacity:0;transform:scale(.4)}}
+.st-talk{animation:stTalk 3.6s ease-in-out infinite;opacity:0}.st-talk.b{animation-delay:1.2s}.st-talk.c{animation-delay:2.4s}
+@keyframes stTalk{0%{opacity:0;transform:scale(.5)}8%,30%{opacity:1;transform:scale(1)}38%,100%{opacity:0;transform:scale(.8)}}
+
+/* สายลับ */
+.st-sweep{animation:stSweep 6s ease-in-out infinite}@keyframes stSweep{0%{transform:translate(80px,70px)}25%{transform:translate(170px,58px) rotate(8deg)}50%{transform:translate(300px,74px)}75%{transform:translate(220px,62px) rotate(-8deg)}100%{transform:translate(80px,70px)}}
+.st-laser{animation:stLaser 4s ease-in-out infinite}@keyframes stLaser{25%{transform:translate(-60px,30px)}50%{transform:translate(-160px,10px)}75%{transform:translate(-90px,50px)}}
+.st-slip{animation:stSlip 1.8s ease-in infinite;opacity:0}.st-slip.s1{animation-delay:.6s}.st-slip.s2{animation-delay:1.2s}
+@keyframes stSlip{0%{opacity:0;transform:translate(-14px,-30px) rotate(-20deg)}20%{opacity:1}80%{opacity:1;transform:translate(0,30px) rotate(0)}100%{opacity:0;transform:translate(0,36px)}}
+.st-runaway{animation:stRunaway 3.2s ease-in infinite}@keyframes stRunaway{0%{transform:translate(120px,112px)}80%{transform:translate(352px,112px);opacity:1}100%{transform:translate(372px,112px);opacity:0}}
+
+/* แวร์วูฟ */
+.st-prowl{animation:stProwl 9s linear infinite}@keyframes stProwl{0%{transform:translate(-70px,146px)}100%{transform:translate(440px,146px)}}
+.st-blink{animation:stBlinkEye 3s steps(1) infinite}@keyframes stBlinkEye{90%{opacity:0}}
+.st-eyes{animation:stEyes 4s ease-in-out infinite;opacity:0}.st-eyes.e1{animation-delay:1.4s}.st-eyes.e2{animation-delay:2.6s}@keyframes stEyes{10%,40%{opacity:1}45%,48%{opacity:0}52%,70%{opacity:1}80%{opacity:0}}
+.st-riseup{animation:stRiseUp .9s cubic-bezier(.3,1.4,.5,1) both}@keyframes stRiseUp{from{transform:translateY(34px)}}
+.st-gavel{transform-origin:50% 100%;animation:stGavel 1.6s ease-in infinite}@keyframes stGavel{0%,60%{transform:rotate(-40deg)}75%{transform:rotate(25deg)}100%{transform:rotate(-40deg)}}
+.st-arrow{animation:stArrow 1.4s ease-in infinite}@keyframes stArrow{from{transform:translateX(0);opacity:1}80%{opacity:1}to{transform:translateX(110px);opacity:0}}
+.st-howl{transform-origin:20% 100%;animation:stHowl 2.4s ease-in-out infinite}@keyframes stHowl{40%,60%{transform:rotate(-18deg)}}
+.st-fleeaway{animation:stFlee 3s ease-in infinite}@keyframes stFlee{from{transform:translate(200px,146px)}to{transform:translate(470px,146px)}}
+.st-flick{transform-origin:50% 100%;animation:stFlick .2s ease-in-out infinite alternate}@keyframes stFlick{to{transform:scale(.85,1.1)}}
+
+/* ผีปอป */
+.st-float{animation:stFloat 7s ease-in-out infinite}@keyframes stFloat{0%{transform:translate(230px,96px)}25%{transform:translate(270px,82px)}50%{transform:translate(300px,98px)}75%{transform:translate(250px,88px)}100%{transform:translate(230px,96px)}}
+.st-tongue{transform-origin:50% 0;animation:stTongue .9s ease-in-out infinite alternate}@keyframes stTongue{to{transform:scaleY(1.35)}}
+.st-wisp{animation:stWisp 5s ease-in-out infinite}.st-wisp.w1{animation-delay:-2.5s}@keyframes stWisp{50%{transform:translate(14px,-12px);opacity:.4}}
+.st-flip{transform-origin:center;animation:stFlip 2.4s ease-in-out infinite}@keyframes stFlip{0%,40%{transform:scaleX(1)}50%{transform:scaleX(.05)}60%,100%{transform:scaleX(1)}}
+.st-pointing{animation:stPoint 1.6s ease-in-out infinite}@keyframes stPoint{25%{transform:translateX(-30px)}75%{transform:translateX(30px)}}
+.st-fadeup{animation:stFadeUp 3s ease-in infinite}@keyframes stFadeUp{from{transform:translate(200px,100px);opacity:1}to{transform:translate(200px,20px);opacity:0}}
+.st-laugh{animation:stLaugh .4s ease-in-out infinite alternate}@keyframes stLaugh{to{transform:translateY(-4px) rotate(3deg)}}
+
+/* ออกสำรวจ */
+.st-wave{transform-origin:0 100%;animation:stWave 1s ease-in-out infinite alternate}@keyframes stWave{to{transform:rotate(-10deg)}}
+.st-thumb{animation:stThumb 2.4s ease-out infinite;opacity:0}.st-thumb.b{animation-delay:.5s}.st-thumb.c{animation-delay:1s}
+@keyframes stThumb{0%{opacity:0;transform:translateY(16px)}20%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+.st-march{animation:stMarch 4s ease-in-out infinite}@keyframes stMarch{0%{transform:translateX(-12px)}100%{transform:translateX(28px)}}
+.st-step{animation:stBob .45s ease-in-out infinite}.st-step.s1{animation-delay:-.15s}.st-step.s2{animation-delay:-.3s}
+.st-swing{transform-origin:50% 0;animation:stSwing 1s ease-in-out infinite alternate}@keyframes stSwing{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+.st-search{transform-origin:50% 0;animation:stSearch 4s ease-in-out infinite alternate}@keyframes stSearch{from{transform:translate(200px,0) rotate(-24deg)}to{transform:translate(200px,0) rotate(24deg)}}
+.st-lid{transform-origin:0 100%;animation:stLid 2s ease-in-out infinite alternate}@keyframes stLid{to{transform:rotate(-35deg)}}
+.st-coins{animation:stCoins 1.4s ease-out infinite}@keyframes stCoins{from{transform:translateY(8px);opacity:0}50%{opacity:1}to{transform:translateY(-14px);opacity:0}}
+.st-fall{animation:stFall 1.8s ease-in infinite}.st-fall.f1{animation-delay:.4s}.st-fall.f2{animation-delay:.9s}.st-fall.f3{animation-delay:1.3s}
+@keyframes stFall{from{transform:translateY(-10px) rotate(0)}to{transform:translateY(80px) rotate(160deg);opacity:0}}
+
+/* คำบนหัว */
+.st-confetti rect{animation:stConf 4s linear infinite}.st-confetti .c1{animation-delay:-1s}.st-confetti .c2{animation-delay:-2s}.st-confetti .c3{animation-delay:-3s}
+@keyframes stConf{from{transform:translateY(-20px) rotate(0)}to{transform:translateY(200px) rotate(360deg)}}
+.st-q{animation:stQ 2s ease-in-out infinite;opacity:0}.st-q.b{animation-delay:.6s}.st-q.c{animation-delay:1.2s}
+@keyframes stQ{0%{opacity:0;transform:translateY(8px)}30%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+@media (prefers-reduced-motion:reduce){.stage *{animation-duration:0s!important;animation-iteration-count:1!important}}
