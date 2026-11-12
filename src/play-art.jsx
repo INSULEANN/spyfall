@@ -1,6 +1,7 @@
 // ภาพประกอบระหว่างเล่น (SVG) — บทบาท สถานการณ์ และผลลัพธ์ของทุกเกม
 // <Art name="wolf" size={96} />  •  <Art name="die" n={3} />
 import React from 'react';
+import { CARD_ART } from './cards.jsx';
 
 const INK = '#1b1530', W = '#ffffff', GOLD = '#ffc965', RED = '#ff5f6d', GREEN = '#5fd38d', BLUE = '#6fb7ff', PINK = '#ff8fb3', BROWN = '#a0643c', GREY = '#c9c6d6', SKIN = '#ffd2a8';
 
@@ -160,7 +161,8 @@ const BG = { night: '#1d2552', moon: '#1d2552', bed: '#1d2552', day: '#3a7cc4', 
 const NO_BG = new Set(['die']);
 
 export function Art({ name, n, size = 96, className = '', title }) {
-  const D = DRAW[name] || DRAW.think;
+  // ไม่มีในชุดนี้ → ลองใช้ภาพจากไพ่ (เกมไพ่) วางกลางวง
+  const C = !DRAW[name] && CARD_ART[name]; const D = C ? () => <g transform="translate(12 12) scale(.96)">{React.createElement(C)}</g> : DRAW[name] || DRAW.think;
   return <svg className={'art ' + className} width={size} height={size} viewBox="0 0 120 120" role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
     {!NO_BG.has(name) && <circle cx="60" cy="60" r="58" className="art-bg" style={BG[name] ? { fill: BG[name] } : undefined} />}
     <D n={n} />

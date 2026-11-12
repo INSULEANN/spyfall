@@ -158,6 +158,29 @@ export const THEMES = {
     wrong: () => [784, 659, 523].forEach((f, i) => box(f, i * 0.2, 0.05)),
     reveal: () => { box(1568); box(2093, 0.15); },
   },
+  // 💥 ทุเรียนตูม: ป๊อป ๆ ชนวนฟู่ ระฆังรถเข็นผลไม้
+  boom: {
+    start: () => { noise(0.9, { gain: 0.06, freq: 5000, type: 'highpass' }); thump(0.9, 0.5); arp([523, 659, 784, 1047], 0.07, { type: 'triangle', gain: 0.07, at: 1.0 }); },
+    join: () => { pop(0); pop(0.12, 0.1); },
+    click: () => pop(0, 0.07), select: () => pop(0, 0.1),
+    confirm: () => { pop(0); bell(1319, 0.5, { at: 0.06, gain: 0.04 }); },
+    yourTurn: () => { bell(1568, 0.5, { gain: 0.06 }); bell(1568, 0.6, { at: 0.18, gain: 0.06 }); },
+    win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); [0.5, 0.62, 0.74].forEach(at => pop(at, 0.1)); },
+  },
+  // 👻 จับผีปอป: ฆ้องต่ำ กระดิ่งลม เคาะไม้ เสียงกระซิบ
+  curse: {
+    start: () => { gong(0, 0.1); bell(1175, 2.2, { at: 0.5, gain: 0.04 }); bell(1109, 2.2, { at: 0.9, gain: 0.035 }); },
+    join: () => [1568, 1760, 2093].forEach((f, i) => bell(f, 1.2, { at: i * 0.11, gain: 0.03 })),
+    click: () => tone(320, 0.06, { type: 'triangle', gain: 0.06, attack: 0.003 }), select: () => tone(420, 0.07, { type: 'triangle', gain: 0.06, attack: 0.003 }),
+    vote: () => { knock(0); noise(0.35, { at: 0.05, gain: 0.05, freq: 2600, type: 'bandpass', q: 3 }); },
+    confirm: () => { bell(988, 1.2, { gain: 0.05 }); },
+    yourTurn: () => { bell(1319, 1.0, { gain: 0.05 }); bell(1760, 1.2, { at: 0.2, gain: 0.04 }); },
+    night: () => { gong(0, 0.1); SFX.night(); noise(2.0, { at: 0.2, gain: 0.03, freq: 500, to: 1400, type: 'bandpass', q: 2 }); },
+    morning: () => { tone(620, 0.25, { type: 'sawtooth', gain: 0.03, to: 900, lp: 2200 }); tone(900, 0.7, { type: 'sawtooth', gain: 0.035, to: 680, lp: 2400, vib: 18, vibRate: 9, at: 0.28 }); SFX.morning(); },
+    reveal: () => { noise(0.5, { gain: 0.06, freq: 800, to: 4000, type: 'bandpass', q: 1.5 }); bell(784, 1.6, { at: 0.35, gain: 0.06 }); },
+    tension: () => SFX.tension(),
+    death: () => { SFX.death(); bell(110, 3, { at: 0.3, gain: 0.07 }); },
+  },
 };
 // เสียงกลางที่หน้าหลักและเกมสปายใช้ (ถ้าธีมไม่ได้กำหนดไว้)
 Object.assign(SFX, {
@@ -169,6 +192,12 @@ Object.assign(SFX, {
   right: () => arp([784, 988, 1319], 0.08, { gain: 0.07 }),
   wrong: () => tone(200, 0.4, { type: 'triangle', gain: 0.08, to: 140 }),
   turn: () => SFX.yourTurn(),
+  // เกมไพ่
+  card: () => { noise(0.09, { gain: 0.09, freq: 3200, type: 'highpass' }); tone(520, 0.06, { type: 'triangle', gain: 0.05, at: 0.06 }); },
+  draw: () => noise(0.22, { gain: 0.1, freq: 1200, to: 5000, type: 'bandpass', q: 1.2 }),
+  nope: () => { tone(330, 0.12, { type: 'square', gain: 0.05 }); tone(247, 0.24, { type: 'square', gain: 0.05, at: 0.13 }); },
+  boom: () => { noise(1.6, { gain: 0.5, freq: 3500, to: 50, q: 0.4 }); thump(0, 0.6); thump(0.1, 0.45); tone(70, 1.4, { type: 'sawtooth', gain: 0.07, to: 30, lp: 300 }); },
+  defuse: () => { noise(0.4, { gain: 0.08, freq: 1500, to: 300 }); tone(1400, 0.35, { gain: 0.06, to: 500 }); arp([659, 784, 1047], 0.1, { type: 'triangle', gain: 0.07, at: 0.4 }); },
 });
 
 let theme = 'hub';

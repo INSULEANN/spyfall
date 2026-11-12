@@ -201,5 +201,86 @@ export function BrandMark() {
   return <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect x="9" y="3" width="20" height="20" rx="5" fill="#fff" opacity=".9" transform="rotate(14 19 13)" /><rect x="3" y="9" width="20" height="20" rx="5" fill="var(--accent)" /><g fill="var(--on-accent)"><circle cx="8.5" cy="14.5" r="2" /><circle cx="13" cy="19" r="2" /><circle cx="17.5" cy="23.5" r="2" /></g></svg>;
 }
 
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene };
+// ---------- 💥 ทุเรียนตูม: แผงผลไม้ ทุเรียนชนวนติดไฟ คนหนีบจมูก ----------
+function BoomScene() {
+  const spikes = (cx, cy, rx, ry, n, c) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry; return <path key={i} d={`M${x} ${y} l${Math.cos(a) * 12} ${Math.sin(a) * 12} l${Math.cos(a + 1.3) * 7} ${Math.sin(a + 1.3) * 7} Z`} fill={c} />; });
+  return <S id="boom" label="ทุเรียนลูกใหญ่มีชนวนติดไฟอยู่บนแผงผลไม้">
+    <defs>
+      <linearGradient id="bm-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a1a08" /><stop offset=".55" stopColor="#6a3a10" /><stop offset="1" stopColor="#c0661a" /></linearGradient>
+      <radialGradient id="bm-burst" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#fff2a8" stopOpacity=".9" /><stop offset=".5" stopColor="#ffb03a" stopOpacity=".45" /><stop offset="1" stopColor="#ff7a1a" stopOpacity="0" /></radialGradient>
+    </defs>
+    <rect width="400" height="260" fill="url(#bm-sky)" />
+    <g opacity=".5"><path d="M0 70 L40 40 L80 70 Z M70 70 L120 30 L170 70 Z M300 70 L345 34 L390 70 Z" fill="#3a2410" /></g>
+    {/* ผ้าใบแผงลอย */}
+    <path d="M0 26 H400 V52 Q380 66 360 52 Q340 66 320 52 Q300 66 280 52 Q260 66 240 52 Q220 66 200 52 Q180 66 160 52 Q140 66 120 52 Q100 66 80 52 Q60 66 40 52 Q20 66 0 52 Z" fill="#d9352b" />
+    <g fill="#fff3dc">{[0, 80, 160, 240, 320].map(x => <path key={x} d={`M${x + 40} 26 H${x + 80} V52 Q${x + 60} 66 ${x + 40} 52 Z`} />)}</g>
+    <circle className="glow" cx="200" cy="138" r="104" fill="url(#bm-burst)" />
+    {/* ลังไม้ */}
+    <g><rect x="0" y="196" width="400" height="64" fill="#5a3410" /><g stroke="#3a2008" strokeWidth="3">{[214, 232].map(y => <path key={y} d={`M0 ${y} H400`} />)}{[60, 140, 260, 340].map(x => <path key={x} d={`M${x} 196 V260`} />)}</g></g>
+    {/* ผลไม้ข้าง ๆ */}
+    <g className="float"><circle cx="70" cy="182" r="18" fill="#5b2a5e" /><g fill="#4f8a3a"><ellipse cx="70" cy="164" rx="5" ry="8" /><ellipse cx="62" cy="168" rx="5" ry="7" transform="rotate(-50 62 168)" /><ellipse cx="78" cy="168" rx="5" ry="7" transform="rotate(50 78 168)" /></g></g>
+    <g className="float"><g stroke="#3fae4a" strokeWidth="3" fill="none" strokeLinecap="round">{Array.from({ length: 14 }, (_, i) => { const a = i / 14 * Math.PI * 2; return <path key={i} d={`M${112 + Math.cos(a) * 15} ${186 + Math.sin(a) * 15} l${Math.cos(a) * 8} ${Math.sin(a) * 8}`} />; })}</g><circle cx="112" cy="186" r="15" fill="#e0303a" /></g>
+    <g className="float"><path d="M300 196 Q296 168 318 164 Q340 162 338 186 Q336 200 318 200 Z" fill="#ffc93a" /><path d="M318 164 q4 -8 12 -8" stroke="#4f8a3a" strokeWidth="4" fill="none" /></g>
+    {/* ทุเรียนลูกใหญ่ + ชนวน */}
+    <g className="bob">
+      {spikes(200, 150, 50, 44, 22, '#6f8a22')}
+      <ellipse cx="200" cy="150" rx="50" ry="45" fill="#a3b13a" />
+      <g fill="#8a9a2c">{[[180, 130], [206, 124], [224, 146], [188, 160], [212, 172], [170, 152]].map(([x, y], i) => <path key={i} d={`M${x} ${y} l6 -9 l6 9 Z`} />)}</g>
+      <g fill="#2b1d10"><ellipse cx="184" cy="146" rx="5" ry="6" /><ellipse cx="216" cy="146" rx="5" ry="6" /></g><path d="M186 166 q14 10 28 0" stroke="#2b1d10" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M200 106 Q204 86 222 80 Q236 76 240 64" stroke="#5a4a1a" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <g className="flick"><path d="M240 64 Q232 48 242 38 Q244 50 250 46 Q252 58 240 64 Z" fill="#ffcf5a" /><path d="M240 62 Q236 54 241 48 Q244 56 246 54 Q246 60 240 62 Z" fill="#fff" /></g>
+      <g className="tw" fill="#ffe08a"><circle cx="256" cy="44" r="2.5" /><circle cx="230" cy="40" r="2" /><circle cx="252" cy="62" r="1.8" /></g>
+    </g>
+    {/* คนหนีบจมูก */}
+    <g className="peek"><g transform="translate(352 150)"><circle r="26" fill="#ffd2a8" /><path d="M-26 -6 Q-24 -30 0 -30 Q24 -30 26 -6 Q14 -18 0 -16 Q-14 -18 -26 -6 Z" fill="#2b1d10" /><path d="M-12 -4 l6 4 l-6 4 M12 -4 l-6 4 l6 4" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><rect x="-5" y="2" width="10" height="16" rx="3" fill="#d9a66a" /><path d="M-9 20 q9 6 18 0" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><g stroke="#9ab03a" strokeWidth="3" strokeLinecap="round" fill="none" opacity=".8"><path d="M-46 -20 q-6 -8 2 -14" /><path d="M-52 4 q-8 -6 0 -12" /></g></g></g>
+  </S>;
+}
+// ---------- 👻 จับผีปอป: หมู่บ้านอีสานยามค่ำ บ้านใต้ถุนสูง ผีปอปลอยกลางดง หมอธรรมถือไต้ เงาคนกระซิบ ----------
+function CurseScene() {
+  return <S id="curse" label="หมู่บ้านอีสานยามค่ำคืน มีผีปอปลอยอยู่กลางหมู่บ้าน หมอธรรมถือไต้ไฟ">
+    <defs>
+      <linearGradient id="cs-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#040a07" /><stop offset=".6" stopColor="#0e2418" /><stop offset="1" stopColor="#3a1216" /></linearGradient>
+      <radialGradient id="cs-torch" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffcf5a" stopOpacity=".55" /><stop offset="1" stopColor="#ff7a1a" stopOpacity="0" /></radialGradient>
+      <radialGradient id="cs-ghost" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#9ff07a" stopOpacity=".35" /><stop offset="1" stopColor="#9ff07a" stopOpacity="0" /></radialGradient>
+      <mask id="cs-moon"><rect width="400" height="260" fill="#fff" /><circle cx="318" cy="52" r="24" fill="#000" /></mask>
+    </defs>
+    <rect width="400" height="260" fill="url(#cs-sky)" />
+    <circle cx="306" cy="60" r="26" fill="#e6f0d0" mask="url(#cs-moon)" opacity=".85" />
+    <g className="tw" fill="#fff"><circle cx="40" cy="30" r="1.4" /><circle cx="120" cy="20" r="1.1" /><circle cx="210" cy="36" r="1.3" /><circle cx="370" cy="110" r="1.2" /></g>
+    {/* ต้นตาลกับบ้านใต้ถุนสูง */}
+    <g fill="#06100b"><path d="M14 120 L62 82 L110 120 Z" /><rect x="22" y="118" width="80" height="44" /><g>{[26, 56, 92].map(x => <rect key={x} x={x} y="160" width="6" height="58" />)}</g>
+      <path d="M300 128 L340 98 L392 128 Z" /><rect x="306" y="126" width="80" height="38" /><g>{[310, 344, 378].map(x => <rect key={x} x={x} y="162" width="6" height="56" />)}</g>
+      <rect x="148" y="70" width="5" height="148" /><g transform="translate(150 70)">{[-70, -40, -10, 20, 50, 80, 110, 140, 170, 200].map(a => <path key={a} d="M0 0 L34 -6 L34 2 Z" transform={`rotate(${a})`} />)}</g></g>
+    <rect x="44" y="132" width="16" height="16" fill="#ffcf5a" opacity=".45" /><rect x="352" y="138" width="14" height="14" fill="#ffcf5a" opacity=".3" />
+    <rect y="216" width="400" height="44" fill="#050a07" />
+    {/* ผีปอป */}
+    <circle className="glow" cx="230" cy="120" r="70" fill="url(#cs-ghost)" />
+    <g className="bob"><g transform="translate(230 124)">
+      <path d="M-34 -14 Q-38 -60 0 -66 Q38 -60 34 -14 Q40 26 30 66 L22 44 L14 72 L6 48 L-2 76 L-10 48 L-18 70 L-24 44 L-32 62 Q-40 26 -34 -14 Z" fill="#0b0808" />
+      <path d="M-20 6 Q-28 46 -22 78 L-14 70 L-6 82 L2 70 L10 82 L18 70 L24 78 Q28 46 20 6 Z" fill="#e6efe0" opacity=".8" />
+      <path d="M-20 14 Q-42 20 -54 4" stroke="#cfe6bf" strokeWidth="6" fill="none" strokeLinecap="round" /><path d="M20 14 Q42 22 52 8" stroke="#cfe6bf" strokeWidth="6" fill="none" strokeLinecap="round" />
+      <g stroke="#0b0808" strokeWidth="2" strokeLinecap="round"><path d="M-55 4 l-5 -4 M-55 4 l-6 1 M-55 4 l-3 -6" /><path d="M53 8 l5 -4 M53 8 l6 1 M53 8 l3 -6" /></g>
+      <ellipse cx="0" cy="-24" rx="20" ry="24" fill="#cfe6bf" />
+      <path d="M-21 -32 Q-10 -44 0 -38 Q10 -44 21 -32 Q8 -36 0 -30 Q-8 -36 -21 -32 Z" fill="#0b0808" />
+      <ellipse cx="-8" cy="-24" rx="5" ry="4" fill="#fff" /><ellipse cx="8" cy="-24" rx="5" ry="4" fill="#fff" />
+      <circle cx="-8" cy="-24" r="2.6" fill="#e0303a" /><circle cx="8" cy="-24" r="2.6" fill="#e0303a" />
+      <path d="M-11 -10 Q0 -2 11 -10 Q8 2 0 2 Q-8 2 -11 -10 Z" fill="#3a0d14" />
+      <path d="M-8 -9 L-6 -4 L-4 -8 Z M4 -8 L6 -4 L8 -9 Z" fill="#fff" />
+      <path d="M-3 -2 Q-4 16 2 24 Q6 14 3 -2 Z" fill="#e0525a" /><circle cx="2" cy="28" r="2" fill="#e0303a" />
+    </g></g>
+    {/* หมอธรรมถือไต้ */}
+    <circle className="glow" cx="96" cy="160" r="56" fill="url(#cs-torch)" />
+    <g fill="#050a07"><circle cx="84" cy="182" r="9" /><path d="M70 218 q0 -26 14 -28 q14 2 14 28 Z" /><path d="M92 196 L104 168" stroke="#050a07" strokeWidth="6" strokeLinecap="round" /></g>
+    <path d="M78 196 Q84 202 92 196" stroke="#f3efe0" strokeWidth="2.5" fill="none" />
+    <rect x="102" y="150" width="4" height="22" rx="2" fill="#6b4a2a" transform="rotate(20 104 160)" />
+    <g className="flick" transform="translate(108 146)"><path d="M0 -16 Q-8 -4 0 4 Q8 -4 0 -16 Z" fill="#ffcf5a" /><path d="M0 -8 Q-3 -2 0 2 Q3 -2 0 -8 Z" fill="#fff" /></g>
+    {/* ดวงไฟผีลอย */}
+    <g className="drift"><circle cx="60" cy="64" r="5" fill="#9ff07a" opacity=".85" /><circle cx="60" cy="64" r="13" fill="#9ff07a" opacity=".16" /></g>
+    <g className="drift"><circle cx="366" cy="186" r="5" fill="#9ff07a" opacity=".8" /><circle cx="366" cy="186" r="12" fill="#9ff07a" opacity=".14" /></g>
+    {/* เงาชาวบ้านกระซิบ */}
+    <g fill="#050a07"><circle cx="300" cy="196" r="11" /><path d="M286 236 q0 -28 14 -30 q14 2 14 30 Z" /><circle cx="324" cy="200" r="10" /><path d="M312 236 q0 -24 12 -26 q12 2 12 26 Z" /></g>
+    <g className="peek"><path d="M314 176 q-6 -12 6 -18 h22 q10 0 10 10 v4 q0 10 -10 10 h-12 l-8 8 l2 -8 q-10 0 -10 -6 Z" fill="#eef8ec" opacity=".9" /><text x="332" y="172" textAnchor="middle" fontSize="13" fontWeight="900" fill="#3a0d14" fontFamily="sans-serif">ปอป!</text></g>
+  </S>;
+}
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

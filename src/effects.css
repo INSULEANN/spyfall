@@ -21,6 +21,13 @@
 [data-amb="headword"] i:nth-child(3n){background:#38d9c9}[data-amb="headword"] i:nth-child(3n+1){background:#ff5fa2}[data-amb="headword"] i:nth-child(3n+2){background:#ffd23f}
 /* ออกสำรวจ: หิ่งห้อย */
 [data-amb="explore"] i{bottom:auto;top:calc(30% + var(--y)*0.7);width:5px;height:5px;background:#e9ff9a;box-shadow:0 0 10px 2px #d8ff6a99;animation-name:amb-fly}
+/* ทุเรียนตูม: ประกายไฟจากชนวน ลอยขึ้นแล้ววูบ */
+[data-amb="boom"] i{width:calc(4px*var(--s));height:calc(4px*var(--s));background:#ffcf5a;box-shadow:0 0 8px 2px #ff7a1aaa;animation-duration:calc(var(--d)*.8)}
+[data-amb="boom"] i:nth-child(3n){background:#a3b13a;box-shadow:0 0 6px #a3b13a88;width:calc(7px*var(--s));height:calc(7px*var(--s));border-radius:30%;transform:rotate(45deg)}
+/* จับผีปอป: ดวงไฟผีสีเขียวลอยวูบวาบ + ตาแดงกะพริบในความมืด + หมอก */
+[data-amb="curse"] i{bottom:auto;top:calc(20% + var(--y)*0.75);width:calc(6px*var(--s));height:calc(6px*var(--s));background:#c8ff9a;box-shadow:0 0 14px 4px #5fc96a88;animation-name:amb-fly;animation-duration:calc(var(--d)*1.3)}
+[data-amb="curse"] i:nth-child(5n){width:4px;height:3px;border-radius:50%;background:#ff3b3b;box-shadow:7px 0 0 #ff3b3b,0 0 8px 2px #ff3b3b66;animation:amb-twinkle calc(var(--d)/2) ease-in-out var(--dl) infinite}
+[data-amb="curse"]:after{content:"";position:absolute;left:-20%;right:-20%;bottom:-40px;height:240px;background:radial-gradient(ellipse at 25% 70%,#a8f07a12,transparent 60%),radial-gradient(ellipse at 70% 60%,#e0525a10,transparent 60%);animation:fog 22s ease-in-out infinite alternate}
 /* แวร์วูฟ: ดาวระยิบ + หมอก */
 [data-amb="werewolf"] i{bottom:auto;top:calc(var(--y)*0.75);width:calc(3px*var(--s));height:calc(3px*var(--s));background:#fff;box-shadow:0 0 6px #fff;animation:amb-twinkle calc(var(--d)/2.5) ease-in-out var(--dl) infinite}
 [data-amb="werewolf"]:after{content:"";position:absolute;left:-20%;right:-20%;bottom:-40px;height:220px;background:radial-gradient(ellipse at 30% 60%,#c5cbe81a,transparent 60%),radial-gradient(ellipse at 75% 70%,#c5cbe814,transparent 60%);animation:fog 18s ease-in-out infinite alternate}

@@ -1,0 +1,149 @@
+/* ---------- เกมไพ่: ทุเรียนตูม / จับผีปอป ---------- */
+
+/* ===== ไพ่ ===== */
+.gcard{--cw:96px;--c1:#6f7bd6;--c2:#3a3f8a;--paper:#fffaf0;--ink:#2b1d10;position:relative;flex:none;width:var(--cw);aspect-ratio:5/7;display:flex;flex-direction:column;align-items:center;gap:2px;padding:calc(var(--cw)*.06);border-radius:calc(var(--cw)*.11);
+  background:linear-gradient(var(--paper),var(--paper)) padding-box,linear-gradient(160deg,var(--c1),var(--c2)) border-box;border:calc(var(--cw)*.045) solid transparent;color:var(--ink);font:inherit;text-align:center;box-shadow:0 4px 0 color-mix(in srgb,var(--c2) 70%,#000),0 8px 18px #0006;transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s,opacity .2s,filter .2s;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.gcard:before{content:"";position:absolute;inset:0 0 auto;height:34%;background:linear-gradient(180deg,color-mix(in srgb,var(--c1) 32%,transparent),transparent);pointer-events:none}
+.gcard.sm{--cw:62px}.gcard.md{--cw:clamp(70px,21vw,98px)}.gcard.lg{--cw:150px}
+.gcard.tap{cursor:pointer}
+.gcard.tap:hover{transform:translateY(-4px) rotate(-1deg)}
+.gcard.tap:active{transform:translateY(-1px) scale(.97)}
+.gcard.sel{transform:translateY(-10px) rotate(-2deg);box-shadow:0 0 0 3px var(--accent),0 14px 26px color-mix(in srgb,var(--accent) 40%,#0008)}
+.gcard.dim{opacity:.45;filter:grayscale(.6)}
+.gc-top{position:absolute;top:calc(var(--cw)*.05);right:calc(var(--cw)*.05);z-index:2;display:flex;gap:3px}
+.gc-tag{font-size:calc(var(--cw)*.105);font-weight:800;line-height:1;padding:3px 6px;border-radius:20px;background:var(--c2);color:#fff;white-space:nowrap}
+.gc-art{width:82%;flex:none;margin-top:calc(var(--cw)*.05);filter:drop-shadow(0 2px 0 #0002);position:relative}
+.gc-name{font-family:var(--display);font-weight:700;font-size:calc(var(--cw)*.135);line-height:1.12;color:var(--ink);position:relative;word-break:break-word}
+.gc-text{font-size:calc(var(--cw)*.085);line-height:1.25;color:color-mix(in srgb,var(--ink) 72%,transparent);position:relative}
+.gcard.md .gc-text{display:none}
+@media (min-width:700px){.gcard.md{--cw:104px}.gcard.md .gc-text{display:block;font-size:9px}}
+.gcard.lg .gc-name{font-size:21px}.gcard.lg .gc-text{font-size:12px}
+/* หลังไพ่ */
+.gcard.back{background:linear-gradient(var(--c2),var(--c2)) padding-box,linear-gradient(160deg,var(--c1),var(--c2)) border-box;padding:calc(var(--cw)*.07)}
+.gc-back{flex:1;align-self:stretch;display:grid;place-items:center;border-radius:calc(var(--cw)*.07);border:2px dashed #ffffff40;background-size:18px 18px}
+.gc-back span{font-size:calc(var(--cw)*.36);filter:drop-shadow(0 2px 6px #0008)}
+.gcard.back.back-boom{--c1:#ffb03a;--c2:#4a6b1c}
+.gcard.back.back-boom .gc-back{background-image:radial-gradient(circle,#ffffff14 2px,transparent 2.5px),linear-gradient(135deg,#6f8f22,#3a5512)}
+.gcard.back.back-curse{--c1:#8fd06a;--c2:#0f2416}
+.gcard.back.back-curse .gc-back{background-image:radial-gradient(circle at 50% 50%,#a8f07a22 0,transparent 55%),repeating-conic-gradient(from 0deg,#ffffff08 0 10deg,transparent 10deg 20deg),linear-gradient(160deg,#1d3a26,#07120b)}
+.gcard.empty{border:2px dashed #ffffff30;background:#ffffff08;box-shadow:none}
+/* หมวดไพ่ (สีกรอบ) */
+.gcard.cat-bomb{--c1:#ffd34d;--c2:#d1351f;--paper:#fff3dc}
+.gcard.cat-save{--c1:#7fe08a;--c2:#1f8a4a}
+.gcard.cat-react{--c1:#ff8fa3;--c2:#c0213f}
+.gcard.cat-act{--c1:#8fb4ff;--c2:#3a4fb8}
+.gcard.cat-fruit{--c1:#ffd36a;--c2:#c07a10;--paper:#fffbe8}
+.gcard.cat-red{--c1:#ff8a7a;--c2:#9e1f2a;--paper:#fff4ec}
+.gcard.cat-green{--c1:#9fe08a;--c2:#2f7a3a;--paper:#f6fff0}
+.gcard.cat-blue{--c1:#8fd0ff;--c2:#245c9e;--paper:#f0f8ff}
+.gcard.cat-black{--c1:#8a7aa8;--c2:#1a1426;--paper:#2a2238;--ink:#f3eaff}
+.gcard.cat-fate-dark{--c1:#ff5f6d;--c2:#3a0d14;--paper:#2a1418;--ink:#ffe1e4}
+.gcard.cat-fate-pure{--c1:#ffb6cd;--c2:#a0457a;--paper:#fff3f8}
+.gcard.cat-fate-shaman{--c1:#ffd34d;--c2:#8a5a10;--paper:#fff8e0}
+
+/* แถวไพ่ในมือ */
+.hand-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px 2px 6px;margin-bottom:6px}
+.hand-row .gcard{animation:dealIn .35s cubic-bezier(.3,1.4,.5,1) both}
+.hand-row .gcard:nth-child(2){animation-delay:.04s}.hand-row .gcard:nth-child(3){animation-delay:.08s}.hand-row .gcard:nth-child(4){animation-delay:.12s}.hand-row .gcard:nth-child(5){animation-delay:.16s}.hand-row .gcard:nth-child(n+6){animation-delay:.2s}
+@keyframes dealIn{from{opacity:0;transform:translateY(16px) rotate(4deg) scale(.9)}}
+.hand-row .hint{margin:8px 0}
+
+/* กล่องเลือกเป้าหมาย / ปุ่มจั่ว */
+.act-box{display:grid;gap:10px;padding:14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 7%,var(--inset));margin:6px 0 12px;animation:popIn .25s ease-out}
+.act-box>b{font-size:15px}.act-box>small{color:var(--muted)}
+.draw-btn{width:100%;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:14px;align-items:center;text-align:left;padding:14px 18px;border-radius:18px;border:0;cursor:pointer;font:inherit;font-size:18px;font-weight:800;color:var(--on-accent);background:linear-gradient(135deg,var(--accent-hi),var(--accent-2));box-shadow:0 6px 0 color-mix(in srgb,var(--accent-2) 55%,#000),0 12px 26px #0006;transition:transform .12s,box-shadow .12s}
+.draw-btn span{grid-row:span 2;font-size:34px;line-height:1}
+.draw-btn small{font-size:12.5px;font-weight:600;opacity:.8}
+.draw-btn:active{transform:translateY(4px);box-shadow:0 2px 0 color-mix(in srgb,var(--accent-2) 55%,#000),0 6px 14px #0006}
+.turn-btns{display:grid;gap:10px;margin:6px 0 14px}
+@keyframes popIn{from{opacity:0;transform:scale(.96)}}
+
+/* ===== ทุเรียนตูม ===== */
+.boom-game .round-top{margin-bottom:10px}
+.boom-table{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:14px;border-radius:20px;margin-bottom:14px;
+  background:radial-gradient(ellipse at 50% 120%,#ffb03a22,transparent 60%),repeating-linear-gradient(90deg,#ffffff05 0 2px,transparent 2px 26px),linear-gradient(170deg,#3a2a14,#22180c);border:1px solid #ffb03a33;box-shadow:inset 0 2px 14px #0008}
+.pile{display:grid;justify-items:center;gap:6px;position:relative}
+.pile>small{font-size:12px;color:var(--muted)}
+.pile .gcard.back{box-shadow:0 4px 0 #2a3a10,2px 7px 0 #34480f,4px 10px 0 #22300a,0 14px 22px #0008}
+.pile-n{position:absolute;bottom:-6px;right:-6px;z-index:3;min-width:30px;height:30px;padding:0 6px;display:grid;place-items:center;border-radius:20px;background:#fff;color:#2b1d10;font-weight:800;font-size:14px;box-shadow:0 2px 8px #0008}
+.danger{display:grid;justify-items:center;text-align:center;gap:2px}
+.danger b{font-family:var(--display);font-size:clamp(30px,9vw,44px);line-height:1;color:#ffd34d;text-shadow:0 2px 0 #7a3a00}
+.danger b.hot{color:#ff5f4d;animation:hotPulse .9s ease-in-out infinite}
+.danger small{font-size:11.5px;color:var(--soft);line-height:1.3}
+.durians{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;font-size:14px;max-width:150px;margin-top:4px}
+@keyframes hotPulse{50%{transform:scale(1.12);text-shadow:0 0 18px #ff5f4d}}
+@media (max-width:420px){.boom-table{gap:6px;padding:12px 8px}.boom-table .gcard.md{--cw:64px}}
+
+.pending{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:16px;margin-bottom:12px;background:color-mix(in srgb,var(--accent) 10%,var(--inset));border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);animation:slideDown .3s cubic-bezier(.3,1.4,.5,1)}
+.pending.noped{background:#3a1018;border-color:#ff5f6d88}
+.pending.noped .gcard{filter:grayscale(.7);transform:rotate(-8deg)}
+.pending.noped .gcard:after{content:"✖";position:absolute;inset:0;display:grid;place-items:center;font-size:44px;color:#ff3b4d;text-shadow:0 2px 6px #000}
+.pd-body{display:grid;gap:4px;min-width:0}.pd-body b{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:14px}.pd-body small{color:var(--soft);font-size:12.5px}
+.pd-bar{height:6px;border-radius:6px;background:#ffffff14;overflow:hidden}.pd-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff5f6d,#ffd34d);transition:width .5s linear}
+.nope-btn{border:0;cursor:pointer;font:inherit;font-weight:800;font-size:16px;padding:14px 16px;border-radius:16px;color:#fff;background:linear-gradient(135deg,#ff6b7a,#c0213f);box-shadow:0 5px 0 #6a0f1f,0 10px 22px #ff3b4d55;animation:nopePulse 1s ease-in-out infinite;white-space:nowrap}
+.nope-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #6a0f1f}
+@keyframes nopePulse{50%{transform:scale(1.06)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}}
+@media (max-width:480px){.pending{grid-template-columns:auto 1fr}.nope-btn{grid-column:1/-1}}
+
+.peek{padding:12px;border-radius:16px;background:#1a2a48;border:1px solid #6fb7ff55;margin-bottom:12px;animation:popIn .25s}
+.peek .hand-row{justify-content:flex-start}
+.defuse{display:grid;gap:10px;margin-bottom:12px}
+.pos-range{width:100%;accent-color:var(--accent);height:34px}
+.pos-label{text-align:center;font-weight:700;font-size:15px}
+.pos-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pos-quick button{padding:9px 4px;font-size:13px}
+.boom-actions{display:grid;gap:10px;margin-bottom:14px}
+.name-pick{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-height:260px;overflow:auto;padding:8px 2px}
+.head-log li.boom-line{color:#ffb3a8;background:#ff5f4d14;font-weight:600}
+
+/* ตูม! เต็มจอ */
+.boom-fx{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:radial-gradient(circle,#ff7a1a66,#2a0800ee 70%);animation:fxIn .2s ease-out,flash .5s ease-out;cursor:pointer}
+.boom-fx.saved{background:radial-gradient(circle,#5fd38d55,#06200fee 70%);animation:fxIn .2s ease-out}
+.bfx-box{display:grid;justify-items:center;gap:12px;text-align:center;padding:20px;animation:shake .5s cubic-bezier(.36,.07,.19,.97) both}
+.boom-fx.saved .bfx-box{animation:bounceIn .5s cubic-bezier(.3,1.6,.5,1) both}
+.bfx-box b{font-family:var(--display);font-size:clamp(24px,7vw,36px);color:#fff;text-shadow:0 3px 0 #000a,0 0 30px #ff7a1a}
+.boom-fx.saved .bfx-box b{text-shadow:0 3px 0 #000a,0 0 30px #5fd38d}
+.bfx-box small{color:#ffffffaa}
+.bfx-box .gcard{animation:spinIn .6s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes fxIn{from{opacity:0}}
+@keyframes flash{0%{background-color:#fff}100%{background-color:transparent}}
+@keyframes shake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(5px,-3px)}30%,50%,70%{transform:translate(-9px,4px) rotate(-2deg)}40%,60%{transform:translate(9px,-4px) rotate(2deg)}}
+@keyframes bounceIn{from{opacity:0;transform:scale(.6)}}
+@keyframes spinIn{from{opacity:0;transform:scale(.3) rotate(-30deg)}}
+
+/* ===== จับผีปอป ===== */
+.curse-game{transition:filter .6s}
+.curse-game .round-top{margin-bottom:10px}
+.my-fate{padding:12px;border-radius:18px;margin-bottom:14px;background:linear-gradient(160deg,#122a1a,#07110b);border:1px solid #8fd06a44;box-shadow:inset 0 0 30px #00000066}
+.mf-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mf-head b{font-family:var(--display);font-size:16px;color:#c8ff9a}
+.my-fate .hand-row{padding-top:8px}
+.mf-who{margin:4px 0 0;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.5}
+.mf-who.bad{background:#3a0d14;border:1px solid #ff5f6d66;color:#ffd0d4}
+.mf-who.good{background:#14261c;border:1px solid #5fd38d55;color:#d6f5e0}
+.reveal-box,.night-box{display:grid;gap:10px;margin-bottom:14px}
+.reveal-box .hand-row .gcard.tap{animation:dealIn .35s both,wiggle 1.6s ease-in-out .4s infinite}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+.night-box{padding:12px;border-radius:18px;background:radial-gradient(ellipse at 70% 0,#3a3f8a33,transparent 60%),linear-gradient(170deg,#0d1030,#06071a);border:1px solid #8f9bff33}
+.night-box .whodone{margin:0}
+.curse-game.is-night .my-fate{border-color:#8f9bff44}
+/* ป้ายในการ์ดผู้เล่น: ความสงสัย / ไพ่ดวง / ไพ่ติดตัว */
+.cz-tile-x{width:100%;display:grid;gap:4px;justify-items:center}
+.susbar{position:relative;width:100%;max-width:120px;height:15px;border-radius:10px;background:#ffffff12;overflow:hidden;border:1px solid #ffffff14}
+.susbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#ffb03a,#ff7a3a);border-radius:10px;transition:width .5s cubic-bezier(.3,1.4,.5,1)}
+.susbar i.hot{background:linear-gradient(90deg,#ff7a3a,#ff3b4d);animation:susHot 1s ease-in-out infinite}
+.susbar span{position:relative;display:block;text-align:center;font-size:10.5px;font-weight:800;line-height:14px;color:#fff;text-shadow:0 1px 2px #000}
+@keyframes susHot{50%{filter:brightness(1.4)}}
+.fate-mini{display:flex;gap:3px;justify-content:center}
+.fm{width:13px;height:18px;border-radius:3px;display:grid;place-items:center;font-size:9px;line-height:1;background:linear-gradient(160deg,#2a5a36,#0f2416);border:1px solid #8fd06a88}
+.fm.open{background:#fff3f8;border-color:#ffb6cd}.fm.open.dark{background:#3a0d14;border-color:#ff5f6d}.fm.open.shaman{background:#fff8e0;border-color:#ffd34d}
+.blue-mini{display:flex;gap:2px;font-size:12px;justify-content:center}
+.my-fate .link-btn{font-size:13px}
+
+/* ห้องรอ: แกลเลอรีไพ่ */
+.card-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:8px 0 12px}
+.cg-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:14px;background:var(--inset);border:1px solid #ffffff0f}
+.cg-item .gcard{--cw:52px;box-shadow:0 3px 0 color-mix(in srgb,var(--c2) 70%,#000)}.cg-item .gcard .gc-name{font-size:8px}
+.cg-item>div{display:grid;gap:2px;min-width:0}.cg-item b{font-size:13.5px}.cg-item small{font-size:12px;color:var(--muted);line-height:1.35}
+.cg-h{margin:12px 0 0;font-size:14px;color:var(--soft)}
+@media (max-width:480px){.card-gallery{grid-template-columns:1fr 1fr}.cg-item{flex-direction:column;text-align:center}}
