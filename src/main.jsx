@@ -17,7 +17,7 @@ import { SPY_PACKS } from './spyWords.js';
 import { HEAD_PACKS } from './headWords.js';
 import VoicePanel from './voice.jsx';
 import { ExploreGame, makeExploreRound, teamSizes, traitorCount, needFails, EXPLORE_MIN, EXPLORE_SCORE, MAX_REJECT } from './explore.jsx';
-import { WolfGame, makeWolfRound, wolfCount, WOLF_MIN, WOLF_SCORE } from './werewolf.jsx';
+import { WolfGame, makeWolfRound, wolfPlan, WOLF_MIN, WOLF_SCORE } from './werewolf.jsx';
 import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS } from './cake.jsx';
 import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } from './boom.jsx';
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
@@ -27,7 +27,7 @@ import { CakeStage } from './cakestage.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.16';
+const APP_VERSION = '1.17';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -146,7 +146,7 @@ function App() {
   const [game,setGameState]=useState(()=>{const h=location.hash.slice(1);return GAMES[h]?h:null});
   const [showCat,setShowCat]=useState(true);
   const [exOpts,setExOpts]=useState({mole:false});
-  const [wfOpts,setWfOpts]=useState({hunter:true,reveal:true});
+  const [wfOpts,setWfOpts]=useState({hunter:true,reveal:true,cupid:true,fool:true});
   const [csOpts,setCsOpts]=useState({ritual:true});
   function setGame(g){setGameState(g);try{history.replaceState(null,'',g?'#'+g:location.pathname+location.search)}catch{}}
   useEffect(()=>{const f=()=>{const h=location.hash.slice(1);setGameState(GAMES[h]?h:null)};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f)},[]);
@@ -453,13 +453,15 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🧭 ออกเดินทาง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
       {G.type==='explore'&&room.status!=='lobby'&&room.round?.kind==='explore'&&<ExploreGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby}/>}
-      {G.type==='wolf'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=WOLF_MIN;const k=wolfCount(n);const hunter=wfOpts.hunter&&n>=6;return <><span className="eyebrow">พร้อมยัง?</span><h2>หมู่บ้านนี้…มีหมาป่าปนอยู่</h2>
+      {G.type==='wolf'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=WOLF_MIN;const P=wolfPlan(n,wfOpts);return <><span className="eyebrow">พร้อมยัง?</span><h2>หมู่บ้านนี้…มีหมาป่าปนอยู่</h2>
         <p className="hint">เล่นได้ {WOLF_MIN}–12 คน • ระบบเป็นผู้ดำเนินเกม ทุกคนดูจอตัวเอง แล้วคุยกันทางเสียง</p>
-        {ok&&<div className="score-rules"><b>🎭 บทบาทในวงนี้ ({n} คน)</b><span>🐺 หมาป่า {k} • 🔮 หมอดู 1 • 💉 หมอยา 1{hunter?' • 🏹 นายพราน 1':''} • 👨‍🌾 ชาวบ้าน {n-k-2-(hunter?1:0)}</span></div>}
+        {ok&&<div className="score-rules"><b>🎭 บทบาทในวงนี้ ({n} คน)</b><span>🐺 หมาป่า {P.k} • 🔮 หมอดู 1 • 💉 หมอยา 1{P.hunter?' • 🏹 นายพราน 1':''}{P.cupid?' • 💘 กามเทพ 1':''}{P.fool?' • 🤪 คนบ้า 1':''} • 👨‍🌾 ชาวบ้าน {P.villagers}</span></div>}
         <div className="score-rules"><b>⚙️ ตั้งค่า</b>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.hunter} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,hunter:e.target.checked}))}/> 🏹 มีนายพราน (6 คนขึ้นไป) — ตายแล้วยิงพาไปด้วย 1 คน</label>
+          <label className="cat-toggle"><input type="checkbox" className="tick" checked={!!wfOpts.cupid} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,cupid:e.target.checked}))}/> 💘 มีกามเทพ — คืนแรกจับคู่รัก 2 คน ถ้าคนหนึ่งตาย อีกคนตายตาม</label>
+          <label className="cat-toggle"><input type="checkbox" className="tick" checked={!!wfOpts.fool} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,fool:e.target.checked}))}/> 🤪 มีคนบ้า — ฝ่ายตัวเอง ชนะทันทีถ้าถูกโหวตประหาร</label>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.reveal} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,reveal:e.target.checked}))}/> ⚰️ เปิดบทบาทคนที่ตาย</label></div>
-        <div className="score-rules"><b>🏅 คะแนน</b><span>ชาวบ้านชนะ: ฝ่ายชาวบ้านคนละ +{WOLF_SCORE.village} (รวมคนที่ตายไปแล้ว)</span><span>หมาป่าชนะ: หมาป่าคนละ +{WOLF_SCORE.wolf}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>ชาวบ้านชนะ: ฝ่ายชาวบ้านคนละ +{WOLF_SCORE.village} (รวมคนที่ตายไปแล้ว)</span><span>หมาป่าชนะ: หมาป่าคนละ +{WOLF_SCORE.wolf}</span><span>คนบ้าถูกประหาร: คนบ้าคนเดียว +{WOLF_SCORE.fool} • คู่รักรอดทั้งคู่: โบนัสคนละ +{WOLF_SCORE.love}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🌙 เริ่มคืนแรก ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่เด้อ</div>}</>})()}
       {G.type==='wolf'&&room.status!=='lobby'&&room.round?.kind==='wolf'&&<WolfGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby}/>}

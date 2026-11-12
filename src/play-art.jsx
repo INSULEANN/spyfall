@@ -123,6 +123,15 @@ const DRAW = {
     <path d="M24 60 H98" stroke="#c9a27a" strokeWidth="4" strokeLinecap="round" /><path d="M98 60 l-10 -6 v12 Z" fill={GREY} /><path d="M24 60 l-6 -6 M24 60 l-6 6 M30 60 l-6 -6 M30 60 l-6 6" stroke={RED} strokeWidth="3" strokeLinecap="round" /></g>,
   villager: () => <g><path d="M30 112 Q32 88 60 86 Q88 88 90 112 Z" fill="#6f9c4a" /><circle cx="60" cy="66" r="20" fill={SKIN} /><circle cx="53" cy="64" r="2.5" fill={INK} /><circle cx="67" cy="64" r="2.5" fill={INK} />
     <path d="M52 74 q8 6 16 0" stroke="#b5654a" strokeWidth="2.5" fill="none" strokeLinecap="round" /><ellipse cx="60" cy="50" rx="34" ry="8" fill="#e8c35a" /><path d="M42 50 Q44 30 60 30 Q76 30 78 50 Z" fill="#f2d470" /><rect x="42" y="44" width="36" height="5" fill="#c0392b" /></g>,
+  cupid: () => <g><path d="M60 98 C26 76 16 56 25 40 C34 24 54 26 60 42 C66 26 86 24 95 40 C104 56 94 76 60 98 Z" fill={PINK} /><path d="M38 38 Q33 46 38 55" stroke={W} strokeWidth="4" fill="none" strokeLinecap="round" opacity=".6" />
+    <path d="M14 86 L100 32" stroke="#c9a27a" strokeWidth="4" strokeLinecap="round" /><path d="M106 29 L99 40 L93 30 Z" fill={GOLD} />
+    <path d="M18 83 l-8 -4 M18 83 l2 9 M25 79 l-8 -4 M25 79 l2 9" stroke={RED} strokeWidth="3" strokeLinecap="round" /><g fill={W}><text x="92" y="76" fontSize="12">✦</text><text x="14" y="34" fontSize="10">✦</text></g></g>,
+  fool: () => <g><path d="M30 112 Q32 88 60 86 Q88 88 90 112 Z" fill="#7a4ac8" /><path d="M40 90 l8 8 l6 -8 l6 8 l6 -8 l6 8 l8 -8" stroke={GOLD} strokeWidth="4" fill="none" strokeLinejoin="round" />
+    <circle cx="60" cy="66" r="20" fill={SKIN} /><circle cx="46" cy="72" r="3.5" fill={PINK} opacity=".7" /><circle cx="74" cy="72" r="3.5" fill={PINK} opacity=".7" />
+    <circle cx="52" cy="63" r="5" fill={W} stroke={INK} strokeWidth="2" /><circle cx="53" cy="63" r="2" fill={INK} /><circle cx="68" cy="62" r="3.5" fill={W} stroke={INK} strokeWidth="2" /><circle cx="67" cy="63" r="1.5" fill={INK} />
+    <path d="M48 74 Q60 86 72 74 Q60 78 48 74 Z" fill="#8a2a3a" /><path d="M53 75.5 h14" stroke={W} strokeWidth="2" />
+    <path d="M40 52 Q30 38 20 24 Q42 26 60 46 Z" fill={RED} /><path d="M80 52 Q90 38 100 24 Q78 26 60 46 Z" fill="#7a4ac8" /><path d="M40 52 Q60 42 80 52 L80 56 Q60 48 40 56 Z" fill={GOLD} />
+    <circle cx="20" cy="24" r="5" fill={GOLD} /><circle cx="100" cy="24" r="5" fill={GOLD} /></g>,
   tombstone: () => <g><ellipse cx="60" cy="100" rx="40" ry="8" fill="#3f7a3d" /><path d="M36 100 V50 Q36 26 60 26 Q84 26 84 50 V100 Z" fill="#9aa0b4" /><path d="M42 98 V52 Q42 32 60 32" stroke="#c4c9d8" strokeWidth="3" fill="none" />
     <text x="60" y="66" textAnchor="middle" fontSize="15" fontWeight="900" fill="#5a6078" fontFamily="sans-serif">RIP</text><path d="M60 74 v14 M54 80 h12" stroke="#5a6078" strokeWidth="3" /></g>,
   shield: () => <g><path d="M60 18 L94 30 V58 Q94 88 60 104 Q26 88 26 58 V30 Z" fill={BLUE} /><path d="M60 26 L86 36 V58 Q86 82 60 95 Z" fill="#9fd0ff" opacity=".5" /><path d="M60 44 v32 M44 60 h32" stroke={W} strokeWidth="9" strokeLinecap="round" /></g>,

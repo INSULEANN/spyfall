@@ -6,6 +6,7 @@ import { Art } from './play-art.jsx';
 import { TimerRing, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Avatar, Voters } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { CakeStage } from './cakestage.jsx';
+import { Replay } from './replay.jsx';
 import { shuffle, rint, pickBad } from './rand.js';
 
 export const CAKE_MIN = 4;
@@ -76,6 +77,40 @@ const SEEN = {
 // ข้อสรุปจากสิ่งที่เห็น → ขโมยตื่นตีไหนได้บ้าง
 const Html = ({ s }) => <span dangerouslySetInnerHTML={{ __html: s }} />;
 const possibleHour = (seen, myDie) => h => seen === 'there' ? h > myDie : seen === 'gone' ? h < myDie : seen === 'vanish' ? h === myDie : true;
+
+// ฉากเล่นย้อนทั้งคืน: ไล่ทีละชั่วโมง (ชั่วโมงที่ไม่มีใครตื่นรวบเป็นฉากเดียว) แล้วจบที่ผลโหวตตอนเช้า
+const tk = id => `{${id}}`;
+export function cakeScenes(r, res, players) {
+  const th = r.thief, tH = r.dice?.[th]; const acc = accList(r); const S = []; let quiet = [];
+  const flush = () => {
+    if (!quiet.length) return; const a = quiet[0], b = quiet[quiet.length - 1];
+    S.push({ kicker: a === b ? `🌙 ตี ${a}` : `🌙 ตี ${a}–${b}`, title: 'ไม่มีใครตื่น… บ้านเงียบกริบ', tone: 'night', stage: <CakeStage mode="sleep" hour={a} />, lines: [{ ico: '😴', text: a < tH ? 'เค้กยังนอนรออยู่ในตู้เย็น' : 'ตู้เย็นว่างเปล่าแล้ว แต่ไม่มีใครเห็น', cls: 'dim' }] });
+    quiet = [];
+  };
+  for (let h = 1; h <= HOURS; h++) {
+    const who = awakeAt(r, h, players); if (!who.length) { quiet.push(h); continue; }
+    flush();
+    const others = who.filter(id => id !== th); const lines = [{ ico: '⏰', text: `ตื่นมา: ${who.map(tk).join(' ')}` }]; let mode, title;
+    if (h < tH) { mode = 'there'; title = 'เค้กยังอยู่!'; lines.push({ ico: '🍰', text: 'เปิดตู้เย็น — เค้กยังอยู่ครบ', cls: 'good' }); }
+    else if (h === tH) {
+      mode = 'vanish'; title = `${tk(th)} ย่องมากินเค้ก!`; lines.push({ ico: '😈', text: `${tk(th)} แอบกินเค้กจนเกลี้ยง`, cls: 'bad' });
+      if (others.length) lines.push({ ico: '👀', text: `${others.map(tk).join(' ')} เห็นคามือ!`, cls: 'warn' });
+      if (r.accN > 0) lines.push(acc.length ? { ico: '🤝', text: `ชวน ${acc.map(tk).join(' ')} มาเป็นลูกสมุน${r.accAuto ? ' (ระบบสุ่มให้)' : ''}`, cls: 'bad' } : { ico: '🙅', text: 'ไม่ชวนใครเป็นลูกสมุน', cls: 'dim' });
+    } else { mode = 'gone'; title = 'เค้กหายไปแล้ว!'; lines.push({ ico: '😱', text: 'ตู้เย็นว่างเปล่า — มาช้าไป', cls: 'bad' }); }
+    who.forEach(id => { const p = r.peeks?.[id]; if (p) lines.push({ ico: '🔦', text: `${tk(id)} แอบดูเต๋า ${tk(p.t)} → ตื่นตี ${p.die}` }); });
+    S.push({ kicker: `⏰ ตี ${h}`, title, tone: h === tH ? 'bad' : 'night', stage: <CakeStage mode={mode} hour={h} />, lines });
+  }
+  flush();
+  if (res) {
+    const c = res.counts || {}; const tally = Object.keys(c).sort((a, b) => c[b] - c[a]).map(t => `${tk(t)} ×${c[t]}`).join(' · '); const good = res.winner === 'hungry';
+    S.push({ kicker: '☀️ เช้า', title: good ? 'จับจอมแอบกินได้!' : 'จอมแอบกินลอยนวล!', tone: good ? 'good' : 'bad', stage: <CakeStage mode="morning" />, lines: [
+      ...(tally ? [{ ico: '🗳️', text: `ผลโหวต: ${tally}` }] : []),
+      res.caught ? { ico: res.caught === th ? '🚔' : '🙈', text: res.caught === th ? `จับ ${tk(res.caught)} ได้ — ตัวจริง!` : `จับ ${tk(res.caught)} — ผิดคน!`, cls: res.caught === th ? 'good' : 'bad' } : { ico: '🤷', text: 'คะแนนเสมอ ไม่มีใครถูกจับ', cls: 'dim' },
+      { ico: '😈', text: `ขโมยตัวจริง: ${tk(th)} (กินตอนตี ${tH})${acc.length ? ` • ลูกสมุน: ${acc.map(tk).join(' ')}` : ''}`, cls: 'bad' },
+    ] });
+  }
+  return S;
+}
 
 function CakeClock({ r, h, myDie, srvNow, mode, av, nameOf, players }) {
   const pct = h >= 1 && h <= HOURS ? Math.min(100, Math.max(0, ((srvNow - (r.nightStart + (h - 1) * r.hourMs)) / r.hourMs) * 100)) : 0;
@@ -222,6 +257,7 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
         ขโมยคือ <Avatar id={r.thief} av={av} size={26} /> <b>{nameOf(r.thief)}</b> (แอบกินตอนตี {thiefDie}){accList(r).length ? <><br />ลูกสมุน: <b>{accList(r).map(nameOf).join(', ')}</b></> : ''}
         <br />{res.caught ? <>ถูกจับ: <b>{nameOf(res.caught)}</b> ({res.counts?.[res.caught]} เสียง){res.caught === r.thief ? ' — โดนตัวจริง!' : ' — ผิดคน!'}</> : 'คะแนนเสมอ ไม่มีใครถูกจับ'}
       </Outcome>
+      <Replay scenes={cakeScenes(r, res, room.players)} av={av} nameOf={nameOf} title="เล่นย้อนเมื่อคืนทีละชั่วโมง" />
       <SecH icon="🌙">ย้อนดูเมื่อคืน <small>ใครตื่นตีไหน • รูปในช่อง = เค้กตอนตีนั้น (ยังอยู่ / ขโมยกิน / หายแล้ว)</small></SecH>
       <CakeClock r={r} h={HOURS + 1} myDie={myDie} srvNow={srvNow} mode="result" av={av} nameOf={nameOf} players={room.players} />
       <SecH icon="🎭">บทบาทของทุกคน</SecH>

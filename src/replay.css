@@ -1,0 +1,49 @@
+/* เล่นย้อนเหตุการณ์ตอนจบเกม */
+.replay{margin:14px 0 16px;padding:12px;border-radius:20px;background:linear-gradient(160deg,#ffffff12,#ffffff05);border:1px solid #ffffff1f;box-shadow:0 10px 26px #0006}
+.rp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.rp-head b{font-size:15.5px}
+.replay button.rp-mode{width:auto;flex:none;padding:6px 12px;min-height:32px;border-radius:20px;font-size:12.5px;font-weight:700;background:#ffffff14;border:1px solid #ffffff26;color:inherit;box-shadow:none}
+.rp-scene{position:relative;overflow:hidden;border-radius:16px;padding:8px 8px 10px;background:#1a1730;animation:rpIn .45s ease-out}
+.rp-scene.rp-t-night{background:linear-gradient(180deg,#171c40,#0e1024)}
+.rp-scene.rp-t-day{background:linear-gradient(180deg,#3b301c,#211d17)}
+.rp-scene.rp-t-bad{background:linear-gradient(180deg,#40182a,#1d0e14)}
+.rp-scene.rp-t-good{background:linear-gradient(180deg,#14402a,#0d1f17)}
+.rp-scene .stage{margin:0 0 8px;animation:none}
+@keyframes rpIn{from{opacity:0;transform:translateX(22px)}}
+.rp-body{padding:0 4px}
+.rp-kick{display:inline-block;font-size:12px;font-weight:800;padding:2px 10px;border-radius:20px;background:#0007;color:#fff;margin-bottom:4px}
+.rp-ttl{display:block;margin:2px 0 8px;font-size:17px;line-height:1.4;color:#fff}
+.replay ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.rp-line{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-radius:12px;background:#ffffff10;color:#f2eefc;line-height:1.55;font-size:14px;animation:rpLine .5s cubic-bezier(.3,1.4,.5,1) both;min-width:0}
+.rp-txt{min-width:0;overflow-wrap:anywhere}
+.rp-line.rp-bad{background:#ff5f6d26;color:#ffc0c4}.rp-line.rp-good{background:#5fd38d24;color:#b4f3cd}.rp-line.rp-love{background:#ff8fb32b;color:#ffd0e0}.rp-line.rp-warn{background:#ffc96526;color:#ffe2a6}.rp-line.rp-dim{opacity:.72}
+.rp-ico{flex:none;width:22px;text-align:center;font-size:16px;line-height:1.4}
+@keyframes rpLine{from{opacity:0;transform:translateY(10px) scale(.95)}}
+.rp-who{white-space:normal;font-weight:800}
+.rp-who .av{vertical-align:-5px;margin:0 3px 0 1px;display:inline-grid}
+.rp-prog{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#ffffffaa;transform-origin:0 50%;animation:rpProg linear both}
+@keyframes rpProg{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.rp-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
+.replay button.rp-btn{flex:none;width:40px;height:40px;min-height:0;border-radius:50%;padding:0;font-size:20px;line-height:1;font-weight:900;display:grid;place-items:center;background:#ffffff14;border:1px solid #ffffff2a;color:inherit;box-shadow:none}
+.replay button.rp-btn.play{background:var(--accent,#ffc965);color:#1b1530;border-color:transparent;font-size:15px}
+.replay button.rp-btn:disabled{opacity:.3}
+.rp-dots{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:2px;justify-content:center}
+.replay button.rp-dot{width:20px;height:20px;min-height:0;padding:0;border:0;background:none;box-shadow:none;display:grid;place-items:center;flex:none}
+.rp-dot::after{content:'';width:8px;height:8px;border-radius:50%;background:#ffffff38;transition:transform .2s,background .2s}
+.rp-dot.rp-t-night::after{background:#7f8cff66}.rp-dot.rp-t-day::after{background:#ffc96566}.rp-dot.rp-t-bad::after{background:#ff5f6d77}.rp-dot.rp-t-good::after{background:#5fd38d77}
+.rp-dot.past::after{opacity:1;filter:brightness(1.6)}
+.rp-dot.on::after{background:#fff;transform:scale(1.5)}
+.rp-count{text-align:center;font-size:11.5px;opacity:.6;margin-top:4px}
+.rp-all{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px dashed #ffffff26;display:grid;gap:12px}
+.rp-all-item{position:relative;padding:8px 10px;border-radius:14px;background:#ffffff08}
+.rp-all-item::before{content:'';position:absolute;left:-21px;top:12px;width:12px;height:12px;border-radius:50%;background:#ffffff55;border:2px solid #14121f}
+.rp-all-item.rp-t-night::before{background:#7f8cff}.rp-all-item.rp-t-day::before{background:#ffc965}.rp-all-item.rp-t-bad::before{background:#ff5f6d}.rp-all-item.rp-t-good::before{background:#5fd38d}
+.rp-all-item .rp-line{animation:none}
+@media (prefers-reduced-motion:reduce){.rp-scene,.rp-line{animation:none!important}}
+
+/* แวร์วูฟ: คู่รัก / คนบ้า */
+.love-tip{background:#ff8fb31a;border-color:#ff8fb355;color:#ffd0e0}
+.love-tip .lt-heart{font-size:26px;animation:ltBeat 1.1s ease-in-out infinite}
+@keyframes ltBeat{15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.18)}60%{transform:scale(1)}}
+.tag.love{background:#ff8fb333;color:#ffc2d6;border-color:#ff8fb366}
+.rcard-side.warn{background:#ffc9651f;color:#ffe2a6;border-color:#ffc96566}

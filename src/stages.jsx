@@ -85,9 +85,9 @@ const Houses = ({ fill = '#0b1020', lit = '#ffd27a' }) => <g>
   {[[20, 112, 52], [86, 118, 44], [276, 114, 50], [338, 120, 46]].map(([x, y, w], i) => <g key={i}><path d={`M${x} ${y} L${x + w / 2} ${y - 22} L${x + w} ${y} Z`} fill={fill} /><rect x={x + 4} y={y} width={w - 8} height={150 - y} fill={fill} /><rect x={x + w / 2 - 5} y={y + 10} width="10" height="9" fill={lit} className={'st-win w' + i} /></g>)}</g>;
 const Tomb = ({ x, y, cls = '' }) => <g transform={`translate(${x} ${y})`}><g className={cls}><path d="M-13 0 V-20 Q-13 -32 0 -32 Q13 -32 13 -20 V0 Z" fill="#8a8fa8" /><text y="-14" textAnchor="middle" fontSize="8" fontWeight="900" fill="#3a3f54" fontFamily="sans-serif">RIP</text><rect x="-17" y="-2" width="34" height="5" rx="2" fill="#4a5a2a" /></g></g>;
 export function WolfStage({ mode, dead = 0 }) {
-  const sky = { night: 'night', day: 'day', hunter: 'dawn', wolfWin: 'blood', villageWin: 'day' }[mode] || 'night';
-  const cap = { night: '🌙 หมาป่าออกล่า… ทุกคนหลับ', day: dead ? `☀️ เมื่อคืนมีคนตาย ${dead} คน — โหวตหาหมาป่า` : '☀️ เมื่อคืนไม่มีใครตาย — โหวตหาหมาป่า', hunter: '🏹 นายพรานยิงก่อนตาย!', wolfWin: '🐺 หมาป่าครองหมู่บ้าน', villageWin: '🎉 ชาวบ้านจับหมาป่าได้หมด' }[mode];
-  return <Stage kind="wolf" mode={mode} cap={cap} tone={mode === 'wolfWin' || (mode === 'day' && dead) ? 'bad' : mode === 'villageWin' ? 'good' : ''}>
+  const sky = { night: 'night', day: 'day', hunter: 'dawn', wolfWin: 'blood', villageWin: 'day', foolWin: 'day' }[mode] || 'night';
+  const cap = { night: '🌙 หมาป่าออกล่า… ทุกคนหลับ', day: dead ? `☀️ เมื่อคืนมีคนตาย ${dead} คน — โหวตหาหมาป่า` : '☀️ เมื่อคืนไม่มีใครตาย — โหวตหาหมาป่า', hunter: '🏹 นายพรานยิงก่อนตาย!', foolWin: '🤪 คนบ้าชนะ! ทุกคนโดนหลอก', wolfWin: '🐺 หมาป่าครองหมู่บ้าน', villageWin: '🎉 ชาวบ้านจับหมาป่าได้หมด' }[mode];
+  return <Stage kind="wolf" mode={mode} cap={cap} tone={mode === 'wolfWin' || mode === 'foolWin' || (mode === 'day' && dead) ? 'bad' : mode === 'villageWin' ? 'good' : ''}>
     <Sky id={'wf-' + mode} kind={sky} />
     <path d="M0 150 Q60 128 120 140 Q200 124 280 138 Q340 128 400 140 V150 H0 Z" fill={sky === 'day' ? '#4a7a3a' : '#0d1424'} />
     <Houses fill={sky === 'day' ? '#7a5a3a' : '#0b1020'} lit={sky === 'day' ? '#bfe3ff' : '#ffd27a'} />
@@ -101,6 +101,11 @@ export function WolfStage({ mode, dead = 0 }) {
     </>}
     {mode === 'hunter' && <><Folk x={120} y={150} c="#4a7a3a" s={1.2} /><path d="M132 120 Q150 126 132 140" stroke="#8a5530" strokeWidth="3" fill="none" /><g className="st-arrow"><path d="M140 128 h28" stroke="#c9a46a" strokeWidth="2.5" /><path d="M168 124 l8 4 l-8 4 z" fill="#c9cdd8" /></g><g transform="translate(256 140)"><Wolf cls="st-shake" c="#5a6078" /></g></>}
     {mode === 'wolfWin' && <><path d="M180 150 Q190 104 230 98 Q276 100 290 150 Z" fill="#12040a" /><g transform="translate(206 96) scale(1.5)"><g className="st-howl"><Wolf c="#1a0a10" /></g></g><Bubble x={300} y={60} text="อาวววว~" w={50} cls="st-pop" dark /></>}
+    {mode === 'foolWin' && <>{[[110, '#c9a46a'], [150, '#6fb7ff'], [250, '#ff8fb3'], [290, '#9fd36a']].map(([x, c], i) => <Folk key={i} x={x} y={150} c={c} cls={'st-argue a' + i} />)}
+      <g transform="translate(200 150) scale(1.5)"><g className="st-laugh"><path d="M-10 0 Q-10 -16 0 -16 Q10 -16 10 0 Z" fill="#7a4ac8" /><circle cy="-23" r="8" fill="#ffd2a8" />
+        <path d="M-7 -28 Q-12 -37 -18 -40 Q-8 -37 0 -31 Q8 -37 18 -40 Q12 -37 7 -28 Z" fill="#ff5f6d" /><circle cx="-18" cy="-40" r="2.4" fill="#ffd34d" /><circle cx="18" cy="-40" r="2.4" fill="#ffd34d" />
+        <circle cx="-3" cy="-24" r="1.2" fill="#241c3a" /><circle cx="3" cy="-24" r="1.2" fill="#241c3a" /><path d="M-4 -20 Q0 -15 4 -20 Z" fill="#8a2a3a" /></g></g>
+      <Bubble x={252} y={84} text="ฮ่า ๆ ๆ!" w={44} cls="st-pop" /></>}
     {mode === 'villageWin' && <>{[[120, '#c9a46a'], [160, '#6fb7ff'], [240, '#ff8fb3'], [280, '#9fd36a']].map(([x, c], i) => <g key={i}><Folk x={x} y={150} c={c} cls={'st-jump j' + i} /><g transform={`translate(${x + 10} 116)`}><rect x="-1.5" y="0" width="3" height="16" fill="#8a5530" /><path d="M0 -10 Q-6 -2 0 2 Q6 -2 0 -10 Z" fill="#ffb03a" className="st-flick" /></g></g>)}<g className="st-fleeaway"><Wolf c="#5a6078" /></g></>}
   </Stage>;
 }

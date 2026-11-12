@@ -8,6 +8,7 @@ import { shuffle, rint, pickBad } from './rand.js';
 import { Avatar, Phase, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, RevealGrid } from './ui.jsx';
 import { CardFace } from './cards.jsx';
 import { CurseStage } from './stages.jsx';
+import { Replay } from './replay.jsx';
 
 export const CURSE_MIN = 4, CURSE_MAX = 12;
 export const CURSE_SCORE = { town: 1, dark: 2 };
@@ -50,7 +51,7 @@ export function makeCurseRound(ids, opts = {}, number = 1) {
   // คืนเดือนดับอยู่ครึ่งล่าง ปอปย้ายร่างอยู่ช่วงกลาง
   const half = Math.floor(deck.length / 2); deck.splice(half + rint(deck.length - half + 1), 0, 'night-0');
   if (opts.ritual !== false) { const a = Math.floor(deck.length / 3); deck.splice(a + rint(a + 1), 0, 'ritual-0'); }
-  return { number, kind: 'curse', order: shuffle(ids), turn: 0, alive, fate, sus, blues: null, bound: null, hands, deck, discard: [], phase: 'play', played: false, skip: null, nightN: 0, log: [], startedAt: Date.now() };
+  return { number, kind: 'curse', order: shuffle(ids), turn: 0, alive, fate, sus, blues: null, bound: null, hands, deck, discard: [], phase: 'play', played: false, skip: null, nightN: 0, log: [], start: { dark, shaman: shaman || null }, startedAt: Date.now() };
 }
 
 // ---------- ตรรกะ ----------
@@ -62,6 +63,9 @@ const isShaman = (r, id) => fateOf(r, id).some(c => c.t === 'shaman');
 const blues = (r, id) => r.blues?.[id] || [];
 const cur0 = r => r.order[r.turn];
 function say(r, text, extra) { r.log = [...(r.log || []), { text, t: Date.now(), ...extra }].slice(-50); }
+// chron = เหตุการณ์สำคัญทั้งเกม ไว้เล่นย้อนตอนจบ (รวมข้อมูลลับ — แสดงเฉพาะตอนจบเกม)
+function chron(r, text, cls = '') { r.hist = [...(r.hist || []), { k: r.phase === 'night' ? 'night' : 'day', ch: r.nightN || 0, text, cls }]; }
+function note(r, text, cls = '', extra) { say(r, text, extra); chron(r, text, cls); }
 function take(r, id, card) { const h = hand(r, id); const i = h.indexOf(card); if (i < 0) return false; h.splice(i, 1); r.hands[id] = h; return true; }
 function nextTurn(r) {
   const n = r.order.length; r.played = false;
@@ -83,13 +87,13 @@ function finish(cur, win) {
 function kill(cur, id, why, chain) {
   const r = cur.round; if (!r.alive[id]) return;
   r.alive[id] = false; r.fate[id] = fateOf(r, id).map(c => ({ ...c, open: true })); r.discard = [...(r.discard || []), ...hand(r, id), ...blues(r, id)]; r.hands[id] = []; if (r.blues) r.blues[id] = null; r.sus[id] = 0;
-  say(r, why, { dead: id });
+  note(r, why, hasDark(r, id) ? 'good' : 'bad', { dead: id });
   if (!chain && r.bound && r.bound.includes(id)) { const other = r.bound.find(x => x !== id); r.bound = null; kill(cur, other, `💔 {${other}} ผูกเสี่ยวไว้กับ {${id}} — ตายตามไป`, true); }
 }
 function afterDeaths(cur) { const w = winner(cur); if (w) return finish(cur, w); const r = cur.round; if (!r.alive[cur0(r)] && r.phase === 'play') nextTurn(r); return cur; }
 function addSus(cur, by, target, pts, now) {
   const r = cur.round; r.sus[target] = (r.sus[target] || 0) + pts;
-  if (r.sus[target] >= SUS_MAX && fateOf(r, target).some(c => !c.open)) { r.phase = 'reveal'; r.reveal = { by, target, until: now + REVEAL_MS }; say(r, `⚖️ {${target}} ถูกสงสัยครบ ${SUS_MAX} แต้ม! {${by}} ต้องเลือกเปิดไพ่ดวง 1 ใบ`); }
+  if (r.sus[target] >= SUS_MAX && fateOf(r, target).some(c => !c.open)) { r.phase = 'reveal'; r.reveal = { by, target, until: now + REVEAL_MS }; note(r, `⚖️ {${target}} ถูกสงสัยครบ ${SUS_MAX} แต้ม! {${by}} ต้องเลือกเปิดไพ่ดวง 1 ใบ`, 'warn'); }
 }
 export function playCurse(cur, me, card, t1, t2, now) {
   const r = cur.round; if (r.phase !== 'play' || cur0(r) !== me || !r.alive[me] || !hand(r, me).includes(card)) return;
@@ -101,7 +105,7 @@ export function playCurse(cur, me, card, t1, t2, now) {
   take(r, me, card); r.played = true;
   if (c.cat === 'red') { r.discard = [...(r.discard || []), card]; say(r, `🗣️ {${me}} ใส่ “${c.n}” ให้ {${t1}} (+${c.pts})`); addSus(cur, me, t1, c.pts, now); return cur; }
   if (c.cat === 'blue') {
-    if (t === 'bind') { r.bound = [t1, t2]; r.discard = [...(r.discard || []), card]; say(r, `💞 {${me}} ผูกเสี่ยว {${t1}} กับ {${t2}} ไว้ด้วยกัน`); return cur; }
+    if (t === 'bind') { r.bound = [t1, t2]; r.discard = [...(r.discard || []), card]; note(r, `💞 {${me}} ผูกเสี่ยว {${t1}} กับ {${t2}} ไว้ด้วยกัน`, 'love'); return cur; }
     r.blues = { ...(r.blues || {}), [t1]: [...blues(r, t1), card] }; say(r, `🔵 {${me}} ให้ “${c.n}” กับ {${t1}}`); return cur;
   }
   r.discard = [...(r.discard || []), card];
@@ -122,7 +126,7 @@ export function revealFate(cur, me, idx) {
   f[idx] = { ...f[idx], open: true }; r.fate[tg] = f; r.phase = 'play'; r.reveal = null;
   const t = f[idx].t;
   if (t === 'dark') { kill(cur, tg, `👻 เปิดไพ่ดวงของ {${tg}} ได้ “ปอปสิง”! จับผีปอปได้หนึ่งตน`); return afterDeaths(cur); }
-  r.sus[tg] = 0; say(r, `🌸 เปิดไพ่ดวงของ {${tg}} ได้ “${FATE[t].n}” — ความสงสัยล้างเป็น 0`);
+  r.sus[tg] = 0; note(r, `🌸 เปิดไพ่ดวงของ {${tg}} ได้ “${FATE[t].n}” — ความสงสัยล้างเป็น 0`, 'good');
   if (f.every(c => c.open)) { kill(cur, tg, `⚰️ ไพ่ดวงของ {${tg}} ถูกเปิดหมด — สิ้นใจด้วยความอับอาย`); return afterDeaths(cur); }
   return cur;
 }
@@ -131,14 +135,17 @@ export function drawTwo(cur, me, now) {
   const r = cur.round; if (r.phase !== 'play' || cur0(r) !== me || r.played) return;
   for (let i = 0; i < 2; i++) {
     reshuffle(r); const deck = [...(r.deck || [])]; const card = deck.shift(); r.deck = deck; if (!card) break;
-    if (T(card) === 'night') { r.nightN = (r.nightN || 0) + 1; r.phase = 'night'; r.night = { kills: {}, guard: null, sworn: {}, slept: {}, until: now + NIGHT_MS, card }; say(r, `🌑 {${me}} จั่วได้คืนเดือนดับ… ทุกคนหลับตา`); r.pendingEnd = true; return cur; }
+    if (T(card) === 'night') { r.nightN = (r.nightN || 0) + 1; r.phase = 'night'; r.night = { kills: {}, guard: null, sworn: {}, slept: {}, until: now + NIGHT_MS, card }; note(r, `🌑 {${me}} จั่วได้คืนเดือนดับ… ทุกคนหลับตา`); r.pendingEnd = true; return cur; }
     if (T(card) === 'ritual') {
+      const before = r.order.filter(id => isDark(r, id));
       const ids = r.order.filter(id => r.alive[id] && fateOf(r, id).some(c => !c.open));
       const picks = ids.map(id => { const f = fateOf(r, id); const closed = f.map((c, j) => (c.open ? -1 : j)).filter(j => j >= 0); return closed[rint(closed.length)]; });
       const moving = ids.map((id, j) => fateOf(r, id)[picks[j]]);
       ids.forEach((id, j) => { const f = [...fateOf(r, id)]; f.splice(picks[j], 1); r.fate[id] = f; });
       ids.forEach((id, j) => { const to = ids[(j + 1) % ids.length]; r.fate[to] = shuffle([...fateOf(r, to), moving[j]]); });
       r.ritualN = (r.ritualN || 0) + 1; say(r, '👻 ปอปย้ายร่าง! ทุกคนส่งไพ่ดวงสุ่ม 1 ใบให้คนถัดไป — ปอปอาจย้ายไปสิงคนอื่น…');
+      { const after = r.order.filter(id => isDark(r, id)); const gain = after.filter(id => !before.includes(id)), lost = before.filter(id => !after.includes(id)); const L = a => a.map(id => `{${id}}`).join(' ');
+        chron(r, gain.length ? `👻 ปอปย้ายร่าง! ผีปอปย้ายไปสิง ${L(gain)}${lost.length ? ` (ออกจากร่าง ${L(lost)})` : ''}` : '👻 ปอปย้ายร่าง! แต่ผีปอปยังสิงร่างเดิม', 'warn'); }
       const w = winner(cur); if (w) return finish(cur, w); continue;
     }
     r.hands[me] = [...hand(r, me), card];
@@ -163,18 +170,20 @@ export function resolveNight(cur, force, now) {
   const othersDone = ids.filter(id => !darks.includes(id) && id !== sham).every(id => n.sworn?.[id] != null || n.slept?.[id]);
   const done = (!darks.length || agreed) && (!sham || n.guard) && othersDone;
   if (!force && !done && now < n.until) return cur;
-  // สาบาน: เปิดไพ่ดวงตัวเอง 1 ใบ (ถ้าเปิดได้ปอปสิง = ตาย ถ้าไม่ = รอดคืนนี้)
-  Object.entries(n.sworn || {}).forEach(([id, idx]) => { const f = fateOf(r, id); if (!f[idx] || f[idx].open || !r.alive[id]) return; f[idx] = { ...f[idx], open: true }; r.fate[id] = f;
-    if (f[idx].t === 'dark') kill(cur, id, `😱 {${id}} สาบานแล้วเปิดไพ่ดวงได้ “ปอปสิง”! โป๊ะแตก`); else { say(r, `🙏 {${id}} สาบานตน เปิดไพ่ดวง “${FATE[f[idx].t].n}” — รอดคืนนี้`); if (f.every(c => c.open)) kill(cur, id, `⚰️ ไพ่ดวงของ {${id}} ถูกเปิดหมด`); } });
   let victim = agreed;
   if (!victim) { const c = {}; tg.filter(Boolean).forEach(t => (c[t] = (c[t] || 0) + 1)); const mx = Math.max(0, ...Object.values(c)); const top = Object.keys(c).filter(t => c[t] === mx); victim = mx && top.length === 1 ? top[0] : null; }
+  if (darks.length) chron(r, `👻 ผีปอป ${darks.map(id => `{${id}}`).join(' ')} เลือกเหยื่อ: ${victim ? `{${victim}}` : 'ตกลงกันไม่ได้'}`, 'bad');
+  if (sham) chron(r, n.guard ? `📿 หมอธรรม {${sham}} คุ้มกัน {${n.guard}}` : `📿 หมอธรรม {${sham}} ไม่ได้คุ้มกันใคร`, n.guard ? 'good' : 'dim');
+  // สาบาน: เปิดไพ่ดวงตัวเอง 1 ใบ (ถ้าเปิดได้ปอปสิง = ตาย ถ้าไม่ = รอดคืนนี้)
+  Object.entries(n.sworn || {}).forEach(([id, idx]) => { const f = fateOf(r, id); if (!f[idx] || f[idx].open || !r.alive[id]) return; f[idx] = { ...f[idx], open: true }; r.fate[id] = f;
+    if (f[idx].t === 'dark') kill(cur, id, `😱 {${id}} สาบานแล้วเปิดไพ่ดวงได้ “ปอปสิง”! โป๊ะแตก`); else { note(r, `🙏 {${id}} สาบานตน เปิดไพ่ดวง “${FATE[f[idx].t].n}” — รอดคืนนี้`, 'good'); if (f.every(c => c.open)) kill(cur, id, `⚰️ ไพ่ดวงของ {${id}} ถูกเปิดหมด`); } });
   if (victim && r.alive[victim]) {
     const amulet = blues(r, victim).find(b => T(b) === 'amulet');
-    if (n.guard === victim) say(r, `📿 หมอธรรมคุ้มกันไว้ได้ — คืนนี้ไม่มีใครตาย`);
-    else if (n.sworn?.[victim] != null) say(r, `🙏 เหยื่อของผีปอปสาบานตนไว้แล้ว — รอด`);
-    else if (amulet) { r.blues[victim] = blues(r, victim).filter(b => b !== amulet); r.discard = [...(r.discard || []), amulet]; say(r, `🧿 ตะกรุดของ {${victim}} แตก แต่ช่วยชีวิตไว้ได้`); }
+    if (n.guard === victim) note(r, `📿 หมอธรรมคุ้มกันไว้ได้ — คืนนี้ไม่มีใครตาย`, 'good');
+    else if (n.sworn?.[victim] != null) note(r, `🙏 เหยื่อของผีปอปสาบานตนไว้แล้ว — รอด`, 'good');
+    else if (amulet) { r.blues[victim] = blues(r, victim).filter(b => b !== amulet); r.discard = [...(r.discard || []), amulet]; note(r, `🧿 ตะกรุดของ {${victim}} แตก แต่ช่วยชีวิตไว้ได้`, 'good'); }
     else kill(cur, victim, `💀 รุ่งเช้า… พบ {${victim}} สิ้นลมในบ้าน — ถูกปอปกินตับ`);
-  } else say(r, '🌅 รุ่งเช้า… คืนนี้ไม่มีใครถูกทำร้าย');
+  } else note(r, '🌅 รุ่งเช้า… คืนนี้ไม่มีใครถูกทำร้าย', 'dim');
   // เช้าแล้ว: สับกองทิ้งกลับเข้ากองจั่ว แล้วซ่อนคืนเดือนดับไว้ครึ่งล่าง (คืนถัดไปจะมาช้าลง)
   const deck = shuffle([...(r.deck || []), ...(r.discard || []).filter(c => CURSE_CARDS[T(c)]?.cat !== 'black')]); r.discard = []; const half = Math.floor(deck.length / 2); deck.splice(half + rint(deck.length - half + 1), 0, n.card || 'night-0'); r.deck = deck;
   r.phase = 'play'; r.night = null;
@@ -190,6 +199,27 @@ export function curseTick(cur, now) {
 // หัวหน้าห้อง: คนที่หลุดออกจากห้องไปแล้ว → นับว่าตาย เปิดไพ่ดวงทั้งหมด (กันเกมค้าง)
 export function kickCurse(cur, id) { const r = cur.round; if (!r.alive?.[id] || cur.players?.[id] || r.phase === 'done') return; kill(cur, id, `🚪 {${id}} หลุดออกจากหมู่บ้าน — เปิดไพ่ดวงทั้งหมด`, true); if (r.phase === 'reveal' && (r.reveal?.target === id || r.reveal?.by === id)) { r.phase = 'play'; r.reveal = null; } return afterDeaths(cur); }
 export function skipCurseTurn(cur) { const r = cur.round; if (r.phase !== 'play') return; say(r, `⏭️ หัวหน้าห้องข้ามตา {${cur0(r)}}`); nextTurn(r); return cur; }
+
+// ---------- เล่นย้อนเหตุการณ์ ----------
+const tk = id => `{${id}}`;
+export function curseScenes(r, res) {
+  const S = []; const st = r.start;
+  if (st) S.push({ kicker: '🎭 เริ่มเกม', title: 'ไพ่ดวงที่แจก', tone: 'night', mode: 'day', lines: [{ ico: '👻', text: `ผีปอปตอนเริ่มเกม: ${(st.dark || []).map(tk).join(' ')}`, cls: 'bad' }, ...(st.shaman ? [{ ico: '📿', text: `หมอธรรม: ${tk(st.shaman)}`, cls: 'good' }] : [])] });
+  let sc = null, key = null;
+  (r.hist || []).forEach(h => {
+    const kk = h.k + '-' + h.ch;
+    if (kk !== key || sc.lines.length >= 6) {
+      const cont = kk === key; key = kk; const night = h.k === 'night';
+      sc = { kicker: night ? `🌑 คืนเดือนดับ ครั้งที่ ${h.ch}` : h.ch ? `☀️ กลางวัน (หลังคืนที่ ${h.ch})` : '☀️ กลางวัน', title: (night ? 'ผีปอปออกหากิน…' : 'ชาวบ้านไล่หาตัวปอป') + (cont ? ' (ต่อ)' : ''), tone: night ? 'night' : 'day', lines: [] };
+      S.push(sc);
+    }
+    sc.lines.push({ text: h.text, cls: h.cls || '' });
+  });
+  S.forEach(s => { if (!s.mode) s.mode = s.tone === 'night' ? 'night' : s.lines.some(l => /ไพ่ดวง|สงสัยครบ/.test(l.text)) ? 'reveal' : 'day'; });
+  if (res) S.push({ kicker: '🏁 จบเกม', title: res.winner === 'town' ? 'บ้านนาดงปลอดภัยแล้ว!' : 'ผีปอปกินตับทั้งหมู่บ้าน!', tone: res.winner === 'town' ? 'good' : 'bad', mode: res.winner === 'town' ? 'townWin' : 'popWin',
+    lines: [{ ico: '👻', text: `ผีปอปตอนจบ: ${r.order.filter(id => hasDark(r, id)).map(tk).join(' ')}`, cls: 'bad' }] });
+  return S.map(s => ({ ...s, stage: <CurseStage mode={s.mode} /> }));
+}
 
 // ---------- หน้าจอ ----------
 export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, msg, onBack, srvNow }) {
@@ -282,6 +312,7 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
     {res && <>
       <Outcome art={res.winner === 'town' ? 'pure' : 'dark'} tone={res.winner === 'town' ? 'good' : 'bad'} title={res.winner === 'town' ? 'บ้านนาดงปลอดภัยแล้ว! จับผีปอปได้หมด 🌸' : 'ผีปอปกินตับทั้งหมู่บ้าน! 👻'}>
         ผีปอปคือ <b>{r.order.filter(id => hasDark(r, id)).map(nameOf).join(', ')}</b></Outcome>
+      <Replay scenes={curseScenes(r, res)} av={av} nameOf={nameOf} />
       <SecH icon="🔮">ไพ่ดวงของทุกคน</SecH>
       <RevealGrid av={av} nameOf={nameOf} items={r.order.filter(id => room.players?.[id] || hasDark(r, id)).map(id => ({ id, art: hasDark(r, id) ? 'dark' : isShaman(r, id) ? 'shaman' : 'pure', label: hasDark(r, id) ? 'ผีปอป' : isShaman(r, id) ? 'หมอธรรม' : 'ชาวบ้าน', bad: hasDark(r, id), dead: !r.alive?.[id], extra: fateOf(r, id).map(c => (c.t === 'dark' ? '👻' : c.t === 'shaman' ? '📿' : '🌸')).join(' ') }))} />
       <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={me} av={av} />
