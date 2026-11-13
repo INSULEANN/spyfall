@@ -28,6 +28,7 @@ import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, 
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
+import IntroFilm, { INTROS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
@@ -198,6 +199,12 @@ function App() {
     const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();const m=document.querySelector('meta[name=theme-color]');if(m&&bg)m.setAttribute('content',bg)},[themeId]);
   // เพลงประกอบ + เอฟเฟกต์: ปุ่มลำโพงปิดทั้งหมด, หลอดเลื่อนปรับแยกกัน
   useEffect(()=>{setMusicVolume(sound?musicVol:0);setSfxVolume(sfxVol);try{localStorage.setItem('sf-sound',sound?'1':'0');localStorage.setItem('sf-music',String(musicVol));localStorage.setItem('sf-sfx',String(sfxVol))}catch{}},[sound,musicVol,sfxVol]);
+  // คลิปเปิดเกม: เล่นเมื่อเห็นห้องเปลี่ยนเป็น playing รอบแรก (จาก lobby) ในเกมที่มีคลิป — รีเฟรชกลางเกมไม่เล่นซ้ำ
+  const [intro,setIntro]=useState(null);const prevStatus=useRef(null);
+  useEffect(()=>{const st=room?.status,prev=prevStatus.current;prevStatus.current=st;
+    if(st==='playing'&&prev&&prev!=='playing'&&room?.round?.number===1&&INTROS[room.game])setIntro(INTROS[room.game]);
+    if(!room)setIntro(null)},[room?.status,room?.round?.number,room?.game,!!room]);
+  useEffect(()=>{if(intro)setMusicVolume(0);else setMusicVolume(sound?musicVol:0)},[intro]);
   useEffect(()=>{if(!mixOpen)return;const f=e=>{if(mixRef.current&&!mixRef.current.contains(e.target))setMixOpen(false)};const k=e=>e.key==='Escape'&&setMixOpen(false);document.addEventListener('pointerdown',f);document.addEventListener('keydown',k);return()=>{document.removeEventListener('pointerdown',f);document.removeEventListener('keydown',k)}},[mixOpen]);
   const isHost=room?.hostId===myId;
   const outdated=players.filter(p=>p.v!==APP_VERSION);
@@ -266,7 +273,7 @@ function App() {
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
-    if(G.type==='checkpoint'){const rd=makeCpRound(ids,{laps:room.settings?.cpLaps||lapsFor(ids.length)},(room.round?.number||0)+1,Date.now()+skew);
+    if(G.type==='checkpoint'){const rd=makeCpRound(ids,{laps:room.settings?.cpLaps||lapsFor(ids.length)},(room.round?.number||0)+1,Date.now()+skew+(room.round?0:INTRO_LEAD));
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='tam'){const rd=makeTamRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
@@ -388,6 +395,7 @@ function App() {
   if(!configured||!db)return <div className="setup"><div className="brand"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></div><div className="setup-card"><span className="eyebrow">SETUP ก่อนเปิดเกม</span><h1>อีกนิดเดียวก็ได้โป๊ะกับเพื่อนแล้ว</h1><p>เว็บนี้พร้อมรันแล้ว แต่ต้องเชื่อม Firebase Realtime Database เพื่อให้ผู้เล่นคนละเครื่องเห็นข้อมูลห้องเดียวกัน</p><ol><li>สร้างโปรเจกต์ Firebase แล้วเปิด Realtime Database</li><li>คัดลอกค่าการตั้งค่ามาใส่ในไฟล์ <code>.env</code></li><li>ตั้งค่า Database Rules ตาม README แล้วรัน <code>npm run dev</code></li></ol><a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="primary">เปิด Firebase Console ↗</a><p className="muted">อ่าน README.md ในไฟล์โปรเจกต์เพื่อทำทีละขั้นตอน</p></div></div>;
 
   return <div className="app"><Ambient theme={themeId}/>
+    {intro&&<IntroFilm id={intro} sound={sound} onDone={()=>setIntro(null)}/>}
     <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo"><BrandMark/></span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?`${G.emoji} ${G.name}`:'รวมบอร์ดเกมเล่นกับแก๊งเพื่อน 🇹🇭'}</div><div className="sound-wrap" ref={mixRef}><button className={'sound'+(mixOpen?' open':'')} onClick={()=>setMixOpen(o=>!o)} title="ปรับเสียง" aria-label="ปรับเสียง" aria-expanded={mixOpen}>{sound&&(musicVol>0||sfxVol>0)?<Volume2/>:<VolumeX/>}</button>
       {mixOpen&&<div className="mixer" role="dialog" aria-label="ปรับเสียง">
         <div className="mixer-head"><b>🎚️ ปรับเสียง</b><button className={'mixer-mute'+(sound?'':' off')} onClick={()=>setSound(!sound)}>{sound?<><Volume2 size={14}/> เปิดอยู่</>:<><VolumeX size={14}/> ปิดหมด</>}</button></div>
