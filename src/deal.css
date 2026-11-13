@@ -1,5 +1,5 @@
 /* 💼 ปิดดีล! — กระดานดีลเรียงรอบขอบ ตรงกลางเป็นสถานะ */
-.db{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:5px;aspect-ratio:1;width:100%;max-width:560px;margin:4px auto 12px;padding:7px;border-radius:18px;background:linear-gradient(160deg,#1c2a56,#0d1430);box-shadow:inset 0 0 0 2px #c9a24a55,0 14px 30px #000a}
+.db{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:5px;aspect-ratio:1;width:100%;max-width:560px;margin:4px auto 12px;padding:7px;border-radius:18px;background:linear-gradient(160deg,#1c2a56,#0d1430);box-shadow:inset 0 0 0 2px #c9a24a55,0 14px 30px #000a}
 .dt{position:relative;display:grid;grid-template-rows:auto 1fr auto auto;align-items:center;justify-items:center;gap:1px;padding:5px 3px 6px;border-radius:10px;background:linear-gradient(#f6f1e6,#e3dccb);color:#1d2340;box-shadow:0 3px 0 #a99f88,0 5px 10px #0006;min-width:0;min-height:0;overflow:hidden;transition:transform .25s,box-shadow .25s}
 .dt-top{display:flex;width:100%;justify-content:space-between;align-items:center;padding:0 2px}
 .dt-e{font-size:clamp(15px,4.8vw,26px);line-height:1}
@@ -20,7 +20,7 @@
 @keyframes dtFlash{0%{box-shadow:0 0 0 6px #7fe07f,0 0 40px #7fe07f}}
 .dt-cash{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;animation:cashUp 1.6s ease-out forwards;pointer-events:none}
 @keyframes cashUp{from{transform:translateY(10px) scale(.5);opacity:0}30%{opacity:1;transform:translateY(0) scale(1.25)}to{transform:translateY(-34px);opacity:0}}
-.db-mid{grid-row:2/4;grid-column:2/4;position:relative;border-radius:14px;overflow:hidden;display:grid;place-items:center;text-align:center;padding:8px;color:#fff;background:linear-gradient(#26326a,#10183a);box-shadow:inset 0 0 0 1px #ffffff1c}
+.db-mid{grid-row:2/5;grid-column:2/5;position:relative;border-radius:14px;overflow:hidden;display:grid;place-items:center;text-align:center;padding:8px;color:#fff;background:linear-gradient(#26326a,#10183a);box-shadow:inset 0 0 0 1px #ffffff1c}
 .mid-sky{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
 .mid-turn,.mid-nego,.mid-res{position:relative;z-index:1;display:grid;justify-items:center;gap:3px}
 .mid-turn b,.mid-nego b{font-size:clamp(12px,3.8vw,17px);line-height:1.25;text-shadow:0 2px 4px #000a}
@@ -122,9 +122,10 @@
   .dt-opt{position:relative;gap:1.5px;padding:2px 3px 1px;margin-top:4px}
   .dt-opt em{position:absolute;left:-4px;top:-7px;margin:0;padding:0 4px;border-radius:7px;background:#5a4a8a;font-size:0;line-height:1}
   .dt-opt em::after{content:'เลือก ' attr(data-n);font-size:7.5px;line-height:1.5;color:#fff;font-weight:800}
-  .dt-opt .pd{width:12px;height:12px}.dt-opt.n4 .pd{width:11px;height:11px}
-  .dt-need .pd{width:17px;height:17px}.dt-need.n3 .pd{width:15px;height:15px}
-  .dt{padding:4px 3px 5px}.dt-e{font-size:16px}.dt-v{font-size:12px;padding:1px 3px}.dt-n{font-size:9.5px}
+  .dt-opt .pd{width:10px;height:10px}.dt-opt.n4 .pd{width:9px;height:9px}
+  .dt-need .pd{width:13px;height:13px}.dt-need.n3 .pd{width:12px;height:12px}
+  .db{gap:3px;padding:5px}.dt{padding:3px 2px 4px;border-radius:8px}.dt-e{font-size:13px}.dt-v{font-size:10px;padding:1px 2px}.dt-n{font-size:8px}
+  .dt-opt em{left:-3px;top:-6px}.dt-opt em::after{font-size:6.5px}
 }
 
 /* เปิดการ์ดเงินตอนปิดดีล */

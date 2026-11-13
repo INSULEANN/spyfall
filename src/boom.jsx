@@ -111,7 +111,7 @@ function resolve(cur, now) {
     case 'skip': say(r, `⏭️ {${p.by}} ขอผ่าน ไม่ต้องจั่ว`, { by: p.by, act: '⏭️ ผ่าน!' }); endTurn(r); break;
     case 'attack': passTurn(r, 2); say(r, `👉 {${current(r)}} ต้องเล่น 2 ตาติด!`, { by: current(r), act: '😱 โดน 2 ตา!' }); break;
     case 'future': r.peek = { pid: p.by, cards: (r.deck || []).slice(0, 3), at: now }; break;
-    case 'shuffle': r.deck = shuffle(r.deck || []); r.peek = null; say(r, '🔀 สับกองไพ่แล้ว'); break;
+    case 'shuffle': r.deck = shuffle(r.deck || []); r.peek = null; r.shuf = now || Date.now(); say(r, '🔀 สับกองไพ่แล้ว'); break;
     case 'favor': if (hand(r, p.target).length) { r.phase = 'favor'; r.favor = { from: p.target, to: p.by, until: now + FAVOR_MS }; } break;
     case 'bottom': return drawFor(cur, p.by, true, now);
     case 'market': { const ids = aliveIds(r, cur).filter(id => hand(r, id).length); const picks = ids.map(id => { const h = hand(r, id); return h[rint(h.length)]; });
@@ -148,7 +148,13 @@ const seatXY = (k, n) => { const a = Math.PI / 2 + (k / n) * Math.PI * 2; return
 const DECK_XY = { x: 38, y: 52 }, PILE_XY = { x: 62, y: 52 };
 const MiniBacks = ({ n }) => <span className="mini-backs">{Array.from({ length: Math.min(n, 7) }, (_, i) => <i key={i} />)}</span>;
 
-function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, pick, picked, onPick }) {
+function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, pick, picked, onPick, sound }) {
+  // อนิเมชั่นสับไพ่: ตอนมีคนเล่นเขย่าแผง (r.shuf เปลี่ยน) และตอนเริ่มรอบใหม่
+  const [shuf, setShuf] = useState(0); const shufAt = useRef(r.shuf || 0); const shufRound = useRef(null);
+  const playShuf = () => { setShuf(k => k + 1); sfx(sound, 'shuffle'); };
+  useEffect(() => { const t = r.shuf || 0; if (t > shufAt.current) { shufAt.current = t; playShuf(); } }, [r.shuf]);
+  useEffect(() => { if (shufRound.current === r.number) return; shufRound.current = r.number; if (Date.now() - (r.startedAt || 0) < 10000) playShuf(); }, [r.number]);
+  useEffect(() => { if (!shuf) return; const t = setTimeout(() => setShuf(0), 1700); return () => clearTimeout(t); }, [shuf]);
   const order = r.order || []; const n = order.length; const meK = Math.max(0, order.indexOf(myId));
   const pos = id => seatXY((order.indexOf(id) - meK + n) % n, n);
   const cur = order[r.turn]; const P = r.pending; const deck = r.deck || []; const disc = r.discard || []; const top = disc[disc.length - 1];
@@ -198,6 +204,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
         {b && <span key={b.k} className="seat-bubble">{b.text}</span>}
       </div>;
     })}
+    {shuf > 0 && <div key={'sh' + shuf} className="shuf-fx" style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }}>{Array.from({ length: 8 }, (_, i) => <i key={i} className={i % 2 ? 'r' : 'l'} style={{ '--i': i }}><CardFace back backKind="boom" size="sm" /></i>)}<span className="shuf-txt">🔀 สับไพ่!</span></div>}
     {flies.map(f => <div key={f.k} className="fly" style={{ '--fx': f.from.x + '%', '--fy': f.from.y + '%', '--tx': f.to.x + '%', '--ty': f.to.y + '%', animationDelay: f.delay + 'ms' }}>{f.face ? <Card id={f.face} size="sm" /> : <CardFace back backKind="boom" size="sm" />}</div>)}
   </div>;
 }
@@ -266,7 +273,7 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   return <div className="boom-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน</span><span className="cat-tag">↻ เวียนตามเข็มนาฬิกา</span></div>
 
-    <div className="gcols"><div className="gmain"><RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} canDraw={canPlay} onDraw={draw}
+    <div className="gcols"><div className="gmain"><RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} sound={sound} canDraw={canPlay} onDraw={draw}
       pick={canPlay && needTarget ? targets : null} picked={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} /></div><div className="gside">
 
     {/* ตอนนี้ตาใคร */}

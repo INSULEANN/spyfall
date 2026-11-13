@@ -213,6 +213,7 @@ Object.assign(SFX, {
   wrong: () => tone(200, 0.4, { type: 'triangle', gain: 0.08, to: 140 }),
   turn: () => SFX.yourTurn(),
   // เกมไพ่
+  shuffle: () => { for (let i = 0; i < 9; i++) noise(0.045, { at: i * 0.055 + (i > 4 ? 0.12 : 0), gain: 0.09, freq: 2600 + (i % 3) * 400, type: 'bandpass', q: 1.4 }); },
   card: () => { noise(0.09, { gain: 0.09, freq: 3200, type: 'highpass' }); tone(520, 0.06, { type: 'triangle', gain: 0.05, at: 0.06 }); },
   draw: () => noise(0.22, { gain: 0.1, freq: 1200, to: 5000, type: 'bandpass', q: 1.2 }),
   nope: () => { tone(330, 0.12, { type: 'square', gain: 0.05 }); tone(247, 0.24, { type: 'square', gain: 0.05, at: 0.13 }); },

@@ -11,7 +11,7 @@ import './deal.css';
 
 export const DEAL_MIN = 3, DEAL_MAX = 6;
 export const DEAL_SCORE = { win: 3, second: 1 };
-export const TURN_MS = 30000, NEGO_MS = 90000, NEGO_CAP = 180000, TILES = 12, GOAL = TILES, END_EVERY = 5, HAND0 = 3, HAND_MAX = 8;
+export const TURN_MS = 30000, NEGO_MS = 90000, NEGO_CAP = 180000, TILES = 16, GOAL = TILES, END_EVERY = 5, END_START = 5, HAND0 = 3, HAND_MAX = 8;
 export const PARTNERS = {
   bank: { n: 'ธนาคาร', e: '🏦', c: '#3a7bd5' }, build: { n: 'รับเหมา', e: '🏗️', c: '#e0862a' }, media: { n: 'สื่อ', e: '📺', c: '#d9434b' },
   law: { n: 'ทนาย', e: '⚖️', c: '#8a5ad6' }, ship: { n: 'ขนส่ง', e: '🚚', c: '#2f9e5f' }, tech: { n: 'ไอที', e: '💻', c: '#1fa3b5' },
@@ -29,6 +29,8 @@ export const DEALS = [
   { n: 'คลินิกความงาม', e: '💄', v: 5, need: ['law'], opt: ['media', 'bank', 'build'], pick: 2 }, { n: 'ดาต้าเซ็นเตอร์', e: '🖥️', v: 6, need: ['tech', 'build'], opt: ['bank', 'law', 'ship'], pick: 1 },
   { n: 'คอนโดติดรถไฟฟ้า', e: '🏢', v: 8, need: ['bank', 'build'], opt: ['law', 'media', 'ship', 'tech'], pick: 2 }, { n: 'ห้างสรรพสินค้า', e: '🛍️', v: 8, need: ['bank', 'media'], opt: ['build', 'ship', 'law', 'tech'], pick: 2 },
   { n: 'สนามบินใหม่', e: '🛫', v: 9, need: ['bank', 'build', 'ship'], opt: ['law', 'tech', 'media'], pick: 1 }, { n: 'รถไฟความเร็วสูง', e: '🚄', v: 9, need: ['build', 'ship', 'tech'], opt: ['bank', 'law'], pick: 1 },
+  { n: 'ร้านหมูกระทะ', e: '🥓', v: 3, need: ['build'], opt: ['ship', 'media', 'bank'], pick: 1 }, { n: 'โรงเรียนกวดวิชา', e: '📚', v: 5, need: ['law', 'media'], opt: ['tech', 'build'], pick: 1 },
+  { n: 'ฟาร์มกุ้ง', e: '🦐', v: 5, need: ['ship'], opt: ['bank', 'build', 'law', 'tech'], pick: 2 }, { n: 'ค่ายเพลง', e: '🎤', v: 7, need: ['media', 'tech', 'bank'], opt: ['law', 'ship'], pick: 1 },
 ];
 export const optOf = D => D?.opt || []; export const pickOf = D => (optOf(D).length ? D.pick || 0 : 0);
 export const slotsOf = D => [...(D?.need || []), ...optOf(D)];
@@ -93,7 +95,8 @@ function nextTurn(cur, now) {
   const r = cur.round; r.nego = null; r.phase = 'turn'; r.at = now; r.turns = (r.turns || 0) + 1;
   if (boardDone(r)) return finish(cur, 'board');
   if (r.turns >= r.order.length * 15) return finish(cur, 'limit');
-  if (r.turns % END_EVERY === 0 && (r.endDeck || []).length) { const d = [...r.endDeck]; const x = d.shift(); r.endDeck = d; r.endNums = [...(r.endNums || []), x]; r.endFlip = { n: x, at: now }; say(r, `🎴 เปิดการ์ดจบเกม: เลข ${x} — ตั้งแต่นี้ใครทอยได้ ${(r.endNums || []).join(', ')} เกมจบทันที!`, { end: true }); }
+  const since = r.endFrom != null ? r.turns - r.endFrom : 0;
+  if (r.endFrom != null && since > 0 && since % END_EVERY === 0 && (r.endDeck || []).length) { const d = [...r.endDeck]; const x = d.shift(); r.endDeck = d; r.endNums = [...(r.endNums || []), x]; r.endFlip = { n: x, at: now }; say(r, `🎴 เปิดการ์ดจบเกม: เลข ${x} — ตั้งแต่นี้ใครทอยได้ ${(r.endNums || []).join(', ')} เกมจบทันที!`, { end: true }); }
   const n = r.order.length; for (let i = 1; i <= n; i++) { const k = (r.turn + i) % n; if (inGame(r, r.order[k])) { r.turn = k; break; } }
   return cur;
 }
@@ -146,6 +149,7 @@ export function closeDeal(cur, me, now) {
   r.lastPay = { deal: n.deal, card, x: D.v, pay, at: now };
   say(r, `🤝 {${me}} ปิดดีล ${D.e} ${D.n}! เปิดการ์ดเงิน 💵 ${card} ล้าน/ส่วน → ${partsOf(n).map(id => `{${id}} ${n.offer[id]} ส่วน = ${pay[id] ?? 0} ล้าน`).join(' • ')}`, { by: me, act: `💵 ${card} ล้าน/ส่วน!`, win: true });
   r.done = [...(r.done || []), { deal: n.deal, boss: me, offer: n.offer, card }]; r.closed = (r.closed || 0) + 1;
+  if (r.closed >= END_START && r.endFrom == null) { r.endFrom = r.turns || 0; say(r, `🎴 ปิดดีลครบ ${END_START} ดีลแล้ว! เริ่มนับการ์ดจบเกม — อีก ${END_EVERY} ตาเปิดใบแรก`, { end: true }); }
   r.tiles[n.tile] = -1;
   r.flash = { tile: n.tile, at: now };
   return nextTurn(cur, now);
@@ -195,7 +199,9 @@ export function kickDeal(cur, id, now) {
 }
 
 // ---------- กระดาน: ดีล 12 ช่องเรียงรอบขอบ (4×4) ตรงกลางเป็นสถานะ ----------
-const RING = [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0], [1, 0]];
+// วงรอบขอบตาราง 5×5 = 16 ช่อง เดินตามเข็มนาฬิกา
+const GRID = 5;
+const RING = [...Array.from({ length: GRID }, (_, c) => [0, c]), ...Array.from({ length: GRID - 2 }, (_, i) => [i + 1, GRID - 1]), ...Array.from({ length: GRID }, (_, i) => [GRID - 1, GRID - 1 - i]), ...Array.from({ length: GRID - 2 }, (_, i) => [GRID - 2 - i, 0])];
 // ไอคอนหุ้นส่วน: เหรียญสี + ลายเส้นขาว (วาดเอง ไม่ใช้อีโมจิ หน้าตาเหมือนกันทุกเครื่อง)
 const GLYPH = {
   bank: c => <g fill="#fff"><path d="M24 10.5 L37.5 18 H10.5 Z" /><rect x="11.5" y="19.2" width="25" height="2.6" rx="1.3" /><rect x="14" y="23.4" width="3.4" height="9.6" rx="1.2" /><rect x="19.9" y="23.4" width="3.4" height="9.6" rx="1.2" /><rect x="25.8" y="23.4" width="3.4" height="9.6" rx="1.2" /><rect x="31.6" y="23.4" width="3.4" height="9.6" rx="1.2" /><rect x="10.5" y="34.2" width="27" height="3.2" rx="1.4" /><circle cx="24" cy="15.4" r="1.6" fill={c} /></g>,
@@ -270,7 +276,7 @@ function Board({ r, res, myId, av, nameOf, center }) {
       </div>;
     })}
     <div className="db-mid"><Sky />{center}</div>
-    {!res && <div className="db-pawn" style={{ left: `${pc * 24.2 + 20.5}%`, top: `${pr * 24.2 + 7}%` }}>🎩</div>}
+    {!res && <div className="db-pawn" style={{ left: `${2 + pc * (96 / GRID) + (96 / GRID) * 0.8}%`, top: `${2 + pr * (96 / GRID) + (96 / GRID) * 0.24}%` }}>🎩</div>}
   </div>;
 }
 
@@ -309,7 +315,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
   });
   const money = id => r.money?.[id] || 0;
-  const endNums = r.endNums || []; const endLeft = (r.endDeck || []).length; const nextEnd = END_EVERY - ((r.turns || 0) % END_EVERY);
+  const endNums = r.endNums || []; const endLeft = (r.endDeck || []).length; const endOn = r.endFrom != null; const nextEnd = endOn ? END_EVERY - (((r.turns || 0) - r.endFrom) % END_EVERY) : null;
   const [endFx, setEndFx] = useState(null); const endAt = useRef(r.endFlip?.at || 0);
   useEffect(() => { const E = r.endFlip; if (!E || E.at <= endAt.current) return; endAt.current = E.at; const delay = r.lastPay?.at === E.at ? 5400 : 200; const t1 = setTimeout(() => { setEndFx(E); sfx(sound, 'reveal'); }, delay); const t2 = setTimeout(() => setEndFx(null), delay + 3200); return () => { clearTimeout(t1); clearTimeout(t2); }; }, [r.endFlip?.at]);
   const v = D?.v || 0;
@@ -337,7 +343,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     <div className="gcols"><div className="gmain"><Board r={r} res={res} myId={myId} av={av} nameOf={nameOf} center={center} /></div><div className="gside">
 
     {/* หุ้นส่วน: ใครคุมใคร + เงิน */}
-    {!res && <div className="end-row"><span className="er-h">🎴 การ์ดจบเกม</span><span className="er-cards">{endNums.length ? endNums.map(x => <b key={x} className="end-card">{x}</b>) : <em>ยังไม่เปิด</em>}</span><small>{endNums.length ? `ทอยได้ ${endNums.join(' / ')} = จบเกม` : 'ทอยได้เลขบนการ์ด = จบเกม'} • {endLeft ? `ใบใหม่ในอีก ${nextEnd} ตา` : 'เปิดครบแล้ว'}</small></div>}
+    {!res && <div className="end-row"><span className="er-h">🎴 การ์ดจบเกม</span><span className="er-cards">{endNums.length ? endNums.map(x => <b key={x} className="end-card">{x}</b>) : <em>ยังไม่เปิด</em>}</span><small>{!endOn ? `เริ่มเปิดเมื่อปิดดีลครบ ${END_START} ดีล (ตอนนี้ ${Math.min(r.closed || 0, END_START)}/${END_START}) แล้วเปิดทุก ${END_EVERY} ตา` : <>{endNums.length ? `ทอยได้ ${endNums.join(' / ')} = จบเกม` : 'ทอยได้เลขบนการ์ด = จบเกม'} • {endLeft ? `ใบใหม่ในอีก ${nextEnd} ตา` : 'เปิดครบแล้ว'}</>}</small></div>}
     <div className="ctrl-row">{PK.map(p => <span key={p} className={'ctrl-chip' + (r.ctrl[p] === myId ? ' mine' : '')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={22} /><span><b>{PARTNERS[p].n}</b><small><Avatar id={r.ctrl[p]} av={av} size={16} /> {r.ctrl[p] === myId ? 'คุณ' : nameOf(r.ctrl[p])}</small></span></span>)}</div>
     <div className="money-row">{[...r.order].sort((a, b) => money(b) - money(a)).map(id => <span key={id} className={(id === cur && !res ? 'cur ' : '') + (r.out?.[id] ? 'out' : '')}><Avatar id={id} av={av} size={22} /> {id === myId ? 'คุณ' : nameOf(id)} <b>💰{money(id)}</b><small>🃏{hand(r, id).length}</small></span>)}</div>
 
@@ -408,7 +414,7 @@ export function DealLobby({ n }) {
       <span>🔒 ช่องดีลแถวบน = หุ้นส่วนจำเป็น • 🧩 แถวล่าง (ป้าย “เลือก 2”) = กลุ่มตัวเลือก เจ้าของดีลเลือกเองว่าจะเอาใคร — หุ้นส่วนตัวเลือกเลยต้องแข่งกันยอมรับส่วนแบ่ง</span>
       <span>✖️ ตัวเลขบนช่องคือตัวคูณ ×N = ดีลนี้แบ่งได้ N ส่วน (ดีลใหญ่ใช้หุ้นส่วนเยอะ ตัวคูณสูง)</span>
       <span>🤝 เจ้าของดีลเสนอแบ่งส่วน ทุกคนในดีลกดตกลงครบ → ปิดดีล แล้วเปิดการ์ดเงินสุ่ม 💵 (ส่วนละ 1–5 ล้าน) คูณออกมาเป็นเงินจริง</span>
-      <span>🎴 ทุก {END_EVERY} ตาเปิดการ์ดจบเกม 1 ใบ (เลข 1–6) — ใครทอยเต๋าได้เลขที่เปิดอยู่ เกมจบทันที • หรือปิดดีลครบทุกช่องก็จบ • ใครรวยสุดชนะ</span>
+      <span>🎴 ปิดดีลครบ {END_START} ดีลแล้ว ทุก {END_EVERY} ตาเปิดการ์ดจบเกม 1 ใบ (เลข 1–6) — ใครทอยเต๋าได้เลขที่เปิดอยู่ เกมจบทันที • หรือปิดดีลครบทุกช่องก็จบ • ใครรวยสุดชนะ</span>
       <span>⏱️ เจรจา {NEGO_MS / 1000} วิ (เล่นการ์ดต่อเวลาได้) ไม่จบ = ดีลล่ม</span></div>
     <div className="dc-hand lobby">{Object.keys(CARDS).map(t => <DealCard key={t} id={t === 'link' ? 'link_media-x' : t + '-x'} />)}</div>
   </>;

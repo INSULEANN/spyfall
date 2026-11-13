@@ -138,6 +138,8 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
   useEffect(() => { setClaims({}); setAccSel([]); }, [r.number]);
   const h = r.phase === 'night' ? hourAt(r, srvNow) : HOURS + 1;
   const myDie = r.dice?.[myId]; const iThief = r.thief === myId; const iAcc = !!r.acc?.[myId];
+  const [accFx, setAccFx] = useState(false); const accKey = `cake-acc-${roomCode}-${r.number}`;
+  useEffect(() => { if (!iAcc || r.phase !== 'day' || room.status !== 'playing') return; let seen = false; try { seen = sessionStorage.getItem(accKey) === '1'; } catch { } if (seen) return; setAccFx(true); sfx(sound, 'sabotage'); try { sessionStorage.setItem(accKey, '1'); } catch { } }, [iAcc, r.phase, r.number]);
   const mates = awakeAt(r, myDie, room.players).filter(id => id !== myId);
   const awakeNow = r.phase === 'night' && h === myDie;
   const secLeft = r.phase === 'night' ? Math.max(0, Math.ceil(((h === 0 ? r.nightStart : r.nightStart + h * r.hourMs) - srvNow) / 1000)) : 0;
@@ -202,6 +204,7 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
   return <div className="explore-game cake-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">{r.phase === 'night' ? (h === 0 ? '🌙 กำลังจะหลับ' : h > HOURS ? '🌅 ใกล้เช้า' : `🌙 ตี ${h}`) : res ? '🏁 จบเกม' : '☀️ เช้าแล้ว'}</span></div>
     <div className="gcols flow"><div className="gmain">
+    {!res && iAcc && r.phase === 'day' && <div className="acc-banner" role="alert"><Art name="acc" size={58} /><div><b>😈 คุณคือลูกสมุนของ {nameOf(r.thief)}!</b><span>คุณอยู่ฝ่ายขโมยแล้ว — ช่วยปั่นให้เพื่อนโหวตจับคนผิด อย่าโหวต <b className="acc-thief">{nameOf(r.thief)}</b> • ขโมยรอด คุณได้ +{CAKE_SCORE.acc}</span></div></div>}
     <Steps items={['ทอยเต๋า', 'กลางคืน', 'เช้า: โหวต', 'เฉลย']} at={res ? 3 : r.phase === 'day' ? 2 : h === 0 ? 0 : 1} />
     {r.phase === 'night' && <CakeClock r={r} h={h} myDie={myDie} srvNow={srvNow} mode="night" />}
     {/* ฉากห้องครัวเคลื่อนไหว: เห็นเฉพาะสิ่งที่ตัวเองเห็นตอนตื่น */}
@@ -270,5 +273,14 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
     {!res && (r.phase === 'day' || (r.phase === 'night' && h > myDie)) && clues}
     {!res && r.phase === 'day' && testimony}
     </div></div>
+    {accFx && !res && <div className="acc-fx" onClick={() => setAccFx(false)}><div className="acc-box">
+      <span className="acc-kick">☀️ เช้าแล้ว… คุณมีความลับ!</span>
+      <Art name="acc" size={120} />
+      <h2>😈 คุณถูกจ้างเป็น<br />ลูกสมุน!</h2>
+      <p><Avatar id={r.thief} av={av} size={30} /> <b>{nameOf(r.thief)}</b> คือจอมแอบกินเค้ก และจ้างคุณเป็นพวก</p>
+      <ul><li>🙊 ห้ามบอกใครว่าคุณเป็นลูกสมุน</li><li>🗳️ ช่วยปั่นให้เพื่อนโหวตจับคนผิด — อย่าโหวต {nameOf(r.thief)}</li><li>🏆 ถ้าขโมยรอด คุณได้ +{CAKE_SCORE.acc} แต้ม</li></ul>
+      <button className="primary wide" onClick={() => setAccFx(false)}>🤝 รับทราบ เป็นพวกแล้ว</button>
+      <small>ระวังคนแอบมองจอ!</small>
+    </div></div>}
   </div>;
 }

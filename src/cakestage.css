@@ -34,3 +34,22 @@
 .cs-crumbs circle{animation:csCrumb .5s ease-out infinite}.cs-crumbs circle:nth-child(2){animation-delay:.15s}.cs-crumbs circle:nth-child(3){animation-delay:.3s}
 @keyframes csCrumb{from{transform:translate(0,0);opacity:1}to{transform:translate(-8px,10px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.cake-stage *{animation-duration:0s!important;animation-iteration-count:1!important}}
+
+/* ลูกสมุน: แถบแดงค้าง + ป๊อปอัปตอนเช้า */
+.acc-banner{display:flex;gap:12px;align-items:center;padding:12px 14px;margin:0 0 12px;border-radius:16px;background:linear-gradient(110deg,#5a0f1f,#2a0a1a);border:2px solid #ff5f6d;box-shadow:0 0 0 3px #ff5f6d33,0 10px 26px #ff3a4a33;animation:accPulse 2s ease-in-out infinite}
+.acc-banner>div{display:grid;gap:3px;min-width:0}
+.acc-banner>div>b{font-size:clamp(16px,2.2vw,20px);color:#ffd0d4;line-height:1.3}
+.acc-banner span{font-size:13.5px;color:#ffc0c6;line-height:1.55}
+.acc-thief{color:#fff;text-decoration:underline}
+@keyframes accPulse{50%{box-shadow:0 0 0 6px #ff5f6d22,0 10px 30px #ff3a4a66}}
+.acc-fx{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:radial-gradient(circle,#7a0f2acc,#12020af2 70%);animation:accIn .3s ease-out;cursor:pointer}
+.acc-box{display:grid;justify-items:center;gap:10px;width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:22px 18px;border-radius:24px;background:linear-gradient(160deg,#3a0a18,#1a0610);border:2px solid #ff5f6d;text-align:center;color:#fff;box-shadow:0 20px 60px #000c;animation:accPop .5s cubic-bezier(.3,1.5,.5,1)}
+.acc-kick{font-weight:800;color:#ffb3b8;letter-spacing:.3px}
+.acc-box h2{margin:0;font-size:clamp(28px,7vw,40px);line-height:1.15;color:#ff8a94;text-shadow:0 3px 0 #000a}
+.acc-box p{margin:0;font-size:15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.acc-box ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;text-align:left;font-size:14px;width:100%}
+.acc-box li{padding:7px 10px;border-radius:10px;background:#ffffff12}
+.acc-box small{color:#ff9aa3;opacity:.8}
+@keyframes accIn{from{opacity:0}}
+@keyframes accPop{from{transform:scale(.6) rotate(-4deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.acc-banner,.acc-box{animation:none}}

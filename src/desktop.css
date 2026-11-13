@@ -37,7 +37,7 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   .gmain .fly .gcard{--cw:52px!important}
 
   /* ปิดดีล: กระดานใหญ่พอดีความสูงจอ ตัวหนังสือ/ไอคอนใหญ่ขึ้น */
-  .gmain .db{width:min(100%,calc(100vh - 120px));max-width:none;gap:7px;padding:9px}
+  .gmain .db{width:min(100%,calc(100vh - 110px));max-width:none;gap:7px;padding:9px}
   .gmain .dt{padding:8px 6px 9px;border-radius:12px}
   .gmain .dt-e{font-size:clamp(24px,2.4vw,36px)}
   .gmain .dt-v{font-size:clamp(15px,1.4vw,21px);padding:3px 6px}
@@ -76,3 +76,17 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
 @media (min-width:1600px){
   .gcols{grid-template-columns:minmax(0,1.2fr) minmax(420px,.8fr)}
 }
+/* ปิดดีล 16 ช่อง: ให้กระดานกว้างกว่าเกมอื่น + ย่อตัวอักษรในช่อง */
+@media (min-width:1100px){
+  .deal-game .gcols{grid-template-columns:minmax(0,1.5fr) minmax(340px,.72fr);gap:18px}
+  .deal-game .gmain .dt{padding:6px 5px 7px}
+  .deal-game .gmain .dt-e{font-size:clamp(18px,1.7vw,28px)}
+  .deal-game .gmain .dt-v{font-size:clamp(12px,1.1vw,17px)}
+  .deal-game .gmain .dt-n{font-size:clamp(10.5px,.9vw,13.5px)}
+  .deal-game .gcols .gmain .dt-need .pd{width:clamp(16px,1.45vw,24px);height:clamp(16px,1.45vw,24px)}
+  .deal-game .gcols .gmain .dt-need.n3 .pd{width:clamp(15px,1.3vw,22px);height:clamp(15px,1.3vw,22px)}
+  .deal-game .gcols .gmain .dt-opt .pd{width:clamp(12px,1.1vw,18px);height:clamp(12px,1.1vw,18px)}
+  .deal-game .gcols .gmain .dt-opt.n4 .pd{width:clamp(11px,1vw,16px);height:clamp(11px,1vw,16px)}
+  .deal-game .gmain .db-pawn{font-size:clamp(22px,2vw,34px)}
+}
+@media (min-width:1600px){.deal-game .gcols{grid-template-columns:minmax(0,1.55fr) minmax(380px,.7fr)}}
