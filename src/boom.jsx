@@ -178,6 +178,14 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
     const fresh = s.log.length > p.log.length ? s.log.slice(p.log.length) : (s.log.length && s.log[s.log.length - 1]?.t !== p.log[p.log.length - 1]?.t ? s.log.slice(-1) : []);
     fresh.filter(e => e.by && e.act).forEach(e => { const id = e.by, kk = k(); setBubbles(b => ({ ...b, [id]: { text: e.act, k: kk } })); setTimeout(() => setBubbles(b => (b[id]?.k === kk ? { ...b, [id]: null } : b)), 2500); });
   });
+  // ลงไพ่: ไพ่ใหญ่พุ่งจากที่นั่งมากระแทกกลางโต๊ะ • โดน "ไม่เอา!" = ตราประทับบนกองทิ้ง
+  const [slam, setSlam] = useState(null); const slamKey = useRef(null);
+  useEffect(() => {
+    const id = P ? P.by + ':' + (P.cards || []).join(',') : ''; const k = P ? id + '#' + (P.nopes || 0) : ''; const was = slamKey.current; slamKey.current = k;
+    if (was === null || !P || k === was) return; const fresh = !was.startsWith(id + '#'); if (!fresh && !(P.nopes > 0)) return;
+    const s = { k: ++seq.current, by: P.by, card: P.cards[0], n: P.cards.length, nope: !fresh, nopes: P.nopes || 0, who: (P.noped || [])[(P.noped || []).length - 1] || null, from: pos(P.by) };
+    setSlam(s); setTimeout(() => setSlam(x => (x?.k === s.k ? null : x)), 1500);
+  }, [P?.by, P?.nopes, (P?.cards || []).join(',')]);
   // ลูกศรกลางโต๊ะชี้คนที่ถึงตา (หมุนทางที่ใกล้กว่า)
   const angRef = useRef(null); let ang = angRef.current ?? 90;
   if (cur && !res) { const c = pos(cur); let a = Math.atan2((c.y - 50) * 0.92, c.x - 50) * 180 / Math.PI; if (angRef.current != null) { while (a - angRef.current > 180) a -= 360; while (a - angRef.current < -180) a += 360; } ang = a; angRef.current = a; }
@@ -186,7 +194,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
     <div className="rt-felt" />
     {!res && <div className="rt-pointer" style={{ transform: `translate(-50%,-50%) rotate(${ang}deg)` }}><i /></div>}
     <div className="rt-info"><span>💥 ทุเรียน {bombs} ลูก</span><b className={danger >= 25 ? 'hot' : ''}>{danger}%</b></div>
-    <button type="button" className={'rt-deck' + (canDraw ? ' can' : '')} style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }} onClick={canDraw ? onDraw : undefined} disabled={!canDraw} aria-label="กองจั่ว">
+    <button type="button" className={'rt-deck' + (canDraw ? ' can' : '') + (danger >= 30 && !res ? ' hot' : '')} style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }} onClick={canDraw ? onDraw : undefined} disabled={!canDraw} aria-label="กองจั่ว">
       <CardFace back backKind="boom" size="sm" /><span className="pile-n">{deck.length}</span>{canDraw && <span className="rt-tap">แตะเพื่อจั่ว</span>}
     </button>
     <div className={'rt-pile' + (P ? ' live' : '') + (P && P.nopes % 2 ? ' noped' : '')} style={{ left: PILE_XY.x + '%', top: PILE_XY.y + '%' }}>
@@ -204,6 +212,11 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
         {b && <span key={b.k} className="seat-bubble">{b.text}</span>}
       </div>;
     })}
+    {slam && !slam.nope && <div key={slam.k} className="slam-fx" style={{ '--fx': slam.from.x + '%', '--fy': slam.from.y + '%' }}>
+      <div className="slam-at"><i className="slam-ring" /><i className="slam-ring r2" />{Array.from({ length: 12 }, (_, i) => <i key={i} className="slam-ray" style={{ '--a': i * 30 + 'deg' }} />)}</div>
+      <div className="slam-card"><Card id={slam.card} size="md" />{slam.n > 1 && <em>×{slam.n}</em>}</div>
+      <span className="slam-txt">{slam.by === myId ? 'คุณ' : nameOf(slam.by)}: {BOOM_CARDS[T(slam.card)]?.n}{slam.n === 2 ? ' • คู่!' : slam.n >= 3 ? ' • ตอง!' : ''}</span></div>}
+    {slam && slam.nope && <div key={slam.k} className={'nope-stamp' + (slam.nopes % 2 ? '' : ' back')} style={{ left: PILE_XY.x + '%', top: PILE_XY.y + '%' }}><b>{slam.nopes % 2 ? '🙅 ไม่เอา!' : '🔁 กลับมาได้ผล!'}</b>{slam.who && <small>{slam.who === myId ? 'คุณ' : nameOf(slam.who)}</small>}</div>}
     {shuf > 0 && <div key={'sh' + shuf} className="shuf-fx" style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }}>{Array.from({ length: 8 }, (_, i) => <i key={i} className={i % 2 ? 'r' : 'l'} style={{ '--i': i }}><CardFace back backKind="boom" size="sm" /></i>)}<span className="shuf-txt">🔀 สับไพ่!</span></div>}
     {flies.map(f => <div key={f.k} className="fly" style={{ '--fx': f.from.x + '%', '--fy': f.from.y + '%', '--tx': f.to.x + '%', '--ty': f.to.y + '%', animationDelay: f.delay + 'ms' }}>{f.face ? <Card id={f.face} size="sm" /> : <CardFace back backKind="boom" size="sm" />}</div>)}
   </div>;
@@ -227,7 +240,7 @@ function HandFan({ ids, selected = [], onTap }) {
 
 export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, msg, onBack, srvNow }) {
   const r = room.round; const res = room.status === 'result' && room.result;
-  const [sel, setSel] = useState([]); const [target, setTarget] = useState(null); const [named, setNamed] = useState(null); const [pos, setPos] = useState(0); const [boomFx, setBoomFx] = useState(null); const fxOff = useRef(0);
+  const [sel, setSel] = useState([]); const [target, setTarget] = useState(null); const [named, setNamed] = useState(null); const [pos, setPos] = useState(0); const [boomFx, setBoomFx] = useState(null); const fxOff = useRef(0); const [quake, setQuake] = useState(0);
   const myHand = r.hands?.[myId] || []; const deck = r.deck || []; const cur = r.order?.[r.turn]; const myTurn = cur === myId && r.alive?.[myId] && !res;
   const alive = r.order.filter(id => r.alive?.[id]); const bombs = deck.filter(c => T(c) === 'bomb').length;
   const P = r.pending; const left = P ? Math.max(0, P.until - srvNow) : 0;
@@ -240,11 +253,13 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   useEffect(() => { if (due && !res) tx(c => boomTick(c, srvNow)); }, [due]);
   // เอฟเฟกต์ระเบิด + เสียง
   const lastBoom = useRef(r.boom?.at || 0);
-  useEffect(() => { const b = r.boom; if (!b || b.at <= lastBoom.current) return; lastBoom.current = b.at; setBoomFx(b); sfx(sound, b.saved ? 'defuse' : 'boom'); const t = setTimeout(() => { setBoomFx(null); fxOff.current = Date.now(); }, 2600); return () => clearTimeout(t); }, [r.boom?.at]);
+  useEffect(() => { const b = r.boom; if (!b || b.at <= lastBoom.current) return; lastBoom.current = b.at; setBoomFx(b); sfx(sound, b.saved ? 'defuse' : 'boom');
+    if (!b.saved) { setQuake(b.at); setTimeout(() => setQuake(0), 750); } try { navigator.vibrate?.(b.saved ? [40, 40, 40] : [120, 60, 240]); } catch { }
+    const t = setTimeout(() => { setBoomFx(null); fxOff.current = Date.now(); }, 3000); return () => clearTimeout(t); }, [r.boom?.at]);
   const prev = useRef(null);
   useEffect(() => { const s = { turn: `${r.turn}-${r.turnsLeft}`, pend: P ? `${P.by}-${P.nopes}` : '', res: !!res, deck: deck.length }; const p = prev.current; prev.current = s; if (!p) return;
     if (s.res && !p.res) { sfx(sound, room.result?.winner === myId ? 'win' : 'lose'); return; }
-    if (s.pend && s.pend !== p.pend) sfx(sound, P.nopes ? 'nope' : 'card');
+    if (s.pend && s.pend !== p.pend) sfx(sound, P.nopes ? 'stamp' : 'slam');
     else if (s.deck < p.deck && !r.boom?.at) sfx(sound, 'draw');
     if (s.turn !== p.turn && myTurn) setTimeout(() => sfx(sound, 'yourTurn'), 200);
   });
@@ -273,7 +288,7 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   return <div className="boom-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน</span><span className="cat-tag">↻ เวียนตามเข็มนาฬิกา</span></div>
 
-    <div className="gcols"><div className="gmain"><RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} sound={sound} canDraw={canPlay} onDraw={draw}
+    <div className={'gcols' + (quake ? ' quake' : '')}><div className="gmain"><RoundTable r={r} room={room} myId={myId} av={av} nameOf={nameOf} srvNow={srvNow} res={res} sound={sound} canDraw={canPlay} onDraw={draw}
       pick={canPlay && needTarget ? targets : null} picked={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} /></div><div className="gside">
 
     {/* ตอนนี้ตาใคร */}
@@ -331,7 +346,7 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
     <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 8).map((e, i) => <li key={i} className={e.boom ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
     </div></div>
 
-    {boomFx && <div className={'boom-fx' + (boomFx.saved ? ' saved' : '')} onClick={() => { setBoomFx(null); fxOff.current = Date.now(); }}><div className="bfx-box"><CardFace art={boomFx.saved ? 'clip' : 'bomb'} name={boomFx.saved ? 'ที่หนีบจมูก!' : 'ทุเรียนตูม!'} cat={boomFx.saved ? 'save' : 'bomb'} size="lg" /><b>{boomFx.saved ? `${nameOf(boomFx.pid)} หนีบจมูกทัน!` : `ตูม!! ${nameOf(boomFx.pid)} ตกรอบ`}</b><small>แตะเพื่อปิด</small></div></div>}
+    {boomFx && <div className={'boom-fx' + (boomFx.saved ? ' saved' : '')} onClick={() => { setBoomFx(null); fxOff.current = Date.now(); }}><i className="bfx-flash" /><div className="bfx-burst" aria-hidden="true"><i className="bfx-ring" /><i className="bfx-ring r2" /><i className="bfx-ring r3" />{Array.from({ length: 18 }, (_, i) => <i key={'s' + i} className="bfx-spike" style={{ '--a': i * 20 + 'deg', '--d': 0.8 + (i % 3) * 0.22 }} />)}{Array.from({ length: 8 }, (_, i) => <i key={'m' + i} className="bfx-smoke" style={{ '--a': i * 45 + 22 + 'deg' }} />)}</div><div className="bfx-box"><span className="bfx-word">{boomFx.saved ? 'รอด!!' : 'ตูม!!'}</span><CardFace art={boomFx.saved ? 'clip' : 'bomb'} name={boomFx.saved ? 'ที่หนีบจมูก!' : 'ทุเรียนตูม!'} cat={boomFx.saved ? 'save' : 'bomb'} size="lg" /><b>{boomFx.saved ? `${nameOf(boomFx.pid)} หนีบจมูกทัน!` : `ตูม!! ${nameOf(boomFx.pid)} ตกรอบ`}</b><small>แตะเพื่อปิด</small></div></div>}
   </div>;
 }
 

@@ -226,3 +226,53 @@
 @keyframes shufR{0%{transform:translate(-50%,-50%)}22%{transform:translate(12%,-58%) rotate(14deg)}50%{transform:translate(4%,-52%) rotate(9deg)}78%{transform:translate(-48%,-49%) rotate(2deg)}100%{transform:translate(-50%,-50%) rotate(0)}}
 .shuf-txt{position:absolute;z-index:40;left:0;top:0;transform:translate(-50%,-150%);margin-top:-34px;white-space:nowrap;padding:3px 10px;border-radius:20px;background:#fff;color:#2b1d10;font-weight:800;font-size:13px;box-shadow:0 4px 12px #0009;animation:bubble 1.7s ease forwards}
 @media (prefers-reduced-motion:reduce){.shuf-fx i{animation:none;transform:translate(-50%,-50%)}}
+
+/* ---------- ทุเรียนตูม: ลงไพ่กระแทกกลางโต๊ะ ---------- */
+.slam-fx{position:absolute;inset:0;z-index:9;pointer-events:none}
+.slam-card{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);animation:slamIn 1.45s cubic-bezier(.3,.9,.35,1) both}
+.slam-card .gcard{box-shadow:0 14px 30px #000b,0 0 0 3px #ffd76a}
+.slam-card em{position:absolute;right:-12px;top:-10px;padding:2px 8px;border-radius:20px;background:#ff5f6d;color:#fff;font-style:normal;font-weight:900;font-size:16px;box-shadow:0 3px 8px #0008}
+@keyframes slamIn{0%{left:var(--fx);top:var(--fy);opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-25deg)}10%{opacity:1}30%{left:50%;top:44%;transform:translate(-50%,-50%) scale(1.7) rotate(6deg)}40%{transform:translate(-50%,-50%) scale(1.22) rotate(-2deg)}48%{transform:translate(-50%,-50%) scale(1.35) rotate(0)}82%{opacity:1;left:50%;top:44%;transform:translate(-50%,-50%) scale(1.35)}100%{opacity:0;left:62%;top:52%;transform:translate(-50%,-50%) scale(.5)}}
+.slam-at{position:absolute;left:50%;top:44%;width:0;height:0}
+.slam-ring{position:absolute;left:0;top:0;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;border:6px solid #ffd76a;opacity:0;animation:slamRing .7s ease-out .42s forwards}
+.slam-ring.r2{animation-delay:.52s;border-color:#fff}
+@keyframes slamRing{0%{opacity:.95;transform:scale(.4)}100%{opacity:0;transform:scale(3.6);border-width:1px}}
+.slam-ray{position:absolute;left:0;top:0;width:6px;height:26px;margin:-13px 0 0 -3px;border-radius:3px;background:#ffd76a;opacity:0;animation:slamRay .55s ease-out .42s forwards}
+@keyframes slamRay{0%{opacity:1;transform:rotate(var(--a)) translateY(-40px) scaleY(.4)}100%{opacity:0;transform:rotate(var(--a)) translateY(-120px) scaleY(1.3)}}
+.slam-txt{position:absolute;left:50%;top:78%;transform:translate(-50%,-50%);white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis;padding:6px 16px;border-radius:30px;background:linear-gradient(90deg,#ff7a1a,#ffb347);color:#2b1000;font-weight:900;font-size:clamp(14px,2.2vw,19px);box-shadow:0 6px 18px #000a;animation:slamTxt 1.45s cubic-bezier(.3,1.6,.5,1) .25s both}
+@keyframes slamTxt{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+.nope-stamp{position:absolute;z-index:9;pointer-events:none;transform:translate(-50%,-50%);display:grid;justify-items:center;animation:stampIn 1.4s cubic-bezier(.2,1.6,.4,1) both}
+.nope-stamp b{padding:6px 14px;border:5px solid #ff3b4e;border-radius:12px;color:#ff3b4e;background:#ffffffd9;font-family:var(--display);font-size:clamp(22px,4vw,34px);white-space:nowrap;transform:rotate(-14deg);box-shadow:0 0 0 3px #fff6,0 8px 20px #0009}
+.nope-stamp.back b{border-color:#26b36a;color:#1a8a4f}
+.nope-stamp small{margin-top:8px;padding:2px 10px;border-radius:20px;background:#000b;color:#fff;font-weight:700}
+@keyframes stampIn{0%{opacity:0;transform:translate(-50%,-50%) scale(3)}25%{opacity:1;transform:translate(-50%,-50%) scale(.92)}35%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+/* กองจั่วเสี่ยงสูง: เรืองแดง */
+.rt-deck.hot::after{content:'';position:absolute;inset:-8px;border-radius:16px;box-shadow:0 0 26px 8px #ff3b1a99;animation:hotGlow 1s ease-in-out infinite;pointer-events:none}
+@keyframes hotGlow{50%{opacity:.3}}
+/* ---------- ระเบิดจัดเต็ม ---------- */
+.boom-fx{overflow:hidden}
+.bfx-flash{position:absolute;inset:0;background:#fff;opacity:0;animation:bfxFlash .45s ease-out;pointer-events:none}
+.boom-fx.saved .bfx-flash{background:#c8ffd9}
+@keyframes bfxFlash{0%{opacity:.95}100%{opacity:0}}
+.bfx-burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.bfx-ring{position:absolute;left:0;top:0;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:10px solid #ffb347;opacity:0;animation:bfxRing .9s cubic-bezier(.2,.7,.3,1) forwards}
+.bfx-ring.r2{animation-delay:.12s;border-color:#ff6a1a}
+.bfx-ring.r3{animation-delay:.26s;border-color:#ffe08a;border-width:5px}
+@keyframes bfxRing{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(14);border-width:1px}}
+.bfx-spike{position:absolute;left:0;top:0;width:22px;height:30px;margin:-15px 0 0 -11px;background:linear-gradient(#e2ec5a,#6f8f12);clip-path:polygon(50% 0,100% 100%,0 100%);opacity:0;animation:bfxSpike 1.1s cubic-bezier(.15,.8,.3,1) .05s forwards}
+@keyframes bfxSpike{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(-46vmin * var(--d))) scale(1.2) rotate(200deg)}}
+.bfx-smoke{position:absolute;left:0;top:0;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,#6b5a4acc,#3a2a2000 70%);opacity:0;animation:bfxSmoke 1.8s ease-out .15s forwards}
+@keyframes bfxSmoke{0%{opacity:.9;transform:rotate(var(--a)) translateY(0) scale(.3)}100%{opacity:0;transform:rotate(var(--a)) translateY(-26vmin) scale(2.6)}}
+.boom-fx.saved .bfx-smoke{display:none}
+.boom-fx.saved .bfx-ring{border-color:#5fd38d}.boom-fx.saved .bfx-ring.r2{border-color:#b6ffcf}
+.boom-fx.saved .bfx-spike{width:22px;height:22px;background:#ffe27a;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.bfx-box{position:relative;z-index:2}
+.bfx-word{font-family:var(--display);font-size:clamp(60px,15vw,136px);line-height:.95;color:#ffe08a;-webkit-text-stroke:4px #5a1a00;paint-order:stroke fill;text-shadow:0 8px 0 #5a1a00,0 0 40px #ff7a1a;animation:bfxWord .7s cubic-bezier(.2,1.8,.4,1) both,bfxJit .12s steps(2) .7s 6}
+.boom-fx.saved .bfx-word{color:#c8ffd9;-webkit-text-stroke-color:#0a3a1c;text-shadow:0 8px 0 #0a3a1c,0 0 40px #5fd38d}
+@keyframes bfxWord{0%{opacity:0;transform:scale(3) rotate(-12deg)}60%{opacity:1;transform:scale(.9) rotate(4deg)}100%{transform:scale(1) rotate(-3deg)}}
+@keyframes bfxJit{50%{transform:translate(3px,-2px) rotate(-4deg)}}
+/* โต๊ะสั่นตอนระเบิด */
+.gcols.quake{animation:quake .7s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes quake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(6px,-4px)}30%,50%,70%{transform:translate(-12px,6px) rotate(-1deg)}40%,60%{transform:translate(12px,-6px) rotate(1deg)}}
+@media (prefers-reduced-motion:reduce){.slam-fx,.nope-stamp,.bfx-spike,.bfx-smoke,.bfx-ring,.bfx-flash{display:none}.bfx-word,.gcols.quake,.rt-deck.hot::after{animation:none}}
+.bfx-word{line-height:1.2;margin-bottom:4px}

@@ -217,7 +217,9 @@ Object.assign(SFX, {
   card: () => { noise(0.09, { gain: 0.09, freq: 3200, type: 'highpass' }); tone(520, 0.06, { type: 'triangle', gain: 0.05, at: 0.06 }); },
   draw: () => noise(0.22, { gain: 0.1, freq: 1200, to: 5000, type: 'bandpass', q: 1.2 }),
   nope: () => { tone(330, 0.12, { type: 'square', gain: 0.05 }); tone(247, 0.24, { type: 'square', gain: 0.05, at: 0.13 }); },
-  boom: () => { noise(1.6, { gain: 0.5, freq: 3500, to: 50, q: 0.4 }); thump(0, 0.6); thump(0.1, 0.45); tone(70, 1.4, { type: 'sawtooth', gain: 0.07, to: 30, lp: 300 }); },
+  boom: () => { noise(1.6, { gain: 0.5, freq: 3500, to: 50, q: 0.4 }); thump(0, 0.6); thump(0.1, 0.45); tone(70, 1.4, { type: 'sawtooth', gain: 0.07, to: 30, lp: 300 }); thump(0.24, 0.5); noise(1.3, { at: 0.4, gain: 0.12, freq: 320, to: 60 }); [0.34, 0.47, 0.6, 0.76, 0.93, 1.1].forEach((at, i) => noise(0.06, { at, gain: 0.13 - i * 0.017, freq: 2300 + (i % 3) * 500, type: 'bandpass', q: 2 })); },
+  slam: () => { noise(0.4, { gain: 0.07, freq: 400, to: 3000, type: 'bandpass', q: 0.8 }); thump(0.42, 0.34); noise(0.09, { at: 0.42, gain: 0.13, freq: 3200, type: 'highpass' }); },
+  stamp: () => { noise(0.25, { gain: 0.05, freq: 600, to: 2500, type: 'bandpass', q: 0.8 }); thump(0.33, 0.4); noise(0.1, { at: 0.33, gain: 0.14, freq: 1800 }); tone(330, 0.12, { type: 'square', gain: 0.05, at: 0.36 }); tone(247, 0.24, { type: 'square', gain: 0.05, at: 0.49 }); },
   defuse: () => { noise(0.4, { gain: 0.08, freq: 1500, to: 300 }); tone(1400, 0.35, { gain: 0.06, to: 500 }); arp([659, 784, 1047], 0.1, { type: 'triangle', gain: 0.07, at: 0.4 }); },
 });
 
