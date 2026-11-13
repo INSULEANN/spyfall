@@ -82,21 +82,24 @@ export function WhoDone({ ids, done, av, nameOf, label }) {
 }
 
 // ---------- การ์ดบทบาท (พลิกเปิด/ปิด) ----------
-// โหมดเนียน: เคยเปิดดูบทบาทรอบนี้แล้วกด "ซ่อนบทบาท" → disguise = true ให้เกมเรนเดอร์ทั้งจอด้วยโค้ดชุดเดียวกับคนธรรมดา
-// (ฝ่ายร้ายตอบได้ว่า "บรรทัดที่ 3 เขียนว่าอะไร") • ทุกคนมีปุ่มเดียวกัน ปุ่มเลยไม่บอกว่าใครเป็นใคร
-// ยังไม่เคยเปิดดู = เห็นจอจริงไปก่อน กันฝ่ายร้ายเข้าใจผิดว่าตัวเองเป็นคนธรรมดา
+// สองปุ่มแยกกัน: "ซ่อนบทบาท" = ปิดการ์ดเฉย ๆ (จอยังเป็นของจริง ปุ่มลงมือครบ)
+// "เนียนบทบาท" (กดได้ตอนเปิดการ์ดอยู่) = disguise ให้เกมเรนเดอร์ทั้งจอด้วยโค้ดชุดเดียวกับคนธรรมดา → ฝ่ายร้ายตอบได้ว่า "บรรทัดที่ 3 เขียนว่าอะไร"
+// ทุกคนมีปุ่มเดียวกัน ปุ่มเลยไม่บอกว่าใครเป็นใคร • รอบใหม่ = บทบาทใหม่ → ออกจากโหมดเนียน ต้องเปิดดูก่อน
 export function useRoleCard(key) {
-  const [show, setShow] = React.useState(false); const [seen, setSeen] = React.useState(false);
-  React.useEffect(() => { setSeen(show); }, [key]);
-  return { show, toggle: () => { setShow(s => !s); setSeen(true); }, disguise: seen && !show };
+  const [mode, setMode] = React.useState('hide');   // 'hide' | 'show' | 'fake'
+  React.useEffect(() => { setMode(m => (m === 'fake' ? 'hide' : m)); }, [key]);
+  return { show: mode === 'show', disguise: mode === 'fake', toggle: () => setMode(m => (m === 'show' ? 'hide' : 'show')), fake: () => setMode('fake') };
 }
-export function RoleCard({ show, onToggle, disguiseNote, art, n, name, side, sideLabel, children, cover = 'think', coverTitle = 'บทบาทลับของคุณ', coverText = 'กดเปิดดูคนเดียว ระวังคนแอบมองจอ!' }) {
+export function RoleCard({ show, onToggle, onFake, faking, art, n, name, side, sideLabel, children, cover = 'think', coverTitle = 'บทบาทลับของคุณ', coverText = 'กดเปิดดูคนเดียว ระวังคนแอบมองจอ!' }) {
   return <div className={'role-card rcard' + (show ? ' open' : '')}>
     <div className="rcard-in" key={show ? 'o' : 'c'}>
       <div className="rcard-art"><Art name={show ? art : cover} n={n} size={112} /></div>
-      <div className="rcard-text">{show ? <>{sideLabel && <span className={'rcard-side ' + side}>{sideLabel}</span>}<h3>{name}</h3>{children}</> : <><h3>{coverTitle}</h3><p>{coverText}{disguiseNote && <><br /><small>🎭 ซ่อนไว้ = ทั้งจอดูเหมือนคนทั่วไป • ถึงตาทำหน้าที่ค่อยเปิด</small></>}</p></>}</div>
+      <div className="rcard-text">{show ? <>{sideLabel && <span className={'rcard-side ' + side}>{sideLabel}</span>}<h3>{name}</h3>{children}</> : <><h3>{coverTitle}</h3><p>{coverText}{faking && <><br /><small>🎭 กำลังเนียน: ทั้งจอดูเหมือนคนทั่วไป • ถึงตาลงมือค่อยเปิดดูบทบาท</small></>}</p></>}</div>
     </div>
-    <button className="secondary rcard-btn" onClick={onToggle}>{show ? <EyeOff size={16} /> : <Eye size={16} />} {show ? 'ซ่อนบทบาท' : 'เปิดดูบทบาท'}</button>
+    <div className="rcard-btns">
+      <button className="secondary rcard-btn" onClick={onToggle}>{show ? <EyeOff size={16} /> : <Eye size={16} />} {show ? 'ซ่อนบทบาท' : 'เปิดดูบทบาท'}</button>
+      {show && onFake && <button className="secondary rcard-btn" onClick={onFake} title="ทั้งจอจะดูเหมือนคนทั่วไปทุกตัวอักษร">🎭 เนียนบทบาท</button>}
+    </div>
   </div>;
 }
 

@@ -254,7 +254,7 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
     <div className="ex-score"><span className="good">นักสำรวจ {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.ok ? 'on' : ''} />)} ผ่าน {WIN_AT} ด่านชนะ</span><span className="bad">โจร {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.bad ? 'on' : ''} />)} พัง {WIN_AT} ด่านชนะ</span></div>
     <div className="ex-rejects"><span>คณะถูกค้านติดกัน</span>{Array.from({ length: MAX_REJECT }, (_, i) => <i key={i} className={i < (r.rejects || 0) ? 'on' : ''} />)}<small>ครบ {MAX_REJECT} = คณะแตก โจรชนะ</small></div>
     {/* บทบาท */}
-    {!res && <RoleCard show={card.show} onToggle={card.toggle} disguiseNote art={ROLE_ART[myRole] || 'explorer'} cover="map" name={info.name} side={bad ? 'bad' : 'good'} sideLabel={bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}>
+    {!res && <RoleCard show={card.show} onToggle={card.toggle} onFake={card.fake} faking={card.disguise} art={ROLE_ART[myRole] || 'explorer'} cover="map" name={info.name} side={bad ? 'bad' : 'good'} sideLabel={bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}>
       <p>{info.desc}</p>
       {bad && <div className="info-line">พวกเดียวกัน: {mates.length ? <><Voters ids={mates} av={av} /> <b>{mates.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
       {myRole === 'lantern' && <div className="info-line">🏮 โจรที่ส่องเห็น: {seen.length ? <><Voters ids={seen} av={av} /> <b className="bad">{seen.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}{Object.values(r.roles || {}).includes('mole') && <small> (มีจอมแฝงตัวอีก 1 คนที่มองไม่เห็น)</small>}</div>}

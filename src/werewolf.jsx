@@ -307,7 +307,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
 
     </div><div className="gside">
     {/* ---------- บทบาท ---------- */}
-    {!res && <RoleCard show={card.show} onToggle={card.toggle} disguiseNote art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : info.side === 'fool' ? 'warn' : 'good'} sideLabel={SIDE_LABEL[info.side]}>
+    {!res && <RoleCard show={card.show} onToggle={card.toggle} onFake={card.fake} faking={card.disguise} art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : info.side === 'fool' ? 'warn' : 'good'} sideLabel={SIDE_LABEL[info.side]}>
       <p>{info.desc}</p>
       {myLove && <div className="info-line">💞 คู่รักของคุณ: <Avatar id={myLove} av={av} size={22} /> <b>{nameOf(myLove)}</b> (ไม่รู้บทบาทของกันและกัน)</div>}
       {myRole === 'cupid' && lovers.length === 2 && <div className="info-line">💘 คู่ที่คุณจับ: <b>{nameOf(lovers[0])} ❤ {nameOf(lovers[1])}</b></div>}

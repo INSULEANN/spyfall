@@ -272,7 +272,7 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
     </>}
     </div><div className="gside">
     {/* ---------- บทบาท (ระหว่างเล่น) ---------- */}
-    {!res && <RoleCard show={card.show} onToggle={card.toggle} disguiseNote art={role.art} name={role.name} side={role.side} sideLabel={role.label} cover="die" n={myDie} coverTitle="บทบาทลับของคุณ" coverText={`เต๋าของคุณ: ${myDie} (ตื่นตี ${myDie}) • กดเปิดดูบทบาทคนเดียว`}>
+    {!res && <RoleCard show={card.show} onToggle={card.toggle} onFake={card.fake} faking={card.disguise} art={role.art} name={role.name} side={role.side} sideLabel={role.label} cover="die" n={myDie} coverTitle="บทบาทลับของคุณ" coverText={`เต๋าของคุณ: ${myDie} (ตื่นตี ${myDie}) • กดเปิดดูบทบาทคนเดียว`}>
       <p>{role.desc}</p><div className="info-line"><Art name="die" n={myDie} size={30} /> ตื่นตอน <b>ตี {myDie}</b></div></RoleCard>}
 
     {!res && (r.phase === 'day' || (r.phase === 'night' && h > myDie)) && clues}

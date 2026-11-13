@@ -62,7 +62,7 @@
 .rcard-text .secret{font-size:28px!important;margin:4px 0 8px!important;line-height:1.2}
 .rcard-side{display:inline-block;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;border:1px solid}
 .rcard-side.good{background:#5fd38d1f;color:#8fe8b0;border-color:#5fd38d66}.rcard-side.bad{background:#ff5f6d1f;color:#ff9b9b;border-color:#ff5f6d66}
-.rcard-btn{justify-self:start;margin:0!important}
+.rcard-btns{display:flex;flex-wrap:wrap;gap:8px;justify-self:start}.rcard-btn{justify-self:start;margin:0!important}
 .rcard .info-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--soft)}
 @keyframes rflip{from{transform:perspective(700px) rotateY(70deg);opacity:0}}
 
@@ -112,7 +112,7 @@
   .ptile{min-height:92px;padding:10px 4px 8px}
   .rcard-in{grid-template-columns:1fr;justify-items:center;text-align:center;gap:8px}
   .rcard-in .rcard-art .art{width:92px;height:92px}
-  .rcard{text-align:center!important}.rcard-btn{justify-self:stretch}.rcard .info-line{justify-content:center}
+  .rcard{text-align:center!important}.rcard-btn{justify-self:stretch}.rcard-btns{justify-self:stretch}.rcard-btns .rcard-btn{flex:1}.rcard .info-line{justify-content:center}
   .choice .art{width:60px;height:60px}
   .reveal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .howto{grid-template-columns:1fr}.howto div{grid-template-columns:auto 1fr;justify-items:start;text-align:left;align-items:center}.howto div .art{grid-row:span 2}
