@@ -85,6 +85,9 @@ const box = (f, at = 0, gain = 0.06) => { tone(f, 0.9, { at, gain, attack: 0.003
 const bird = (at = 0) => { tone(2600, 0.06, { at, gain: 0.04, to: 3600 }); tone(3000, 0.08, { at: at + 0.09, gain: 0.035, to: 2400 }); };
 const munch = (at = 0) => [0, 0.16, 0.32].forEach(d => { noise(0.09, { at: at + d, gain: 0.2, freq: 900, type: 'bandpass', q: 1.5 }); thump(at + d, 0.12); });
 const roll = (at = 0, dur = 0.9) => { for (let t = 0; t < dur; t += 0.045) noise(0.04, { at: at + t, gain: 0.05 + t * 0.06, freq: 1400, type: 'bandpass' }); };
+// นกหวีดจ่า (เสียงรัวมีลูกกลิ้ง) • ไซเรน วี้-หว่อ
+const pea = (at = 0, dur = 0.3) => { tone(2900, dur, { at, gain: 0.045, vib: 160, vibRate: 32, attack: 0.008 }); noise(dur, { at, gain: 0.025, freq: 3000, type: 'bandpass', q: 2 }); };
+const siren = (at = 0, n = 2) => { for (let i = 0; i < n; i++) { tone(720, 0.36, { type: 'triangle', at: at + i * 0.7, gain: 0.06, to: 1150, lp: 2600 }); tone(1150, 0.36, { type: 'triangle', at: at + i * 0.7 + 0.35, gain: 0.06, to: 720, lp: 2600 }); } };
 const PENTA = [523, 587, 659, 784, 880, 1047, 1175];
 const LULLABY = [1047, 784, 880, 659, 784, 523];
 
@@ -178,6 +181,23 @@ export const THEMES = {
     roll: () => [0, 0.08, 0.17, 0.27, 0.4].forEach((at, i) => noise(0.05, { at, gain: 0.1 - i * 0.012, freq: 2600, type: 'bandpass', q: 2 })),
     cash: () => { noise(0.09, { gain: 0.09, freq: 3200, type: 'bandpass', q: 2 }); bell(2637, 0.9, { at: 0.08, gain: 0.06 }); bell(3136, 1.0, { at: 0.17, gain: 0.05 }); },
     win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); [0.5, 0.64].forEach(at => bell(2637, 0.8, { at, gain: 0.05 })); },
+  },
+  // 👮 จ่าตรวจวัยรุ่นทรงเอ: นกหวีดจ่า ไซเรน ซิปกระเป๋า เงินใต้โต๊ะ
+  checkpoint: {
+    start: () => { pea(0, 0.18); pea(0.26, 0.18); pea(0.52, 0.55); siren(1.1, 2); },
+    join: () => { pea(0, 0.12); pop(0.16, 0.08); },
+    click: () => pop(0, 0.07), select: () => pop(0, 0.1),
+    confirm: () => { thump(0, 0.25); tone(1047, 0.12, { type: 'triangle', gain: 0.06, at: 0.05 }); tone(1568, 0.18, { type: 'triangle', gain: 0.05, at: 0.13 }); },
+    yourTurn: () => { pea(0, 0.16); pea(0.24, 0.45); },
+    round: () => siren(0, 1),
+    whistle: () => { pea(0, 0.14); pea(0.2, 0.5); },
+    siren: () => { thump(0, 0.5); noise(0.4, { gain: 0.1, freq: 600 }); siren(0.05, 3); },
+    zip: () => { noise(0.55, { gain: 0.08, freq: 1500, to: 6500, type: 'bandpass', q: 3 }); [0, 0.07, 0.14, 0.21, 0.28, 0.35, 0.42].forEach(at => noise(0.025, { at, gain: 0.06, freq: 4200, type: 'highpass' })); },
+    clean: () => { arp([523, 659, 784, 1047], 0.08, { type: 'triangle', gain: 0.07 }); tone(330, 0.5, { type: 'sawtooth', gain: 0.03, to: 196, lp: 900, at: 0.5 }); },
+    slam: () => { noise(0.2, { gain: 0.12, freq: 650 }); thump(0.02, 0.45); },
+    cash: () => { noise(0.09, { gain: 0.09, freq: 3200, type: 'bandpass', q: 2 }); bell(2637, 0.9, { at: 0.08, gain: 0.06 }); bell(3136, 1.0, { at: 0.17, gain: 0.05 }); },
+    coin: () => bell(2637, 0.5, { gain: 0.04 }),
+    win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); pea(0.55, 0.5); },
   },
   // 🌶️ ตำแหลก!: ครกตำป๊อก ๆ กระดิ่งรถเข็น ส้มตำมาแล้ว
   tam: {

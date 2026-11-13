@@ -24,13 +24,14 @@ import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } fr
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
 import { TamGame, TamLobby, makeTamRound, TAM_MIN, TAM_MAX, TAM_SCORE, MERCY } from './tam.jsx';
 import { DealGame, DealLobby, makeDealRound, DEAL_MIN, DEAL_MAX, DEAL_SCORE } from './deal.jsx';
+import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, CP_SCORE } from './checkpoint.jsx';
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.24';
+const APP_VERSION = '1.25';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -104,6 +105,11 @@ const GAMES = {
     lead:'ธนาคาร รับเหมา สื่อ ทนาย ขนส่ง ไอที — ใครคุมหุ้นส่วนไหน ดีลไหนต้องใช้ใคร เจ้าของดีลต้องเสนอส่วนแบ่งให้ถูกใจทุกคน ระหว่างนั้นใครก็ขัดขาได้ ทอยโดนเลขการ์ดจบเกม (เริ่มเปิดหลังปิดครบ 5 ดีล ทุก 5 ตา) หรือปิดดีลครบทุกช่อง = จบ ใครรวยสุดชนะ',
     pills:['🤝 เจรจาต่อรอง','🎩 แย่งดีล','💰 ใครรวยสุดชนะ'],
     how:[['เดินไปเจอดีล','ตาของคุณ ทอยเต๋าเดินหมวกเจ้าสัวไปเจอดีล แล้วคุณเป็นเจ้าของดีลนั้น หรือจะจั่วการ์ด 2 ใบแทนก็ได้'],['รวบรวมหุ้นส่วน','แต่ละดีลมีหุ้นส่วนจำเป็น + กลุ่มตัวเลือก (เจ้าของดีลเลือกเองว่าจะเอาใคร) คนที่คุมหุ้นส่วนนั้นต้องเข้าดีล ช่องดีลเป็นตัวคูณ ×N = แบ่ง N ส่วน เจ้าของดีลเสนอแบ่งส่วน ทุกคนกดตกลงครบ = ปิดดีล แล้วเปิดการ์ดเงินสุ่มมาคูณ'],['ขัดขาได้ทุกเมื่อ','ระหว่างเจรจา ใครก็เล่นการ์ดได้: แย่งเป็นเจ้าของดีล กันหุ้นส่วน ส่งเด็กเส้นเข้าแทน หรือซื้อกิจการหุ้นส่วนมาเป็นของตัวเอง']] },
+  checkpoint: { id:'checkpoint', type:'checkpoint', name:'จ่าตรวจวัยรุ่นทรงเอ', emoji:'👮', packs:[], item:'กระเป๋า', unit:'ใบ', roles:false, min:CP_MIN, max:CP_MAX, h1:['จ่าตรวจ','วัยรุ่นทรงเอ'], art:'👮', float:'ในกระเป๋ามีอะไรน้อง?',
+    blurb:'ด่านตรวจตีสอง! วัยรุ่นยัดของใส่กระเป๋าแล้วบอกจ่าว่า “หมูปิ้งครับ” จริงหรือโกหกก็ได้ ยื่นซองต่อรองกันสด ๆ จ่าจะเปิดตรวจหรือปล่อยผ่าน?',
+    lead:'ทุกคนผลัดกันเป็นจ่าเวร ที่เหลือเป็นวัยรุ่นทรงเอขี่มอไซค์ผ่านด่าน ยัดหมูปิ้ง ชานมไข่มุก หรือแอบซุกท่อซิ่ง ลำโพงเสียงแตก ประทัด แล้วตีหน้าซื่อ…จ่าเปิดเจอของโกหก = โดนปรับ เปิดเจอของจริง = จ่าต้องจ่ายค่าเสียเวลา',
+    pills:['🎒 ยัดกระเป๋า','🤥 โกหกได้','💸 ยื่นซอง'],
+    how:[['ยัดกระเป๋า','วัยรุ่นแลกการ์ดที่แผงลอย แล้วยัดการ์ด 1–5 ใบใส่กระเป๋า บอกจ่าว่าเป็นของอะไร จำนวนต้องตรง แต่ชนิดโกหกได้ ของเถื่อนแพงกว่าแต่เสี่ยง'],['ต่อรองหน้าด่าน','ยื่นซองเป็นเงินหรือของบนแผง จ่าเรียกเพิ่มได้ ทุกคนเห็นข้อเสนอทันที คุยกันผ่านห้องเสียงจะมันสุด'],['เปิดหรือปล่อย','จ่าเปิดเจอโกหก = วัยรุ่นโดนปรับ + ยึดของ เจอของจริง = จ่าจ่ายค่าเสียเวลา ปล่อยผ่าน = รับซอง จบเกมนับราคาของ + โบนัสคนมีของมากสุด + เงิน']] },
 };
 // เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
 const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
@@ -117,6 +123,7 @@ const COPY = {
   cake:{stamp:'ห้ามแตะเค้ก!',floatSub:'จำเวลาที่ตื่นไว้ให้ดี',joinH:'ชวนรูมเมทเข้าบ้าน',howH:'กติกาบ้านนี้'},
   boom:{stamp:'ห้ามจั่วมั่ว!',floatSub:'มีที่หนีบจมูกหรือยัง?',joinH:'ชวนแก๊งมาลุ้นทุเรียน',howH:'กติกาแผงทุเรียน'},
   deal:{stamp:'ดีลนี้ต้องปิด!',floatSub:'แบ่งเงินให้ถูกใจทุกคน',joinH:'นัดหุ้นส่วนมาเจรจา',howH:'กติกาห้องประชุม'},
+  checkpoint:{stamp:'หยุดตรวจ!',floatSub:'หมูปิ้งล้วน ๆ ครับจ่า',joinH:'รวมแก๊งซิ่งผ่านด่าน',howH:'กติกาหน้าด่าน'},
   tam:{stamp:'ไม่ไว้หน้าใคร!',floatSub:'ซ้อนบวกได้ไม่จำกัด',joinH:'เรียกแก๊งมาล้อมครก',howH:'กติกาครกแตก'},
   curse:{stamp:'ปอปอยู่ในหมู่บ้าน!',floatSub:'ซุบซิบให้ถึง 7 แต้ม',joinH:'ตีกลองเรียกชาวบ้านมาศาลา',howH:'กฎบ้านนาดง'},
 };
@@ -258,6 +265,8 @@ function App() {
     const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='checkpoint'){const rd=makeCpRound(ids,{laps:room.settings?.cpLaps||lapsFor(ids.length)},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='tam'){const rd=makeTamRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
@@ -517,6 +526,15 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>💼 เปิดห้องประชุม ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
       {G.type==='deal'&&room.status!=='lobby'&&room.round?.kind==='deal'&&<DealGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='checkpoint'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=CP_MIN&&n<=CP_MAX,laps=room.settings?.cpLaps||lapsFor(n);return <><span className="eyebrow">พร้อมยัง?</span><h2>ด่านตรวจตีสอง…ใครจะเป็นจ่าก่อน?</h2>
+        <p className="hint">เล่นได้ {CP_MIN}–{CP_MAX} คน • เปิดห้องเสียงไว้ต่อรองกับจ่าสด ๆ จะสนุกที่สุด • เกมละประมาณ {Math.max(1,Math.round(n*laps*2.5))}–{Math.max(2,Math.round(n*laps*4))} นาที</p>
+        {n>CP_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {CP_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <CheckpointLobby n={n}/>
+        <label>👮 ทุกคนเป็นจ่ากี่ครั้ง {isHost?'(หัวหน้าห้องตั้ง)':'(หัวหน้าห้องเป็นคนตั้ง)'}</label><select value={laps} disabled={!isHost} onChange={e=>update(ref(db,`rooms/${roomCode}/settings`),{cpLaps:+e.target.value})}><option value={1}>คนละ 1 ครั้ง ({n} ด่าน)</option><option value={2}>คนละ 2 ครั้ง ({n*2} ด่าน)</option><option value={3}>คนละ 3 ครั้ง ({n*3} ด่าน)</option></select>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>รวยสุดหน้าด่าน +{CP_SCORE.win} • อันดับ 2 +{CP_SCORE.second}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🚧 ตั้งด่านตรวจ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องตั้งด่านอยู่</div>}</>})()}
+      {G.type==='checkpoint'&&room.status!=='lobby'&&room.round?.kind==='checkpoint'&&<CheckpointGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='tam'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=TAM_MIN&&n<=TAM_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ครกพร้อม…ใครจะโดนตำ?</h2>
         <p className="hint">เล่นได้ {TAM_MIN}–{TAM_MAX} คน • ลงไพ่ตรงรสหรือตรงเลข หมดมือก่อนชนะ • ไพ่บวกซ้อนกันได้ • ถือไพ่ถึง {MERCY} ใบตกรอบ</p>
         {n>TAM_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {TAM_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -542,8 +560,8 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>

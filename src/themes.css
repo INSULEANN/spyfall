@@ -105,6 +105,17 @@
   --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M8 52V30h8v22M20 52V18h8v34M32 52V38h8v14' fill='%23f5c451' fill-opacity='.04'/%3E%3C/svg%3E");
 }
 
+/* 👮 จ่าตรวจวัยรุ่นทรงเอ — ด่านตรวจตีสอง น้ำเงินกลางคืน ไฟไซเรนแดง/น้ำเงิน เสื้อสะท้อนแสงเหลือง */
+[data-theme="checkpoint"]{
+  --display:'Chakra Petch',sans-serif;--display-weight:700;--radius:16px;
+  --bg:#070a16;--panel:#10152a;--inset:#0b0f20;--chip:#1a2140;--glow:#1c2a72;
+  --text:#f2f5ff;--soft:#d0d7f0;--muted:#8f99bc;--dim:#5b6488;
+  --accent:#ffd23f;--accent-hi:#ffe27a;--accent-2:#3a8bff;--on-accent:#1a1400;
+  --hero-1:#0a0f26;--hero-2:#1c2a6a;--hero-3:#6a1424;
+  --blood:#ff4d5e;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M-6 54L54-6' stroke='%23ffd23f' stroke-opacity='.035' stroke-width='7'/%3E%3C/svg%3E");
+}
+
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}
 body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}
@@ -231,6 +242,8 @@ body{min-height:100vh}
 [data-theme="boom"] .phase.me{border-color:#ffb03a;box-shadow:0 0 0 2px #ffb03a44,0 10px 34px #ff7a1a33}
 [data-theme="boom"] .game-panel h2,[data-theme="boom"] .hero h1 em{letter-spacing:.3px}
 [data-theme="deal"] .phase.me{border-color:#f5c451;box-shadow:0 0 0 2px #f5c45144,0 10px 34px #f5c45122}
+[data-theme="checkpoint"] .phase.me{border-color:#ffd23f;box-shadow:0 0 0 2px #ffd23f44,0 10px 34px #3a8bff33}
+[data-theme="checkpoint"] .hero h1 em{color:#ffd23f;text-shadow:0 0 22px #ff3b4e66}
 [data-theme="tam"] .phase.me{border-color:#ff5a3c;box-shadow:0 0 0 2px #ff5a3c44,0 10px 34px #ff3a1a33}
 [data-theme="tam"] .hero h1,[data-theme="tam"] .game-panel h2{letter-spacing:.2px;text-shadow:0 2px 0 #00000070}
 [data-theme="curse"] .phase.me{border-color:#a8f07a;box-shadow:0 0 0 2px #a8f07a33,0 10px 34px #5fc96a33}

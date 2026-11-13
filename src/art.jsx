@@ -339,5 +339,47 @@ function CurseScene() {
     <g className="peek"><path d="M314 176 q-6 -12 6 -18 h22 q10 0 10 10 v4 q0 10 -10 10 h-12 l-8 8 l2 -8 q-10 0 -10 -6 Z" fill="#eef8ec" opacity=".9" /><text x="332" y="172" textAnchor="middle" fontSize="13" fontWeight="900" fill="#3a0d14" fontFamily="sans-serif">ปอป!</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene };
+// ---------- 👮 จ่าตรวจวัยรุ่นทรงเอ: ด่านตรวจกลางดึก ไฟไซเรน กรวยจราจร จ่าส่องไฟฉาย วัยรุ่นซ้อนมอไซค์กับกระเป๋าพอง ๆ ----------
+function CheckpointScene() {
+  return <S id="checkpoint" label="ด่านตรวจกลางดึก จ่าถือไฟฉายส่องวัยรุ่นสองคนที่ซ้อนมอเตอร์ไซค์มาพร้อมกระเป๋าใบโต">
+    <defs>
+      <linearGradient id="cpk-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#050920" /><stop offset=".62" stopColor="#1a2560" /><stop offset="1" stopColor="#3a2a5a" /></linearGradient>
+      <radialGradient id="cpk-red" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ff3b4e" stopOpacity=".75" /><stop offset="1" stopColor="#ff3b4e" stopOpacity="0" /></radialGradient>
+      <radialGradient id="cpk-blue" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#3a8bff" stopOpacity=".75" /><stop offset="1" stopColor="#3a8bff" stopOpacity="0" /></radialGradient>
+      <linearGradient id="cpk-beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#fff6c0" stopOpacity=".8" /><stop offset="1" stopColor="#fff6c0" stopOpacity="0" /></linearGradient>
+    </defs>
+    <rect width="400" height="260" fill="url(#cpk-sky)" />
+    <circle cx="344" cy="40" r="17" fill="#fff2c4" opacity=".9" />
+    <g className="tw" fill="#fff">{[[40, 30], [120, 18], [200, 40], [262, 22], [380, 80], [90, 70]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.6" />)}</g>
+    <g fill="#0b1235">{[[0, 128, 30], [28, 112, 22], [190, 120, 26], [214, 98, 20], [232, 126, 30], [300, 108, 26], [324, 124, 34], [356, 100, 44]].map(([x, y, w], i) => <rect key={i} x={x} y={y} width={w} height={190 - y} />)}</g>
+    <path d="M0 260 V190 L400 178 V260 Z" fill="#24262f" /><path d="M0 230 L400 216" stroke="#ffd23f" strokeWidth="4" strokeDasharray="24 18" opacity=".8" />
+    {/* ป้อมด่าน + ไฟไซเรน */}
+    <circle className="tw" cx="40" cy="98" r="34" fill="url(#cpk-red)" /><circle className="tw" cx="70" cy="98" r="34" fill="url(#cpk-blue)" />
+    <rect x="22" y="112" width="72" height="84" rx="4" fill="#dfe4f2" /><rect x="18" y="104" width="80" height="12" rx="3" fill="#2a3a7a" />
+    <rect x="34" y="98" width="14" height="7" rx="2" fill="#ff3b4e" /><rect x="66" y="98" width="14" height="7" rx="2" fill="#3a8bff" />
+    <rect x="30" y="124" width="56" height="28" rx="3" fill="#8fb4ff" opacity=".55" />
+    <rect x="28" y="160" width="60" height="18" rx="3" fill="#ffd23f" /><text x="58" y="173.5" textAnchor="middle" fontSize="11" fontWeight="900" fill="#1a1400" fontFamily="Kanit,sans-serif">ด่านตรวจ</text>
+    <g><rect x="94" y="172" width="112" height="8" rx="3" fill="#fff" /><g fill="#ff3b4e">{[100, 122, 144, 166, 188].map(x => <rect key={x} x={x} y="172" width="10" height="8" />)}</g><rect x="90" y="166" width="8" height="30" rx="2" fill="#3a3a48" /></g>
+    {[[118, 210], [214, 204], [372, 206]].map(([x, y], i) => <g key={i}><path d={`M${x - 9} ${y} L${x} ${y - 24} L${x + 9} ${y} Z`} fill="#ff7a1a" /><rect x={x - 5} y={y - 15} width="10" height="4" fill="#fff" /></g>)}
+    {/* จ่าส่องไฟฉาย */}
+    <path className="tw" d="M190 146 L302 112 L304 186 Z" fill="url(#cpk-beam)" />
+    <g transform="translate(160 0)">
+      <rect x="-7" y="184" width="6" height="22" rx="2" fill="#1a2140" /><rect x="2" y="184" width="6" height="22" rx="2" fill="#1a2140" />
+      <path d="M-14 142 Q0 134 14 142 V186 H-14 Z" fill="#2a3a7a" /><path d="M-14 158 H14 M-14 170 H14" stroke="#ffd23f" strokeWidth="3.5" />
+      <path d="M12 146 L28 150" stroke="#2a3a7a" strokeWidth="7" strokeLinecap="round" /><rect x="26" y="144" width="10" height="8" rx="2" fill="#444" transform="rotate(-14 31 148)" />
+      <circle cx="0" cy="128" r="11" fill="#e8b88a" /><path d="M-13 122 Q0 108 13 122 Z" fill="#14204a" /><rect x="-14" y="120" width="28" height="4" rx="2" fill="#0b1235" /><circle cx="0" cy="114" r="2.4" fill="#ffd23f" />
+      <path d="M-4 130 q4 3 8 0" stroke="#5a3a20" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    </g>
+    {/* วัยรุ่นซ้อนมอไซค์ + กระเป๋าใบโต */}
+    <g className="bob">
+      <circle cx="262" cy="204" r="14" fill="#111" stroke="#666" strokeWidth="3" /><circle cx="334" cy="204" r="14" fill="#111" stroke="#666" strokeWidth="3" />
+      <path d="M256 196 Q270 172 300 176 L328 172 Q344 176 344 196 L330 196 Q318 186 300 192 L272 196 Z" fill="#e0457a" /><path d="M326 168 L340 152" stroke="#ccc" strokeWidth="4" strokeLinecap="round" /><circle cx="344" cy="176" r="5" fill="#fff6c0" />
+      <path d="M296 176 Q300 150 312 146 L322 150 Q318 168 312 180 Z" fill="#1fa3b5" /><circle cx="314" cy="136" r="10" fill="#e8b88a" /><path d="M304 132 L306 120 L311 128 L314 116 L318 127 L323 119 L324 132 Z" fill="#1a1a1a" />
+      <path d="M268 178 Q270 154 284 150 L294 154 Q292 170 288 182 Z" fill="#ffd23f" /><circle cx="285" cy="140" r="10" fill="#d9a066" /><path d="M275 137 Q276 124 288 126 Q296 128 296 136 Q290 130 284 133 Z" fill="#c0392b" />
+      <g transform="rotate(-8 258 158)"><path d="M236 146 Q236 136 246 136 H272 Q282 136 282 146 V170 Q282 180 272 180 H246 Q236 180 236 170 Z" fill="#7a6a3a" stroke="#2a2010" strokeWidth="2" /><path d="M240 150 H278" stroke="#c9b26a" strokeWidth="2.5" strokeDasharray="3 2" /><text x="259" y="172" textAnchor="middle" fontSize="18" fontWeight="900" fill="#fff6d0" fontFamily="Kanit,sans-serif">?</text></g>
+    </g>
+    <g className="peek"><path d="M300 74 h80 q8 0 8 8 v20 q0 8 -8 8 h-52 l-12 10 l2 -10 h-18 q-8 0 -8 -8 v-20 q0 -8 8 -8 Z" fill="#fff" /><text x="340" y="96" textAnchor="middle" fontSize="12" fontWeight="900" fill="#1a1a2a" fontFamily="Kanit,sans-serif">หมูปิ้งครับจ่า!</text></g>
+  </S>;
+}
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

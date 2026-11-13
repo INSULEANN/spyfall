@@ -26,6 +26,12 @@
 [data-amb="boom"] i:nth-child(3n){background:#a3b13a;box-shadow:0 0 6px #a3b13a88;width:calc(7px*var(--s));height:calc(7px*var(--s));border-radius:30%;transform:rotate(45deg)}
 /* ปิดดีล!: เหรียญทองลอยขึ้นช้า ๆ */
 [data-amb="deal"] i{width:calc(6px*var(--s));height:calc(6px*var(--s));border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,#f5c451 55%,#b8862a);box-shadow:0 0 8px #f5c45166;animation-duration:calc(var(--d)*1.4)}
+/* จ่าตรวจวัยรุ่นทรงเอ: ไฟไซเรนแดง/น้ำเงินวูบวาบไกล ๆ + ไฟท้ายรถลอยผ่าน */
+[data-amb="checkpoint"] i{bottom:auto;top:calc(var(--y)*0.85);width:calc(4px*var(--s));height:calc(4px*var(--s));background:#ff3b4e;box-shadow:0 0 10px 3px #ff3b4e77;animation:amb-twinkle calc(var(--d)/4) ease-in-out var(--dl) infinite}
+[data-amb="checkpoint"] i:nth-child(2n){background:#3a8bff;box-shadow:0 0 10px 3px #3a8bff77}
+[data-amb="checkpoint"] i:nth-child(5n){top:auto;bottom:-20px;background:#ffd23f;box-shadow:0 0 8px 2px #ffd23f66;animation:amb-rise var(--d) linear var(--dl) infinite}
+[data-amb="checkpoint"]:after{content:"";position:absolute;left:-10%;right:-10%;top:-120px;height:280px;background:radial-gradient(ellipse at 22% 0,#ff3b4e22,transparent 60%),radial-gradient(ellipse at 78% 0,#3a8bff22,transparent 60%);animation:cpAmbSiren 2.4s ease-in-out infinite alternate}
+@keyframes cpAmbSiren{to{opacity:.3;transform:translateX(3%)}}
 /* ตำแหลก!: เศษพริก มะนาว น้ำตาลปี๊บ ปลิวตกลงมา */
 [data-amb="tam"] i{bottom:auto;top:-20px;width:calc(7px*var(--s));height:calc(3px*var(--s));border-radius:40% 60% 40% 60%;background:#ff4a2a;animation-name:amb-fall;animation-duration:calc(var(--d)*1.2)}
 [data-amb="tam"] i:nth-child(3n+1){background:#7fd34a}[data-amb="tam"] i:nth-child(3n+2){background:#ffcf45;width:calc(4px*var(--s));height:calc(4px*var(--s));border-radius:50%}
