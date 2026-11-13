@@ -283,3 +283,7 @@
   .cp-steps li{font-size:10.5px;padding:5px 2px}
   .cp-pfx-bike{font-size:56px}
 }
+
+.cpc .cpc-v small{font-size:.72em;font-weight:800}
+.cpc.sm .cpc-v small{display:none}
+.cp-fs b small{font-size:.5em;font-weight:700;margin-left:2px}

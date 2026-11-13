@@ -34,6 +34,8 @@ export const DEALS = [
 ];
 export const optOf = D => D?.opt || []; export const pickOf = D => (optOf(D).length ? D.pick || 0 : 0);
 export const slotsOf = D => [...(D?.need || []), ...optOf(D)];
+// เงินทั้งเกมนับเป็นล้าน แสดงแบบ 12.00 M
+export const fmtM = x => (+x || 0).toFixed(2) + ' M';
 // การ์ดเงิน: ล้านต่อส่วน (สุ่มเปิดตอนปิดดีล แล้วคูณกับจำนวนส่วนของแต่ละคน)
 export const MONEY = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5];
 export const CARDS = {
@@ -180,7 +182,7 @@ export function closeDeal(cur, me, now) {
   const D = DEALS[n.deal]; let md = [...(r.mdeck || [])]; if (!md.length) md = shuffle([...MONEY]); const card = md.shift(); r.mdeck = md;
   const pay = {}; Object.entries(n.offer || {}).forEach(([id, x]) => { pay[id] = x * card; r.money[id] = (r.money?.[id] || 0) + x * card; });
   r.lastPay = { deal: n.deal, card, x: D.v, pay, at: now };
-  say(r, `🤝 {${me}} ปิดดีล ${D.e} ${D.n}! เปิดการ์ดเงิน 💵 ${card} ล้าน/ส่วน → ${partsOf(n).map(id => `{${id}} ${n.offer[id]} ส่วน = ${pay[id] ?? 0} ล้าน`).join(' • ')}`, { by: me, act: `💵 ${card} ล้าน/ส่วน!`, win: true });
+  say(r, `🤝 {${me}} ปิดดีล ${D.e} ${D.n}! เปิดการ์ดเงิน 💵 ${fmtM(card)}/ส่วน → ${partsOf(n).map(id => `{${id}} ${n.offer[id]} ส่วน = ${fmtM(pay[id] ?? 0)}`).join(' • ')}`, { by: me, act: `💵 ${fmtM(card)}/ส่วน!`, win: true });
   r.done = [...(r.done || []), { deal: n.deal, boss: me, offer: n.offer, card }]; r.closed = (r.closed || 0) + 1;
   if (r.closed >= END_START && r.endFrom == null) { r.endFrom = r.turns || 0; say(r, `🎴 ปิดดีลครบ ${END_START} ดีลแล้ว! เริ่มนับการ์ดจบเกม — อีก ${END_EVERY} ตาเปิดใบแรก`, { end: true }); }
   r.tiles[n.tile] = -1;
@@ -379,7 +381,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     : step === 2 ? <><b>② แบ่งส่วน แล้วรอทุกคนกดตกลง</b><span>กด − / + ข้างชื่อ ปรับได้เลย ไม่ต้องกดส่ง • ยังรอ: {waitIds.map(you).join(', ')}</span></>
     : <><b>③ ทุกคนตกลงแล้ว! 🎉</b><span>กดปิดดีล แล้วสุ่มการ์ดเงินมาคูณ</span></>)
     : iPart ? (n.ok?.[myId] === true ? <><b>✅ คุณตกลงรับ <em>{myAmt} ส่วน</em> แล้ว</b><span>รอเจ้าของดีลกดปิดดีล</span></>
-      : <><b>เจ้าของดีลให้คุณ <em>{myAmt} ส่วน</em></b><span>ได้ {myAmt}–{myAmt * 5} ล้าน (แล้วแต่การ์ดเงิน){ask[myId] != null ? ` • คุณขอไป ${ask[myId]} ส่วน — รอเจ้าของดีลตอบ` : ''}</span></>)
+      : <><b>เจ้าของดีลให้คุณ <em>{myAmt} ส่วน</em></b><span>ได้ {fmtM(myAmt)} – {fmtM(myAmt * 5)} (แล้วแต่การ์ดเงิน){ask[myId] != null ? ` • คุณขอไป ${ask[myId]} ส่วน — รอเจ้าของดีลตอบ` : ''}</span></>)
     : myCand ? <><b>🙋 คุณเป็นหุ้นส่วนตัวเลือก</b><span>เจ้าของดีลยังไม่เลือกคุณ — เสนอขอส่วนน้อย ๆ เพื่อให้ถูกเลือก{ask[myId] != null ? ` (ตอนนี้ขอ ${ask[myId]} ส่วน)` : ''}</span></>
     : <><b>👀 คุณไม่ได้อยู่ในดีลนี้</b><span>แทรกได้ด้วยการ์ดในมือ: 🎩 แย่งคุมดีล • ✋ กันคนออก • 🤝 เด็กเส้นเข้าดีลเอง</span></>;
   const doBtns = !n ? null : iBoss ? <>
@@ -391,7 +393,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     : myCand ? <div className="ng-mini">{[1, 2, 3].filter(w => w < v).map(w => <button key={w} className={'secondary' + (ask[myId] === w ? ' on' : '')} onClick={() => askFor(w)}>🙋 ขอแค่ {w} ส่วน</button>)}</div>
     : null;
 
-  const center = res ? <div className="mid-res">🏆<b>{nameOf(res.winner)}</b><small>รวยสุด {money(res.winner)} ล้าน</small></div>
+  const center = res ? <div className="mid-res">🏆<b>{nameOf(res.winner)}</b><small>รวยสุด {fmtM(money(res.winner))}</small></div>
     : r.phase === 'nego' ? <div className="mid-nego"><span className="mid-die">{DIE[n.die]}</span><span className="mid-e">{D.e}</span><b>{D.n}</b><small>×{v} ส่วน • <Avatar id={n.boss} av={av} size={18} /> คุมดีล</small><TimerRing secs={secs} total={Math.round(NEGO_MS / 1000)} size={40} /></div>
       : <div className="mid-turn"><Avatar id={cur} av={av} size={38} /><b>{cur === myId ? 'ตาคุณ!' : `ตาของ ${nameOf(cur)}`}</b><small>ปิดดีลแล้ว {r.closed || 0}/{TILES}</small>{endNums.length > 0 && <small className="mid-end">🎴 ระวังเลข {endNums.join(' ')}</small>}<TimerRing secs={secs} total={TURN_MS / 1000} size={40} /></div>;
 
@@ -400,8 +402,8 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     <div className="gcols"><div className="gmain"><Board r={r} res={res} myId={myId} av={av} nameOf={nameOf} center={center} /></div><div className="gside">
 
     {res && <>
-      <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รวยที่สุด! 🏆`}>{res.why === 'number' && r.lastRoll ? <>🎴 {nameOf(r.lastRoll.by)} ทอยได้ {r.lastRoll.die} ตรงการ์ดจบเกม<br /></> : res.why === 'board' ? <>💼 ปิดดีลครบทุกช่องแล้ว<br /></> : res.why === 'limit' ? <>⏱️ ครบจำนวนตาสูงสุด<br /></> : ''}เงินรวม {money(res.winner)} ล้าน • ปิดดีลไป {r.closed || 0} ดีล</Outcome>
-      <div className="money-row big">{(res.rank || []).map((id, i) => <span key={id}><em>{i + 1}</em><Avatar id={id} av={av} size={26} /> {nameOf(id)} <b>💰{money(id)} ล้าน</b></span>)}</div>
+      <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รวยที่สุด! 🏆`}>{res.why === 'number' && r.lastRoll ? <>🎴 {nameOf(r.lastRoll.by)} ทอยได้ {r.lastRoll.die} ตรงการ์ดจบเกม<br /></> : res.why === 'board' ? <>💼 ปิดดีลครบทุกช่องแล้ว<br /></> : res.why === 'limit' ? <>⏱️ ครบจำนวนตาสูงสุด<br /></> : ''}เงินรวม {fmtM(money(res.winner))} • ปิดดีลไป {r.closed || 0} ดีล</Outcome>
+      <div className="money-row big">{(res.rank || []).map((id, i) => <span key={id}><em>{i + 1}</em><Avatar id={id} av={av} size={26} /> {nameOf(id)} <b>💰{fmtM(money(id))}</b></span>)}</div>
       <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
@@ -417,7 +419,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
       <ol className="ng-steps">{['ทีมครบ', 'ทุกคนตกลง', 'ปิดดีล'].map((s, i) => <li key={s} className={step > i + 1 ? 'done' : step === i + 1 ? 'now' : ''}>{step > i + 1 ? '✓' : i + 1} {s}</li>)}</ol>
       <div className="ng-do">{doBox}{doBtns}</div>
 
-      <div className="ng-h">👥 คนในดีล — แบ่ง {v} ส่วน <small>(ปิดแล้วเปิดการ์ดเงิน ส่วนละ 1–5 ล้าน)</small></div>
+      <div className="ng-h">👥 คนในดีล — แบ่ง {v} ส่วน <small>(ปิดแล้วเปิดการ์ดเงิน ส่วนละ 1.00–5.00 M)</small></div>
       <div className="ng-bar" aria-hidden="true">{parts.flatMap(id => Array.from({ length: Math.max(0, id === n.boss ? bossShare : offer[id] || 0) }, (_, i) => <i key={id + i} style={{ background: colOf(id) }} />))}</div>
       <div className="ng-people">{parts.map(id => { const isB = id === n.boss; const amt = isB ? bossShare : offer[id] || 0; const a = ask[id];
         const st = isB ? <span className="ng-st boss">🎩 เจ้าของดีล • ได้ส่วนที่เหลือ</span>
@@ -453,7 +455,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     {!res && <div className="end-row"><span className="er-h">🎴 การ์ดจบเกม</span><span className="er-cards">{endNums.length ? endNums.map(x => <b key={x} className="end-card">{x}</b>) : <em>ยังไม่เปิด</em>}</span><small>{!endOn ? `เริ่มเปิดเมื่อปิดดีลครบ ${END_START} ดีล (ตอนนี้ ${Math.min(r.closed || 0, END_START)}/${END_START}) แล้วเปิดทุก ${END_EVERY} ตา` : <>{endNums.length ? `ทอยได้ ${endNums.join(' / ')} = จบเกม` : 'ทอยได้เลขบนการ์ด = จบเกม'} • {endLeft ? `ใบใหม่ในอีก ${nextEnd} ตา` : 'เปิดครบแล้ว'}</>}</small></div>}
     <SecH icon="💼">ใครคุมหุ้นส่วนไหน</SecH>
     <div className="ctrl-row">{PK.map(p => <span key={p} className={'ctrl-chip' + (r.ctrl[p] === myId ? ' mine' : '')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={22} /><span><b>{PARTNERS[p].n}</b><small><Avatar id={r.ctrl[p]} av={av} size={16} /> {you(r.ctrl[p])}</small></span></span>)}</div>
-    {!res && <div className="money-row">{[...r.order].sort((a, b) => money(b) - money(a)).map(id => <span key={id} className={(id === cur ? 'cur ' : '') + (r.out?.[id] ? 'out' : '')}><Avatar id={id} av={av} size={22} /> {you(id)} <b>💰{money(id)}</b><small>🃏{hand(r, id).length}</small></span>)}</div>}
+    {!res && <div className="money-row">{[...r.order].sort((a, b) => money(b) - money(a)).map(id => <span key={id} className={(id === cur ? 'cur ' : '') + (r.out?.[id] ? 'out' : '')}><Avatar id={id} av={av} size={22} /> {you(id)} <b>💰{fmtM(money(id))}</b><small>🃏{hand(r, id).length}</small></span>)}</div>}
 
     {isHost && !res && (cur !== myId || r.phase === 'nego' || r.order.some(id => inGame(r, id) && !room.players?.[id])) && <HostBar>
       <button className="secondary" onClick={() => { if (confirm(r.phase === 'nego' ? 'จบการเจรจานี้เลย (ดีลล่ม)?' : `ให้ ${nameOf(cur)} จั่วการ์ดแล้วข้ามตา?`)) tx(c => forceDeal(c, srvNow)); }}>⏭️ {r.phase === 'nego' ? 'จบเจรจา' : `ข้ามตา ${nameOf(cur)}`}</button>
@@ -463,8 +465,8 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     {endFx && !res && <div className="pay-fx end-fx" onClick={() => setEndFx(null)}><div className="pay-box"><span className="pay-deal">🎴 เปิดการ์ดจบเกมใบใหม่!</span><div className="money-card"><div className="mc-in"><div className="mc-back">🎴</div><div className="mc-front end"><small>การ์ดจบเกม</small><b>{endFx.n}</b><em>ทอยได้เลขนี้ = จบ</em></div></div></div><span className="end-now">ตอนนี้ทอยได้ {endNums.join(' / ')} เกมจบทันที</span><small className="pay-close">แตะเพื่อปิด</small></div></div>}
     {flip && <div className="pay-fx" onClick={() => setFlip(null)}><div className="pay-box">
       <span className="pay-deal">{DEALS[flip.deal].e} {DEALS[flip.deal].n} ปิดดีลแล้ว! (×{flip.x})</span>
-      <div className="money-card"><div className="mc-in"><div className="mc-back">💵</div><div className="mc-front"><small>การ์ดเงิน</small><b>{flip.card}</b><em>ล้าน / ส่วน</em></div></div></div>
-      <ul className="pay-list">{Object.entries(flip.pay || {}).sort((a, b) => b[1] - a[1]).map(([id, v], i) => <li key={id} style={{ animationDelay: 1.3 + i * 0.25 + 's' }}><Avatar id={id} av={av} size={24} /><span className="pn">{id === myId ? 'คุณ' : nameOf(id)}</span><small>{Math.round(v / flip.card)} ส่วน × {flip.card}</small><b>+{v} ล้าน</b></li>)}</ul>
+      <div className="money-card"><div className="mc-in"><div className="mc-back">💵</div><div className="mc-front"><small>การ์ดเงิน</small><b>{(+flip.card).toFixed(2)}</b><em>M / ส่วน</em></div></div></div>
+      <ul className="pay-list">{Object.entries(flip.pay || {}).sort((a, b) => b[1] - a[1]).map(([id, v], i) => <li key={id} style={{ animationDelay: 1.3 + i * 0.25 + 's' }}><Avatar id={id} av={av} size={24} /><span className="pn">{id === myId ? 'คุณ' : nameOf(id)}</span><small>{Math.round(v / flip.card)} ส่วน × {fmtM(flip.card)}</small><b>+{fmtM(v)}</b></li>)}</ul>
       <small className="pay-close">แตะเพื่อปิด</small></div></div>}
     </div></div>
   </div>;
@@ -479,7 +481,7 @@ export function DealLobby({ n }) {
       <span>🎲 ตาคุณ: ทอยเต๋าเดินหมวกเจ้าสัวไปเจอดีล แล้วคุณเป็นเจ้าของดีล — หรือจะจั่วการ์ด 2 ใบแทนก็ได้</span>
       <span>🔒 ช่องดีลแถวบน = หุ้นส่วนจำเป็น • 🧩 แถวล่าง (ป้าย “เลือก 2”) = กลุ่มตัวเลือก เจ้าของดีลเลือกเองว่าจะเอาใคร — หุ้นส่วนตัวเลือกเลยต้องแข่งกันยอมรับส่วนแบ่ง</span>
       <span>✖️ ตัวเลขบนช่องคือตัวคูณ ×N = ดีลนี้แบ่งได้ N ส่วน (ดีลใหญ่ใช้หุ้นส่วนเยอะ ตัวคูณสูง)</span>
-      <span>🤝 เจ้าของดีลเสนอแบ่งส่วน ทุกคนในดีลกดตกลงครบ → ปิดดีล แล้วเปิดการ์ดเงินสุ่ม 💵 (ส่วนละ 1–5 ล้าน) คูณออกมาเป็นเงินจริง</span>
+      <span>🤝 เจ้าของดีลเสนอแบ่งส่วน ทุกคนในดีลกดตกลงครบ → ปิดดีล แล้วเปิดการ์ดเงินสุ่ม 💵 (ส่วนละ 1.00–5.00 M) คูณออกมาเป็นเงินจริง</span>
       <span>🎴 ปิดดีลครบ {END_START} ดีลแล้ว ทุก {END_EVERY} ตาเปิดการ์ดจบเกม 1 ใบ (เลข 1–6) — ใครทอยเต๋าได้เลขที่เปิดอยู่ เกมจบทันที • หรือปิดดีลครบทุกช่องก็จบ • ใครรวยสุดชนะ</span>
       <span>⏱️ เจรจา {NEGO_MS / 1000} วิ (เล่นการ์ดต่อเวลาได้) ไม่จบ = ดีลล่ม</span></div>
     <div className="dc-hand lobby">{Object.keys(CARDS).map(t => <DealCard key={t} id={t === 'link' ? 'link_media-x' : t + '-x'} />)}</div>

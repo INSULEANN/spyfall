@@ -148,7 +148,7 @@ function doPass(r, id, now, { quiet = false, noBribe = false } = {}) {
   r.stall[id] = [...stallOf(r, id), ...b.c];
   r.done = { ...(r.done || {}), [id]: { a: 'pass', m, g, n: b.c.length, d: b.d, at: now } };
   if (!quiet) { r.fxk = (r.fxk || 0) + 1; r.fx = { k: r.fxk, a: 'pass', id, by: r.officer, m, g, n: b.c.length, d: b.d, at: now }; }
-  say(r, `✅ จ่าปล่อย {${id}} ผ่าน${m || g.length ? ` • รับซอง ${m ? m + '฿' : ''}${g.map(c => gOf(c).e).join('')}` : ''}`, { by: r.officer, pass: true });
+  say(r, `✅ จ่าปล่อย {${id}} ผ่าน${m || g.length ? ` • รับซอง ${m ? m + ' บาท ' : ''}${g.map(c => gOf(c).e).join('')}` : ''}`, { by: r.officer, pass: true });
 }
 export function passBag(cur, me, id, v, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'inspect' || me !== r.officer || !r.bags?.[id] || r.done?.[id]) return;
@@ -164,7 +164,7 @@ export function openBag(cur, me, id, now) {
   r.stall[id] = [...stallOf(r, id), ...T.good];
   r.done = { ...(r.done || {}), [id]: { a: 'open', ok: !T.lie, pay, lost: T.bad, c: b.c, n: b.c.length, d: b.d, at: now } };
   r.fxk = (r.fxk || 0) + 1; r.fx = { k: r.fxk, a: 'open', id, by: me, ok: !T.lie, pay, c: b.c, lost: T.bad, d: b.d, at: now };
-  say(r, T.lie ? `🚨 จ่า {${me}} เปิดกระเป๋า {${id}} — จับได้! ${T.bad.map(c => gOf(c).e).join('')} โดนยึด ปรับ ${pay}฿` : `😇 จ่า {${me}} เปิดกระเป๋า {${id}} — ของจริง! จ่าจ่ายค่าเสียเวลา ${pay}฿`, { by: me, caught: T.lie, clean: !T.lie });
+  say(r, T.lie ? `🚨 จ่า {${me}} เปิดกระเป๋า {${id}} — จับได้! ${T.bad.map(c => gOf(c).e).join('')} โดนยึด ปรับ ${pay} บาท` : `😇 จ่า {${me}} เปิดกระเป๋า {${id}} — ของจริง! จ่าจ่ายค่าเสียเวลา ${pay} บาท`, { by: me, caught: T.lie, clean: !T.lie });
   return afterDecide(cur, now);
 }
 function afterDecide(cur, now) { const r = cur.round; if (r.phase === 'inspect' && !undecided(r).length) return toSum(cur, now); return cur; }
@@ -262,7 +262,7 @@ function finish(cur, why) {
 export function CpCard({ id, t: t0, onClick, sel, mark, dim, small, className = '', style }) {
   const t = id ? typeOf(id) : t0; const G = GOODS[t]; if (!G) return null;
   const cls = 'cpc' + (G.legal ? ' legal' : ' bad') + (sel ? ' sel' : '') + (dim ? ' dim' : '') + (small ? ' sm' : '') + (onClick ? ' tap' : '') + (className ? ' ' + className : '');
-  const inner = <><span className="cpc-v" title="ราคาตอนจบเกม">฿{G.v}</span><span className="cpc-p" title="ค่าปรับต่อชิ้น">ปรับ {G.p}</span><span className="cpc-e">{G.e}</span><b>{G.n}</b>{!G.legal && <i className="cpc-rib">ของเถื่อน</i>}{mark && <em className="cpc-mark">{mark}</em>}</>;
+  const inner = <><span className="cpc-v" title="ราคาตอนจบเกม (บาท)">{G.v}<small> บาท</small></span><span className="cpc-p" title="ค่าปรับต่อชิ้น (บาท)">ปรับ {G.p}</span><span className="cpc-e">{G.e}</span><b>{G.n}</b>{!G.legal && <i className="cpc-rib">ของเถื่อน</i>}{mark && <em className="cpc-mark">{mark}</em>}</>;
   return onClick ? <button type="button" className={cls} style={{ '--gc': G.c, ...style }} onClick={onClick}>{inner}</button> : <div className={cls} style={{ '--gc': G.c, ...style }}>{inner}</div>;
 }
 // กระเป๋า: ยิ่งยัดเยอะยิ่งพอง
@@ -277,7 +277,7 @@ export function Bag({ n = 1, size = 64, open }) {
     <text x="40" y={50 + n * 0.5} textAnchor="middle" fontSize="13" fontWeight="900" fill="#fff6d0" fontFamily="Kanit,sans-serif">{n}</text>
   </svg>;
 }
-const money$ = n => `${n}฿`;
+const money$ = n => `${n} บาท`;
 const icons = cards => { const c = {}; (cards || []).forEach(x => { const t = typeOf(x); c[t] = (c[t] || 0) + 1; }); return GK.filter(t => c[t]).map(t => `${GOODS[t].e}${c[t] > 1 ? '×' + c[t] : ''}`).join(' '); };
 // แผงของผู้เล่น: คนอื่นเห็นแค่ของถูกกฎหมาย ของเถื่อนที่ผ่านด่านซ่อนไว้ใต้เบาะ (เปิดตอนจบเกม)
 function StallLine({ cards, mine, reveal }) {
@@ -443,10 +443,10 @@ export function CheckpointGame({ db, room, roomCode, myId, players, isHost, scor
     <div className="gcols"><div className="gmain"><Board r={r} res={res} myId={myId} av={av} nameOf={nameOf} secs={secs} total={Math.round(total / 1000)} srvNow={srvNow} /></div><div className="gside">
 
       {res && <>
-        <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รวยสุดหน้าด่าน! 🏆`}>{res.why === 'players' ? <>คนเหลือไม่พอ เกมจบก่อน<br /></> : ''}คะแนนรวม {S[res.winner]?.total ?? 0} = ของ {S[res.winner]?.goods ?? 0} + โบนัส {S[res.winner]?.bonus ?? 0} + เงิน {S[res.winner]?.money ?? 0}</Outcome>
+        <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รวยสุดหน้าด่าน! 🏆`}>{res.why === 'players' ? <>คนเหลือไม่พอ เกมจบก่อน<br /></> : ''}รวม {S[res.winner]?.total ?? 0} บาท = ของ {S[res.winner]?.goods ?? 0} + โบนัส {S[res.winner]?.bonus ?? 0} + เงินสด {S[res.winner]?.money ?? 0} บาท</Outcome>
         <div className="cp-final">{(res.rank || []).map((id, i) => { const x = S[id]; if (!x) return null; return <div key={id} className={'cp-fr' + (id === myId ? ' me' : '')} style={{ animationDelay: i * 0.15 + 's' }}>
           <em>{i + 1}</em><Avatar id={id} av={av} size={30} /><span className="cp-fn"><b>{you(id)}</b><StallLine cards={r.stall[id]} reveal /></span>
-          <span className="cp-fs"><small>ของ {x.goods} • โบนัส {x.bonus}{x.king.length ? ` (ที่1 ${x.king.map(t => GOODS[t].e).join('')})` : ''}{x.queen.length ? ` (ที่2 ${x.queen.map(t => GOODS[t].e).join('')})` : ''} • เงิน {x.money}</small><b>{x.total}</b></span></div>; })}</div>
+          <span className="cp-fs"><small>ของ {x.goods} • โบนัส {x.bonus}{x.king.length ? ` (ที่1 ${x.king.map(t => GOODS[t].e).join('')})` : ''}{x.queen.length ? ` (ที่2 ${x.queen.map(t => GOODS[t].e).join('')})` : ''} • เงินสด {x.money} (บาท)</small><b>{x.total}<small> บาท</small></b></span></div>; })}</div>
         <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
         {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
       </>}
@@ -487,7 +487,7 @@ export function CheckpointGame({ db, room, roomCode, myId, players, isHost, scor
         {iRide && r.phase === 'inspect' && myBag && !myDone && <div className="cp-panel bribe">
           <SecH icon="💸">ซองใต้โต๊ะของคุณ <small>เงินคุณ {money$(myMoney)}</small></SecH>
           {myAsk > 0 && <div className="cp-askbar">👮 จ่าเรียก <b>{money$(myAsk)}</b><button className="primary" disabled={myOffer.m === Math.min(myAsk, myMoney)} onClick={() => offerSet(myAsk)}>🤝 ให้ตามขอ</button></div>}
-          <div className="cp-money"><button type="button" onClick={() => offerSet(myOffer.m - 5)} disabled={myOffer.m <= 0}>−5</button><button type="button" onClick={() => offerSet(myOffer.m - 1)} disabled={myOffer.m <= 0}>−1</button><b>{myOffer.m}<small>฿</small></b><button type="button" onClick={() => offerSet(myOffer.m + 1)} disabled={myOffer.m >= myMoney}>+1</button><button type="button" onClick={() => offerSet(myOffer.m + 5)} disabled={myOffer.m >= myMoney}>+5</button></div>
+          <div className="cp-money"><button type="button" onClick={() => offerSet(myOffer.m - 5)} disabled={myOffer.m <= 0}>−5</button><button type="button" onClick={() => offerSet(myOffer.m - 1)} disabled={myOffer.m <= 0}>−1</button><b>{myOffer.m}<small> บาท</small></b><button type="button" onClick={() => offerSet(myOffer.m + 1)} disabled={myOffer.m >= myMoney}>+1</button><button type="button" onClick={() => offerSet(myOffer.m + 5)} disabled={myOffer.m >= myMoney}>+5</button></div>
           {myStall.length > 0 && <><small className="cp-sub">แถมของจากแผงคุณ (แตะเพื่อใส่/เอาออก):</small><div className="cp-gift">{myStall.map(c => <button key={c} type="button" className={myOffer.g.includes(c) ? 'on' : ''} style={{ '--gc': gOf(c).c }} onClick={() => offerSet(myOffer.m, myOffer.g.includes(c) ? myOffer.g.filter(x => x !== c) : [...myOffer.g, c])}>{gOf(c).e}</button>)}</div></>}
           <div className="cp-if"><span className="pass">✅ ถ้าปล่อยผ่าน: {myOffer.m || myOffer.g.length ? <>จ่ายซอง {myOffer.m ? money$(myOffer.m) : ''}{myOffer.g.length ? ' + ' + icons(myOffer.g) : ''}</> : 'ไม่เสียอะไร'} • ของ {myBag.c.length} ชิ้นเข้าแผง</span>
             <span className={T?.lie ? 'lie' : 'ok'}>🔦 ถ้าโดนเปิด: {T?.lie ? <>ปรับ {money$(T.fine)} + ยึด {icons(T.bad)}</> : <>จ่าจ่ายคุณ {money$(T?.honestPay || 0)}</>}</span></div>
@@ -542,7 +542,7 @@ export function CheckpointLobby({ n }) {
       <span>② ยัดการ์ด 1–{BAG_MAX} ใบใส่กระเป๋า แล้วบอกจ่าว่า “หมูปิ้ง 3 ชิ้นครับ” — จำนวนต้องตรง แต่ชนิดโกหกได้!</span>
       <span>③ ต่อรอง ยื่นซองใต้โต๊ะ (เงิน หรือของบนแผง) • จ่าเรียกเพิ่มได้</span>
       <span>④ จ่าเลือกทีละคน: 🔦 เปิดตรวจ — พูดจริง = จ่าจ่ายค่าเสียเวลาให้วัยรุ่น / โกหก = วัยรุ่นโดนปรับ + ยึดของที่ไม่ตรง • ✅ ปล่อยผ่าน = รับซอง ของทั้งหมดเข้าแผง</span>
-      <span>🔁 ทุกคนผลัดกันเป็นจ่า {n <= 4 ? 2 : 1} ครั้ง (ตั้งได้ด้านล่าง) • เริ่มคนละ {MONEY0}฿ • จบเกม: ราคาของบนแผง + โบนัสคนที่มีของแต่ละชนิดมากสุด/รองลงมา + เงิน</span></div>
+      <span>🔁 ทุกคนผลัดกันเป็นจ่า {n <= 4 ? 2 : 1} ครั้ง (ตั้งได้ด้านล่าง) • เริ่มคนละ {MONEY0} บาท • จบเกม: ราคาของบนแผง + โบนัสคนที่มีของแต่ละชนิดมากสุด/รองลงมา + เงิน</span></div>
     <div className="cp-cards lobby">{GK.map(t => <CpCard key={t} t={t} small />)}</div>
   </>;
 }
