@@ -24,6 +24,7 @@ import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } fr
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
 import { TamGame, TamLobby, makeTamRound, TAM_MIN, TAM_MAX, TAM_SCORE, MERCY } from './tam.jsx';
 import { DealGame, DealLobby, makeDealRound, DEAL_MIN, DEAL_MAX, DEAL_SCORE } from './deal.jsx';
+import { ClueGame, ClueLobby, makeClueRound, CLUE_MIN, CLUE_MAX } from './clue.jsx';
 import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, CP_SCORE } from './checkpoint.jsx';
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
@@ -32,7 +33,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.25';
+const APP_VERSION = '1.26';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -111,6 +112,11 @@ const GAMES = {
     lead:'ทุกคนผลัดกันเป็นจ่าเวร ที่เหลือเป็นวัยรุ่นทรงเอขี่มอไซค์ผ่านด่าน ยัดหมูปิ้ง ชานมไข่มุก หรือแอบซุกท่อซิ่ง ลำโพงเสียงแตก ประทัด แล้วตีหน้าซื่อ…จ่าเปิดเจอของโกหก = โดนปรับ เปิดเจอของจริง = จ่าต้องจ่ายค่าเสียเวลา',
     pills:['🎒 ยัดกระเป๋า','🤥 โกหกได้','💸 ยื่นซอง'],
     how:[['ยัดกระเป๋า','วัยรุ่นแลกการ์ดที่แผงลอย แล้วยัดการ์ด 1–5 ใบใส่กระเป๋า บอกจ่าว่าเป็นของอะไร จำนวนต้องตรง แต่ชนิดโกหกได้ ของเถื่อนแพงกว่าแต่เสี่ยง'],['ต่อรองหน้าด่าน','ยื่นซองเป็นเงินหรือของบนแผง จ่าเรียกเพิ่มได้ ทุกคนเห็นข้อเสนอทันที คุยกันผ่านห้องเสียงจะมันสุด'],['เปิดหรือปล่อย','จ่าเปิดเจอโกหก = วัยรุ่นโดนปรับ + ยึดของ เจอของจริง = จ่าจ่ายค่าเสียเวลา ปล่อยผ่าน = รับซอง จบเกมนับราคาของ + โบนัสคนมีของมากสุด + เงิน']] },
+  clue: { id:'clue', type:'clue', name:'แก๊งใบ้คำ', emoji:'💡', packs:[], item:'คำ', unit:'คำ', roles:false, min:CLUE_MIN, max:CLUE_MAX, h1:['แก๊งใบ้คำ','ใบ้คำเดียว เปิดหลายใบ'], art:'💡', float:'ทะเล… 2 คำ!',
+    blurb:'แบ่ง 2 ทีม แดงปะทะฟ้า! หัวหน้าทีมใบ้คำเดียวให้ลูกทีมเปิดคำบนกระดานให้ได้หลายใบ แต่ระวังเผลอเปิดคำของอีกทีม หรือคำบึ้ม 💣 แพ้ทันที',
+    lead:'กระดาน 25 คำ มีแต่หัวหน้าทีมที่รู้ว่าคำไหนเป็นของใคร ใบ้ 1 คำ + ตัวเลข เช่น “ทะเล 2” แล้วลูกทีมช่วยกันเดาว่าหมายถึงคำไหน เปิดถูกเดาต่อ เปิดผิดเสียตา เปิดเจอคำบึ้มจบเกม ทีมไหนเปิดคำของตัวเองครบก่อนชนะ',
+    pills:['🔴🔵 แบ่ง 2 ทีม','💬 ใบ้คำเดียว','💣 ระวังคำบึ้ม'],
+    how:[['แบ่งทีม เลือกหัวหน้า','หัวหน้าห้องจัดทีมแดง/ฟ้า หรือกดสุ่ม แต่ละทีมมีหัวหน้า 1 คนที่เห็นแผนลับว่าคำไหนเป็นของทีมไหน (4–5 คนเลือกหัวหน้ากลางคนเดียวใบ้ให้ทั้งสองทีมได้)'],['ใบ้ 1 คำ + ตัวเลข','ตาของทีมไหน หัวหน้าพิมพ์คำใบ้ 1 คำกับจำนวนคำที่โยงถึง ห้ามใช้คำที่อยู่บนกระดาน แล้วห้ามใบ้อะไรเพิ่ม'],['ช่วยกันเปิด','ลูกทีมแตะเปิดคำ (ใครกดก็ได้) ถูกเดาต่อได้สูงสุด ตัวเลข+1 ครั้ง เปิดคำเปล่าหรือของอีกทีม = หมดตา เปิด 💣 = แพ้ทันที เปิดคำของทีมตัวเองครบก่อนชนะ']] },
 };
 // เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
 const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
@@ -124,6 +130,7 @@ const COPY = {
   cake:{stamp:'ห้ามแตะเค้ก!',floatSub:'จำเวลาที่ตื่นไว้ให้ดี',joinH:'ชวนรูมเมทเข้าบ้าน',howH:'กติกาบ้านนี้'},
   boom:{stamp:'ห้ามจั่วมั่ว!',floatSub:'มีที่หนีบจมูกหรือยัง?',joinH:'ชวนแก๊งมาลุ้นทุเรียน',howH:'กติกาแผงทุเรียน'},
   deal:{stamp:'ดีลนี้ต้องปิด!',floatSub:'แบ่งเงินให้ถูกใจทุกคน',joinH:'นัดหุ้นส่วนมาเจรจา',howH:'กติกาห้องประชุม'},
+  clue:{stamp:'ห้ามใบ้เกิน!',floatSub:'คำเดียว โยงให้ได้หลายใบ',joinH:'รวมแก๊ง แบ่งทีมแดง–ฟ้า',howH:'กติกาแก๊งใบ้คำ'},
   checkpoint:{stamp:'หยุดตรวจ!',floatSub:'หมูปิ้งล้วน ๆ ครับจ่า',joinH:'รวมแก๊งซิ่งผ่านด่าน',howH:'กติกาหน้าด่าน'},
   tam:{stamp:'ไม่ไว้หน้าใคร!',floatSub:'ซ้อนบวกได้ไม่จำกัด',joinH:'เรียกแก๊งมาล้อมครก',howH:'กติกาครกแตก'},
   curse:{stamp:'ปอปอยู่ในหมู่บ้าน!',floatSub:'ซุบซิบให้ถึง 7 แต้ม',joinH:'ตีกลองเรียกชาวบ้านมาศาลา',howH:'กฎบ้านนาดง'},
@@ -273,6 +280,8 @@ function App() {
     const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='clue'){const rd=makeClueRound(ids,room.settings?.clue||{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='checkpoint'){const rd=makeCpRound(ids,{laps:room.settings?.cpLaps||lapsFor(ids.length)},(room.round?.number||0)+1,Date.now()+skew+(room.round?0:INTRO_LEAD));
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
@@ -544,6 +553,14 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🚧 ตั้งด่านตรวจ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องตั้งด่านอยู่</div>}</>})()}
       {G.type==='checkpoint'&&room.status!=='lobby'&&room.round?.kind==='checkpoint'&&<CheckpointGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='clue'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=CLUE_MIN&&n<=CLUE_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>แบ่งทีมแดง–ฟ้า แล้วมาใบ้กัน!</h2>
+        <p className="hint">เล่นได้ {CLUE_MIN}–{CLUE_MAX} คน • เปิดห้องเสียงไว้ให้ลูกทีมคุยกันก่อนเปิดคำ • เกมละประมาณ 10–20 นาที</p>
+        {n>CLUE_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {CLUE_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <ClueLobby db={db} roomCode={roomCode} room={room} players={players} isHost={isHost} av={av} sound={sound}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>ทีมที่ชนะได้คนละ +2 (รวมหัวหน้าทีม) • หัวหน้ากลางไม่ได้แต้ม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>💡 เริ่มใบ้คำ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='clue'&&room.status!=='lobby'&&room.round?.kind==='clue'&&<ClueGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='tam'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=TAM_MIN&&n<=TAM_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ครกพร้อม…ใครจะโดนตำ?</h2>
         <p className="hint">เล่นได้ {TAM_MIN}–{TAM_MAX} คน • ลงไพ่ตรงรสหรือตรงเลข หมดมือก่อนชนะ • ไพ่บวกซ้อนกันได้ • ถือไพ่ถึง {MERCY} ใบตกรอบ</p>
         {n>TAM_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {TAM_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -569,8 +586,8 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>

@@ -1,0 +1,145 @@
+/* 💡 แก๊งใบ้คำ — กระดาน 5×5 การ์ดคำพลิกเปิด แดง/ฟ้า/เปล่า/บึ้ม */
+.cw-game{--red:#ff4d5e;--blue:#3a8bff;--paper:#fbf4e4;--ink:#231a33}
+.cw-game .t-r{--tc:var(--red)}.cw-game .t-b{--tc:var(--blue)}.cw-game .t-n{--tc:#b9b1c8}
+
+/* แถบตาปัจจุบัน */
+.cw-turn{display:flex;align-items:center;gap:12px;padding:10px 14px;margin-bottom:10px;border-radius:16px;background:linear-gradient(100deg,color-mix(in srgb,var(--tc) 34%,var(--panel)),var(--panel) 70%);border:2px solid color-mix(in srgb,var(--tc) 70%,transparent);box-shadow:0 8px 30px color-mix(in srgb,var(--tc) 22%,transparent);transition:background .5s,border-color .5s}
+.cw-turn.t-n{--tc:#8a83a0}
+.cw-score{display:grid;gap:4px;flex:none}
+.cw-score span{display:flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;background:var(--inset);font-size:14px;opacity:.75}
+.cw-score span b{font-size:20px;font-family:var(--display);min-width:22px;text-align:center}
+.cw-score span.now{opacity:1;box-shadow:0 0 0 2px var(--tc)}
+.cw-turn-mid{flex:1;min-width:0;display:grid;gap:1px;text-align:center}
+.cw-turn-mid small{font-size:12.5px;color:var(--soft)}
+.cw-turn-mid b{font-family:var(--display);font-size:clamp(17px,2vw,26px);line-height:1.25}
+.cw-clue{animation:cwClue .7s cubic-bezier(.2,1.6,.4,1)}.cw-clue em{font-style:normal;color:var(--accent)}
+@keyframes cwClue{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:none}}
+.cw-think i{font-style:normal;animation:cwDot 1.2s infinite}.cw-think i:nth-child(2){animation-delay:.2s}.cw-think i:nth-child(3){animation-delay:.4s}
+@keyframes cwDot{0%,60%,100%{opacity:.2}30%{opacity:1}}
+.cw-turn-e{font-size:34px;flex:none}
+
+/* กระดาน */
+.cw-board{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;perspective:1100px;margin-bottom:12px}
+.cw-board.quake{animation:shake .6s 2}
+.cw-card{position:relative;padding:0;border:0;background:none;aspect-ratio:1.55/1;border-radius:12px;cursor:default;font:inherit;color:var(--ink);animation:cwDeal .45s calc(var(--i)*22ms) both}
+@keyframes cwDeal{from{opacity:0;transform:translateY(14px) scale(.9)}}
+.cw-card:disabled{opacity:1;cursor:default}
+.cw-in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.3,1.35,.5,1)}
+.cw-front,.cw-back{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.cw-front{background:linear-gradient(170deg,#fffaf0,var(--paper) 60%,#efe2c4);box-shadow:0 3px 0 #c9b48a,0 6px 14px #0006;border:1px solid #e7d6b0}
+.cw-front:before{content:"";position:absolute;left:10%;right:10%;top:50%;height:1px;background:#d9c69c;opacity:.0}
+.cw-card b{position:relative;font-family:var(--display);font-weight:700;font-size:clamp(14px,1.5vw,23px);line-height:1.15;text-align:center;word-break:break-word}
+.cw-card.mid b{font-size:clamp(13px,1.3vw,20px)}
+.cw-card.long b{font-size:clamp(12px,1.1vw,17px)}
+.cw-back{transform:rotateY(180deg);background:var(--tc);color:#fff;box-shadow:0 4px 16px #0007;border:2px solid #ffffff55}
+.cw-back em{font-style:normal;font-size:clamp(14px,1.4vw,22px);line-height:1}
+.cw-back b{text-shadow:0 1px 3px #0008}
+.cw-back small{font-size:clamp(9.5px,.75vw,11.5px);opacity:.85;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-card.open .cw-in{transform:rotateY(180deg)}
+.cw-card.t-r .cw-back{background:linear-gradient(150deg,#ff7a86,#d8283d)}
+.cw-card.t-b .cw-back{background:linear-gradient(150deg,#6fb0ff,#1f5fd0)}
+.cw-card.t-n .cw-back{background:linear-gradient(150deg,#d9d2c2,#a89e88);color:#2b2433}.cw-card.t-n .cw-back b{text-shadow:none}
+.cw-card.t-x .cw-back{background:radial-gradient(circle at 50% 40%,#5a1018,#0b0508 70%);border-color:#ff3b4e;box-shadow:0 0 18px #ff3b4e88}
+.cw-card.late .cw-back{opacity:.5;filter:saturate(.6);border-style:dashed}
+.cw-card.late.t-x .cw-back{opacity:.9}
+
+/* ลูกทีมตอนเดา: แตะได้ */
+.cw-board.guess .cw-card.can{cursor:pointer}
+.cw-card.can:hover .cw-front{transform:translateY(-3px);box-shadow:0 6px 0 #c9b48a,0 12px 22px #0007}
+.cw-card.can .cw-front{transition:transform .15s,box-shadow .15s}
+.cw-card.aim .cw-front{outline:3px solid var(--accent);outline-offset:2px;animation:cwAim .9s ease-in-out infinite}
+@keyframes cwAim{50%{outline-color:transparent;transform:translateY(-3px)}}
+.cw-aim{position:absolute;bottom:3px;left:0;right:0;font-size:clamp(9px,.75vw,11px);font-weight:800;color:#7a5a00}
+.cw-card.just{z-index:3;animation:cwPop .7s .1s cubic-bezier(.3,1.8,.5,1)}
+.cw-card.just:after{content:"";position:absolute;inset:-6px;border-radius:16px;border:3px solid var(--tc,#fff);opacity:0;animation:cwRing .9s .45s ease-out}
+.cw-card.just.t-r:after{border-color:var(--red)}.cw-card.just.t-b:after{border-color:var(--blue)}.cw-card.just.t-x:after{border-color:#ff3b4e}
+@keyframes cwPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes cwRing{0%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:scale(1.35)}}
+
+/* หัวหน้าเห็นแผนลับ: สีจาง ๆ ทั้งใบ + จุดมุม */
+.cw-dot{position:absolute;top:4px;left:5px;font-style:normal;font-size:clamp(10px,.9vw,14px);line-height:1}
+.cw-card.key .cw-front{border-width:3px}
+.cw-card.k-r .cw-front{background:linear-gradient(170deg,#fff4f4,#ffd5d9);border-color:var(--red);box-shadow:0 3px 0 #d8283d,0 6px 14px #0006}
+.cw-card.k-b .cw-front{background:linear-gradient(170deg,#f1f7ff,#cfe2ff);border-color:var(--blue);box-shadow:0 3px 0 #1f5fd0,0 6px 14px #0006}
+.cw-card.k-n .cw-front{background:linear-gradient(170deg,#faf7ef,#e5dfcf);border-color:#bdb39a}
+.cw-card.k-x .cw-front{background:linear-gradient(170deg,#3a3240,#161018);border-color:#ff3b4e;color:#ffd7db;box-shadow:0 3px 0 #000,0 0 14px #ff3b4e66}
+.cw-keyhint{margin:8px 0 0;font-size:12.5px;color:var(--muted);text-align:center}
+
+/* ป้ายผลการเปิดคำ */
+.cw-toast{position:absolute;left:50%;top:50%;z-index:5;display:grid;gap:2px;min-width:min(330px,88%);padding:12px 18px;border-radius:16px;text-align:center;transform:translate(-50%,-50%);pointer-events:none;background:#14121fee;border:2px solid #fff3;box-shadow:0 12px 40px #000a;animation:cwToast 2.1s .35s both}
+.cw-toast b{font-family:var(--display);font-size:clamp(22px,2.4vw,34px)}
+.cw-toast span{font-size:14px;color:var(--soft)}
+.cw-toast.ok{border-color:#3fd68a;background:linear-gradient(135deg,#0f3a26f0,#14121fee)}.cw-toast.ok b{color:#8ff0bb}
+.cw-toast.neutral{border-color:#c9c0ae}.cw-toast.neutral b{color:#e9e1cf}
+.cw-toast.enemy{border-color:var(--tc);background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 40%,#14121f),#14121fee)}
+@keyframes cwToast{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}22%{transform:translate(-50%,-50%) scale(1)}82%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%)}}
+
+/* 💣 ระเบิดเต็มจอ */
+.cw-bomb{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:radial-gradient(circle,#3a0a10cc,#000e 70%);animation:fxIn .2s;cursor:pointer;overflow:hidden}
+.cw-flash{position:absolute;inset:0;background:#fff;animation:cwFlash .5s .35s both}
+@keyframes cwFlash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
+.cw-ring{position:absolute;left:50%;top:50%;width:80px;height:80px;margin:-40px;border-radius:50%;border:8px solid #ff7a1a;opacity:0;animation:cwShock 1.1s .4s ease-out both}
+.cw-ring.r2{border-color:#ffd23f;animation-delay:.55s}.cw-ring.r3{border-color:#ff3b4e;animation-delay:.75s}
+@keyframes cwShock{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(14)}}
+.cw-shard{position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:3px;background:#ffb03a;box-shadow:0 0 10px #ff7a1a;opacity:0;animation:cwShard 1.2s .4s ease-out both}
+.cw-shard:nth-child(3n){background:#ff3b4e}.cw-shard:nth-child(4n){background:#fff3c4;width:7px;height:7px}
+@keyframes cwShard{0%{opacity:1;transform:rotate(var(--a)) translateY(0)}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(var(--d)*-2.4)) rotate(260deg)}}
+.cw-bomb-box{position:relative;display:grid;gap:6px;text-align:center;animation:cwBoom .8s .45s cubic-bezier(.2,1.7,.4,1) both}
+.cw-bomb-box b{font-family:var(--display);font-size:clamp(64px,11vw,150px);line-height:1;color:#ffd23f;text-shadow:0 0 30px #ff3b4e,0 6px 0 #a01020}
+.cw-bomb-box span{font-size:clamp(16px,2vw,24px);color:#fff}
+.cw-bomb-box em{font-style:normal;font-size:clamp(20px,2.6vw,32px);font-weight:900;color:#ff8a95}
+.cw-bomb-box small{color:#ffffff88;margin-top:10px}
+@keyframes cwBoom{0%{opacity:0;transform:scale(.2) rotate(-12deg)}100%{opacity:1;transform:none}}
+
+/* แผงข้าง */
+.cw-steps{display:flex;gap:4px;margin:0 0 8px;padding:0;list-style:none}
+.cw-steps li{flex:1;text-align:center;font-size:12.5px;font-weight:800;padding:6px 3px;border-radius:10px;background:var(--panel);color:var(--muted);white-space:nowrap}
+.cw-steps li.now{background:var(--accent);color:var(--on-accent)}
+.cw-steps li.done{background:#3fd68a26;color:#8ff0bb}
+.cw-do{display:grid;gap:5px;padding:13px 14px;margin-bottom:12px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 22%,transparent),transparent);border:1px solid color-mix(in srgb,var(--tc) 60%,transparent);animation:popIn .35s}
+.cw-do>b{font-size:17px;line-height:1.35}
+.cw-do>span{font-size:13.5px;color:var(--soft);line-height:1.5}
+.cw-do em{font-style:normal;color:var(--accent);font-weight:800}
+.cw-panel{display:grid;gap:7px;padding:12px;margin-bottom:12px;border-radius:14px;background:var(--inset);border:1px solid #ffffff14}
+.cw-input{font-size:20px!important;font-weight:700;text-align:center;padding:10px!important}
+.cw-warn{color:#ff9aa4;font-weight:700}
+.cw-nums{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px}
+.cw-nums button{padding:8px 0;border-radius:10px;font-size:17px;font-weight:800;background:var(--chip);color:var(--text);border:1px solid #ffffff1a}
+.cw-nums button.on{background:var(--accent);color:var(--on-accent);transform:scale(1.08)}
+.cw-teams{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.cw-roster{display:grid;gap:4px;align-content:start;padding:9px;border-radius:12px;background:color-mix(in srgb,var(--tc) 12%,var(--inset));border:1px solid color-mix(in srgb,var(--tc) 45%,transparent)}
+.cw-roster>b{font-size:14px}.cw-roster>b small{color:var(--muted);font-weight:600}
+.cw-mem{display:flex;align-items:center;gap:6px;font-size:13.5px;min-width:0}
+.cw-mem i{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-mem em{font-style:normal}.cw-mem.me i{font-weight:800}.cw-mem.out{opacity:.4;text-decoration:line-through}
+.cw-hist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.cw-hist>div{display:grid;gap:3px;align-content:start}
+.cw-hist span{font-size:13px;padding:4px 8px;border-radius:8px;background:color-mix(in srgb,var(--tc) 14%,var(--inset))}
+.cw-hist em{font-style:normal;font-weight:800}.cw-hist small{color:var(--muted);float:right}
+.head-log li.cw-bad{color:#ff9aa4}
+
+/* ห้องรอ */
+.cw-lteams{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.cw-lcol{display:grid;gap:5px;align-content:start;padding:10px;border-radius:14px;background:color-mix(in srgb,var(--tc,#8a83a0) 12%,var(--inset));border:1px solid color-mix(in srgb,var(--tc,#8a83a0) 50%,transparent);margin-bottom:8px}
+.cw-lcol.t-r{--tc:#ff4d5e}.cw-lcol.t-b{--tc:#3a8bff}.cw-lcol.mid{--tc:#ffc965}
+.cw-lcol h4{margin:0 0 2px;font-size:15px}.cw-lcol h4 small{color:var(--muted);font-weight:600}
+.cw-lchip{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:10px;background:#0002;font-size:14px;min-width:0}
+.cw-lchip b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-lchip em{font-style:normal;font-size:11.5px;color:var(--accent);white-space:nowrap}
+.cw-lchip.chief{box-shadow:inset 0 0 0 1px var(--accent)}
+.cw-lbtn{display:flex;gap:2px}.cw-lbtn button{padding:3px 6px;border-radius:8px;background:var(--chip);border:1px solid #ffffff1a;font-size:14px;line-height:1.2}
+.cw-lctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:4px 0 10px}
+.cw-check{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}.cw-check input{width:18px;height:18px}.cw-check small{color:var(--muted)}
+
+@media (max-width:760px){
+  .cw-board{gap:4px}
+  .cw-card{aspect-ratio:1.05/1;border-radius:9px}
+  .cw-front,.cw-back{border-radius:9px;padding:2px}
+  .cw-card b{font-size:12.5px}.cw-card.mid b{font-size:11.5px}.cw-card.long b{font-size:10.2px}
+  .cw-back em{font-size:12px}.cw-back small{display:none}.cw-dot{font-size:9px;top:2px;left:3px}
+  .cw-aim{display:none}
+  .cw-turn{gap:8px;padding:8px 10px}.cw-score span{padding:2px 7px;font-size:12px}.cw-score span b{font-size:16px}.cw-turn-e{font-size:26px}
+  .cw-nums{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .cw-lteams,.cw-teams,.cw-hist{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){.cw-card,.cw-card.just,.cw-card.just:after,.cw-board.quake,.cw-ring,.cw-shard,.cw-flash,.cw-think i,.cw-card.aim .cw-front{animation:none}.cw-in{transition:none}}

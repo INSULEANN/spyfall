@@ -199,6 +199,23 @@ export const THEMES = {
     coin: () => bell(2637, 0.5, { gain: 0.04 }),
     win: () => { arp([523, 659, 784, 1047, 1319], 0.09, { type: 'triangle', gain: 0.08 }); pea(0.55, 0.5); },
   },
+  // 💡 แก๊งใบ้คำ: เกมโชว์ — ติ๊งคำตอบถูก บัซเซอร์ตอนผิด ฟิ้วพลิกการ์ด ระเบิดตอนเจอคำบึ้ม
+  clue: {
+    start: () => { arp([523, 659, 784, 1047], 0.08, { type: 'triangle', gain: 0.07 }); bell(1568, 0.8, { at: 0.36, gain: 0.05 }); bell(2093, 0.9, { at: 0.48, gain: 0.04 }); },
+    join: () => { pop(0, 0.09); tone(1175, 0.18, { type: 'triangle', gain: 0.05, at: 0.06 }); },
+    click: () => pop(0, 0.07), select: () => tone(1320, 0.05, { type: 'triangle', gain: 0.045, attack: 0.003 }),
+    confirm: () => { tone(880, 0.09, { type: 'triangle', gain: 0.06 }); tone(1320, 0.16, { type: 'triangle', gain: 0.06, at: 0.07 }); },
+    clue: () => { noise(0.25, { gain: 0.05, freq: 900, to: 3800, type: 'bandpass', q: 1.2 }); bell(1047, 0.7, { at: 0.18, gain: 0.05 }); bell(1568, 0.9, { at: 0.3, gain: 0.05 }); },
+    yourTurn: () => { bell(1319, 0.5, { gain: 0.06 }); bell(1760, 0.7, { at: 0.15, gain: 0.05 }); },
+    turn: () => { tone(660, 0.12, { type: 'triangle', gain: 0.05 }); tone(990, 0.2, { type: 'triangle', gain: 0.045, at: 0.1 }); },
+    flip: () => { noise(0.18, { gain: 0.08, freq: 1200, to: 5200, type: 'bandpass', q: 1.4 }); tone(420, 0.08, { type: 'triangle', gain: 0.04, at: 0.12, to: 640 }); },
+    right: () => { arp([784, 988, 1319, 1568], 0.06, { type: 'triangle', gain: 0.07 }); bell(2637, 0.7, { at: 0.26, gain: 0.04 }); },
+    neutral: () => { tone(392, 0.16, { type: 'sine', gain: 0.07 }); tone(370, 0.32, { type: 'sine', gain: 0.06, at: 0.16, to: 330 }); },
+    enemy: () => { tone(220, 0.5, { type: 'square', gain: 0.05, lp: 1400 }); tone(233, 0.5, { type: 'square', gain: 0.05, lp: 1400 }); tone(160, 0.35, { type: 'sawtooth', gain: 0.04, at: 0.3, to: 110, lp: 900 }); },
+    bomb: () => { noise(0.45, { gain: 0.05, freq: 5000, type: 'highpass' }); setTimeout(() => SFX.boom(), 300); },
+    win: () => { arp([523, 659, 784, 1047, 1319, 1568], 0.08, { type: 'triangle', gain: 0.08 }); [0.55, 0.7, 0.85].forEach(at => bell(2637, 0.8, { at, gain: 0.045 })); },
+    lose: () => { [392, 370, 349, 262].forEach((f, i) => tone(f, i === 3 ? 0.8 : 0.28, { type: 'triangle', gain: 0.07, at: i * 0.28, to: i === 3 ? 196 : null })); },
+  },
   // 🌶️ ตำแหลก!: ครกตำป๊อก ๆ กระดิ่งรถเข็น ส้มตำมาแล้ว
   tam: {
     start: () => { knock(0); knock(0.16); knock(0.32); arp([659, 784, 988, 1319], 0.07, { type: 'triangle', gain: 0.07, at: 0.5 }); },

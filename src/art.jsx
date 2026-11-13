@@ -381,5 +381,35 @@ function CheckpointScene() {
     <g className="peek"><path d="M300 74 h80 q8 0 8 8 v20 q0 8 -8 8 h-52 l-12 10 l2 -10 h-18 q-8 0 -8 -8 v-20 q0 -8 8 -8 Z" fill="#fff" /><text x="340" y="96" textAnchor="middle" fontSize="12" fontWeight="900" fill="#1a1a2a" fontFamily="Kanit,sans-serif">หมูปิ้งครับจ่า!</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene };
+// ---------- 💡 แก๊งใบ้คำ: เวทีเกมโชว์ กระดานคำ 5×5 สปอตไลต์แดง/ฟ้า หัวหน้าสองทีมยืนแท่น ----------
+function ClueScene() {
+  const C = ['#fbf4e4', '#ff4d5e', '#fbf4e4', '#3a8bff', '#fbf4e4', '#3a8bff', '#fbf4e4', '#d9d2c2', '#ff4d5e', '#fbf4e4', '#fbf4e4', '#ff4d5e', '#1a1020', '#fbf4e4', '#3a8bff', '#fbf4e4', '#fbf4e4', '#3a8bff', '#fbf4e4', '#ff4d5e', '#d9d2c2', '#fbf4e4', '#fbf4e4', '#fbf4e4', '#ff4d5e'];
+  return <S id="clue" label="เวทีเกมโชว์ กระดานคำ 25 ใบ บางใบพลิกเป็นสีแดงสีฟ้า หัวหน้าทีมแดงกับทีมฟ้ายืนบนแท่น ใบ้คำว่า ทะเล 2">
+    <defs>
+      <linearGradient id="cl-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0d0a22" /><stop offset="1" stopColor="#2a1450" /></linearGradient>
+      <linearGradient id="cl-spr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff4d5e" stopOpacity=".55" /><stop offset="1" stopColor="#ff4d5e" stopOpacity="0" /></linearGradient>
+      <linearGradient id="cl-spb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a8bff" stopOpacity=".55" /><stop offset="1" stopColor="#3a8bff" stopOpacity="0" /></linearGradient>
+      <radialGradient id="cl-bulb" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffd447" stopOpacity=".7" /><stop offset="1" stopColor="#ffd447" stopOpacity="0" /></radialGradient>
+    </defs>
+    <rect width="400" height="260" fill="url(#cl-sky)" />
+    <path className="glow" d="M40 0 L90 0 L150 230 L-10 230 Z" fill="url(#cl-spr)" /><path className="glow" d="M310 0 L360 0 L410 230 L250 230 Z" fill="url(#cl-spb)" />
+    <g className="tw" fill="#fff">{[[30, 30], [110, 16], [292, 26], [376, 60], [200, 12]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.5" />)}</g>
+    <rect x="112" y="24" width="176" height="150" rx="10" fill="#0a0818" stroke="#ffd447" strokeWidth="3" />
+    {[...Array(10)].map((_, i) => <circle key={i} className="tw" cx={118 + i * 18.4} cy="20" r="2.6" fill="#ffd447" />)}
+    <g>{C.map((c, i) => <rect key={i} x={120 + (i % 5) * 32.6} y={32 + Math.floor(i / 5) * 27.6} width="28" height="22" rx="3" fill={c} opacity={c === '#fbf4e4' ? 0.95 : 1} />)}</g>
+    <text x="201" y="104" textAnchor="middle" fontSize="13" fill="#ffd447">💣</text>
+    <path d="M0 260 V206 Q200 188 400 206 V260 Z" fill="#1a1032" /><path d="M0 214 Q200 196 400 214" stroke="#ffd447" strokeWidth="2" opacity=".5" fill="none" />
+    {/* หัวหน้าทีมแดง */}
+    <g transform="translate(70 0)"><rect x="-22" y="196" width="44" height="34" rx="4" fill="#d8283d" /><text x="0" y="219" textAnchor="middle" fontSize="13" fontWeight="900" fill="#fff" fontFamily="Kanit,sans-serif">แดง</text>
+      <path d="M-14 196 Q0 168 14 196 Z" fill="#ff7a86" /><circle cx="0" cy="160" r="11" fill="#e8b88a" /><path d="M-11 156 Q0 142 11 156 Z" fill="#2a1a10" /><text x="0" y="146" textAnchor="middle" fontSize="12">👑</text></g>
+    {/* หัวหน้าทีมฟ้า */}
+    <g transform="translate(330 0)"><rect x="-22" y="196" width="44" height="34" rx="4" fill="#1f5fd0" /><text x="0" y="219" textAnchor="middle" fontSize="13" fontWeight="900" fill="#fff" fontFamily="Kanit,sans-serif">ฟ้า</text>
+      <path d="M-14 196 Q0 168 14 196 Z" fill="#6fb0ff" /><circle cx="0" cy="160" r="11" fill="#d9a066" /><path d="M-12 158 Q-6 144 0 150 Q6 144 12 158 Z" fill="#111" /><text x="0" y="146" textAnchor="middle" fontSize="12">👑</text></g>
+    {/* หลอดไฟไอเดีย + คำใบ้ */}
+    <circle className="glow" cx="200" cy="214" r="34" fill="url(#cl-bulb)" />
+    <g className="bob"><circle cx="200" cy="208" r="13" fill="#ffd447" /><rect x="194" y="219" width="12" height="9" rx="2" fill="#9a93bb" /><path d="M196 206 q4 6 8 0" stroke="#a06a00" strokeWidth="2" fill="none" /></g>
+    <g className="peek"><path d="M8 118 h84 q8 0 8 8 v22 q0 8 -8 8 h-50 l-10 12 l0 -12 h-24 q-8 0 -8 -8 v-22 q0 -8 8 -8 Z" fill="#fff" /><text x="50" y="143" textAnchor="middle" fontSize="15" fontWeight="900" fill="#d8283d" fontFamily="Kanit,sans-serif">“ทะเล” 2</text></g>
+  </S>;
+}
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

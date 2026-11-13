@@ -28,6 +28,9 @@
 [data-amb="deal"] i{width:calc(6px*var(--s));height:calc(6px*var(--s));border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,#f5c451 55%,#b8862a);box-shadow:0 0 8px #f5c45166;animation-duration:calc(var(--d)*1.4)}
 /* จ่าตรวจวัยรุ่นทรงเอ: ไฟไซเรนแดง/น้ำเงินวูบวาบไกล ๆ + ไฟท้ายรถลอยผ่าน */
 [data-amb="checkpoint"] i{bottom:auto;top:calc(var(--y)*0.85);width:calc(4px*var(--s));height:calc(4px*var(--s));background:#ff3b4e;box-shadow:0 0 10px 3px #ff3b4e77;animation:amb-twinkle calc(var(--d)/4) ease-in-out var(--dl) infinite}
+[data-amb="clue"] i{bottom:-30px;width:calc(16px*var(--s));height:calc(11px*var(--s));border-radius:3px;background:#ff4d5e;opacity:.22;animation:amb-rise var(--d) linear var(--dl) infinite}
+[data-amb="clue"] i:nth-child(2n){background:#3a8bff}
+[data-amb="clue"] i:nth-child(5n){background:#fbf4e4;opacity:.15}
 [data-amb="checkpoint"] i:nth-child(2n){background:#3a8bff;box-shadow:0 0 10px 3px #3a8bff77}
 [data-amb="checkpoint"] i:nth-child(5n){top:auto;bottom:-20px;background:#ffd23f;box-shadow:0 0 8px 2px #ffd23f66;animation:amb-rise var(--d) linear var(--dl) infinite}
 [data-amb="checkpoint"]:after{content:"";position:absolute;left:-10%;right:-10%;top:-120px;height:280px;background:radial-gradient(ellipse at 22% 0,#ff3b4e22,transparent 60%),radial-gradient(ellipse at 78% 0,#3a8bff22,transparent 60%);animation:cpAmbSiren 2.4s ease-in-out infinite alternate}
