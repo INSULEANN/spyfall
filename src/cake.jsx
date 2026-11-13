@@ -8,6 +8,7 @@ import { play as sfx } from './sfx.js';
 import { CakeStage } from './cakestage.jsx';
 import { Replay } from './replay.jsx';
 import { shuffle, rint, pickBad } from './rand.js';
+import { FILM_MS } from './intro.jsx';
 
 export const CAKE_MIN = 4;
 export const HOURS = 6;
@@ -162,7 +163,7 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
   const prev = useRef(null);
   useEffect(() => {
     const s = { phase: r.phase, h, res: !!res }; const p = prev.current; prev.current = s; if (!p) { if (r.phase === 'night' && h === 0) sfx(sound, 'night'); return; }
-    if (s.res && !p.res) { sfx(sound, 'execute'); setTimeout(() => sfx(sound, (sideOf(r, myId) === 'hungry') === (res.winner === 'hungry') ? 'win' : 'lose'), 1400); return; }
+    if (s.res && !p.res) { setTimeout(() => sfx(sound, (sideOf(r, myId) === 'hungry') === (res.winner === 'hungry') ? 'win' : 'lose'), FILM_MS); return; }   // คลิปตอนจบเล่นก่อน แล้วค่อยบอกว่าเราชนะ/แพ้
     if (s.phase === 'day' && p.phase === 'night') { sfx(sound, 'morning'); return; }
     if (s.h !== p.h && awakeNow) setTimeout(() => sfx(sound, iThief ? 'sabotage' : 'yourTurn'), 100);
   });

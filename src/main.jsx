@@ -28,7 +28,7 @@ import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, 
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
-import IntroFilm, { INTROS, INTRO_LEAD } from './intro.jsx';
+import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
@@ -203,6 +203,7 @@ function App() {
   const [intro,setIntro]=useState(null);const prevStatus=useRef(null);
   useEffect(()=>{const st=room?.status,prev=prevStatus.current;prevStatus.current=st;
     if(st==='playing'&&prev&&prev!=='playing'&&room?.round?.number===1&&INTROS[room.game])setIntro(INTROS[room.game]);
+    if(st==='result'&&prev&&prev!=='result'&&room?.result&&ENDINGS[room.game])setIntro(ENDINGS[room.game](room.result));
     if(!room)setIntro(null)},[room?.status,room?.round?.number,room?.game,!!room]);
   useEffect(()=>{if(intro)setMusicVolume(0);else setMusicVolume(sound?musicVol:0)},[intro]);
   useEffect(()=>{if(!mixOpen)return;const f=e=>{if(mixRef.current&&!mixRef.current.contains(e.target))setMixOpen(false)};const k=e=>e.key==='Escape'&&setMixOpen(false);document.addEventListener('pointerdown',f);document.addEventListener('keydown',k);return()=>{document.removeEventListener('pointerdown',f);document.removeEventListener('keydown',k)}},[mixOpen]);

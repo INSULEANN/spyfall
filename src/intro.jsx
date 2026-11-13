@@ -1,9 +1,12 @@
-// คลิปเปิดเกม (7 วิ) — เล่นเต็มจอครั้งเดียวตอนเริ่มเกม มีปุ่มข้าม จบแล้วค่อย ๆ จางเข้าเกม
+// คลิปเปิดเกม / ตอนจบ (7 วิ) — เล่นเต็มจอครั้งเดียวตอนเริ่มเกมหรือประกาศผล มีปุ่มข้าม จบแล้วค่อย ๆ จางเข้าเกม
 // วิดีโออยู่ใน public/intro/ จะโหลดก็ต่อเมื่อคอมโพเนนต์นี้ถูกแสดงเท่านั้น (หน้าแรกไม่โหลด)
 import React, { useEffect, useRef, useState } from 'react';
 import './intro.css';
 
 export const INTROS = { checkpoint: 'checkpoint', cake: 'cake' };
+// คลิปตอนจบ (ตอนประกาศผล) เลือกตามผล: เกมเค้ก ขโมยโดนจับ → cake-caught, ขโมยรอด → cake-escape
+export const ENDINGS = { cake: res => (res?.winner === 'hungry' ? 'cake-caught' : 'cake-escape') };
+export const FILM_MS = 7600;   // ความยาวคลิป + จางออก: เสียงชนะ/แพ้ของแต่ละคนเล่นหลังคลิปจบ
 export const INTRO_LEAD = 7500;   // ms (คลิป 7 วิ + จางออก) ที่เลื่อนเวลาเริ่มรอบ (เกมที่จับเวลาทันที) ให้คลิปเล่นจบก่อน
 
 export default function IntroFilm({ id, sound, onDone }) {
