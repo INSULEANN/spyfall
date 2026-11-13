@@ -113,3 +113,7 @@ button.brand{background:none;border:0;color:inherit;padding:0}button.brand:hover
 /* ห้องเสียง: ปุ่มเชื่อมใหม่ + คำแนะนำตอนต่อไม่ติด */
 .voice .voice-retry{width:auto;min-height:0;padding:3px 9px;font-size:12px;border-radius:10px;flex:none}
 .voice-note.bad{color:#ffb3b8;background:#ff5f6d18;border:1px dashed #ff5f6d66;border-radius:10px;padding:6px 9px;line-height:1.5}
+
+/* SPY: ตาใบ้คำแบบไม่จับเวลา */
+.ct-free{display:grid;justify-items:center;gap:2px;font-size:26px;flex:none;min-width:58px}
+.ct-free small{font-size:11px;color:var(--muted);white-space:nowrap}
