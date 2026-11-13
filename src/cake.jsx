@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
-import { TimerRing, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Avatar, Voters } from './ui.jsx';
+import { TimerRing, Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Avatar, Voters } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { CakeStage } from './cakestage.jsx';
 import { Replay } from './replay.jsx';
@@ -132,7 +132,7 @@ function CakeClock({ r, h, myDie, srvNow, mode, av, nameOf, players }) {
 
 export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, sound, nameOf, msg, onBack, srvNow, av }) {
   const r = room.round; const res = room.status === 'result' && room.result;
-  const [showRole, setShowRole] = useState(false);
+  const card = useRoleCard(r.number);
   const [accSel, setAccSel] = useState([]);
   const [claims, setClaims] = useState({});
   useEffect(() => { setClaims({}); setAccSel([]); }, [r.number]);
@@ -150,6 +150,11 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
   const thiefDie = r.dice?.[r.thief];
   const cakeSeen = myDie < thiefDie ? 'there' : myDie === thiefDie ? 'vanish' : 'gone';
   const woke = r.phase !== 'night' || h >= myDie;
+  // โหมดเนียน: ขโมย/ลูกสมุนกดซ่อนบทบาท → จอทั้งหน้าเรนเดอร์ด้วยโค้ดชุดเดียวกับรูมเมทหิวโหย (ข้อความ ลำดับบรรทัด ไอคอนตรงกัน)
+  // ขโมยตื่นตีเดียวกับตัวเองไม่ได้ เลยปลอมเป็นคนที่ตื่นแล้ว "เค้กยังอยู่" (หรือ "หายแล้ว" ถ้าตื่นตีสุดท้าย) — ค่าตายตัวทั้งรอบ
+  const fake = card.disguise && (iThief || iAcc);
+  const vThief = iThief && !fake, vAcc = iAcc && !fake;
+  const vSeen = iThief && fake ? (myDie < HOURS ? 'there' : 'gone') : cakeSeen;
 
   // หมดคืน → ทุกเครื่องพยายามเปลี่ยนเป็นกลางวัน (transaction ทำให้เปลี่ยนครั้งเดียว)
   useEffect(() => { if (r.phase === 'night' && srvNow >= r.nightEnd) tx(cur => endNight(cur, srvNow)); }, [r.phase === 'night' && srvNow >= r.nightEnd]);
@@ -166,49 +171,49 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
   async function peek(t) { if (!confirm(`แอบดูเลขเต๋าของ ${nameOf(t)}? ดูได้ครั้งเดียว`)) return; await tx(cur => peekDie(cur, myId, t, srvNow)); sfx(sound, 'reveal'); }
   async function vote(t) { sfx(sound, 'vote'); await tx(cur => castVote(cur, myId, t)); }
 
-  const role = iThief ? { art: 'thief', name: 'จอมแอบกิน', side: 'bad', label: '😈 ฝ่ายขโมย', desc: `ตอนตี ${myDie} คุณจะแอบกินเค้ก${r.accN ? ` แล้วเลือกลูกสมุน ${r.accN} คน` : ''} — ใครตื่นพร้อมคุณจะเห็น! ตอนเช้าโกหกให้เนียน อย่าให้โดนโหวต` }
-    : iAcc && r.phase !== 'night' ? { art: 'acc', name: 'ลูกสมุน', side: 'bad', label: '😈 ฝ่ายขโมย', desc: `${nameOf(r.thief)} ชวนคุณมาเป็นพวก — ช่วยปั่นให้เพื่อนโหวตผิดคน ถ้าขโมยรอด คุณได้ +${CAKE_SCORE.acc}` }
+  const role = vThief ? { art: 'thief', name: 'จอมแอบกิน', side: 'bad', label: '😈 ฝ่ายขโมย', desc: `ตอนตี ${myDie} คุณจะแอบกินเค้ก${r.accN ? ` แล้วเลือกลูกสมุน ${r.accN} คน` : ''} — ใครตื่นพร้อมคุณจะเห็น! ตอนเช้าโกหกให้เนียน อย่าให้โดนโหวต` }
+    : vAcc && r.phase !== 'night' ? { art: 'acc', name: 'ลูกสมุน', side: 'bad', label: '😈 ฝ่ายขโมย', desc: `${nameOf(r.thief)} ชวนคุณมาเป็นพวก — ช่วยปั่นให้เพื่อนโหวตผิดคน ถ้าขโมยรอด คุณได้ +${CAKE_SCORE.acc}` }
     : { art: 'hungry', name: 'รูมเมทหิวโหย', side: 'good', label: '😋 ฝ่ายหิวโหย', desc: 'ตื่นตามเวลาบนลูกเต๋า ดูว่าเค้กยังอยู่ไหม แล้วตอนเช้าช่วยกันจับให้ได้ว่าใครแอบกิน' };
-  const S = SEEN[cakeSeen];
-  const deduce = cakeSeen === 'there' ? `ขโมยยังไม่ลงมือ → ขโมยตื่น<b>หลัง</b>ตี ${myDie}` : cakeSeen === 'gone' ? `ขโมยลงมือไปแล้ว → ขโมยตื่น<b>ก่อน</b>ตี ${myDie}` : `ขโมยคือ <b>${nameOf(r.thief)}</b> แน่นอน!`;
+  const S = SEEN[vSeen];
+  const deduce = vSeen === 'there' ? `ขโมยยังไม่ลงมือ → ขโมยตื่น<b>หลัง</b>ตี ${myDie}` : vSeen === 'gone' ? `ขโมยลงมือไปแล้ว → ขโมยตื่น<b>ก่อน</b>ตี ${myDie}` : `ขโมยคือ <b>${nameOf(r.thief)}</b> แน่นอน!`;
 
   // สมุดเบาะแส: สรุปทุกอย่างที่คุณรู้ เอาไว้ใช้ตอนเช้า
   const clues = <div className="clues">
     <SecH icon="📒">สมุดเบาะแสของคุณ <small>เห็นแค่คุณ</small></SecH>
     <div className="clue"><Art name="die" n={myDie} size={40} /><span>คุณทอยได้ <b>{myDie}</b> → ตื่นตอน <b>ตี {myDie}</b></span></div>
     {woke && <div className="clue"><span className="clue-ico">👀</span><span>{mates.length ? <>ตื่นพร้อม <Voters ids={mates} av={av} /> <b>{mates.map(nameOf).join(', ')}</b></> : 'ตอนตื่น ไม่มีใครตื่นด้วย (ตื่นคนเดียว)'}</span></div>}
-    {woke && (iThief ? <div className="clue bad"><Art name="thiefEat" size={40} /><span>{mates.length ? <>คุณกินเค้กตอนตี {myDie} แต่ <b>{mates.map(nameOf).join(', ')}</b> เห็นคามือ!</> : <>คุณกินเค้กตอนตี {myDie} ไม่มีใครเห็น 😋</>}</span></div>
-      : <div className={'clue ' + (cakeSeen === 'there' ? 'good' : 'bad')}><Art name={S.art} size={40} /><span>{S.title}<br /><small><Html s={deduce} /></small></span></div>)}
+    {woke && (vThief ? <div className="clue bad"><Art name="thiefEat" size={40} /><span>{mates.length ? <>คุณกินเค้กตอนตี {myDie} แต่ <b>{mates.map(nameOf).join(', ')}</b> เห็นคามือ!</> : <>คุณกินเค้กตอนตี {myDie} ไม่มีใครเห็น 😋</>}</span></div>
+      : <div className={'clue ' + (vSeen === 'there' ? 'good' : 'bad')}><Art name={S.art} size={40} /><span>{S.title}<br /><small><Html s={deduce} /></small></span></div>)}
     {myPeek && <div className="clue"><Art name="die" n={myPeek.die} size={40} /><span>แอบดูเต๋า <b>{nameOf(myPeek.t)}</b> ได้ {myPeek.die} → เขาตื่นตี {myPeek.die}</span></div>}
-    {iThief && r.accDone && <div className="clue"><span className="clue-ico">🤝</span><span>ลูกสมุน: <b>{accList(r).map(nameOf).join(', ') || 'ไม่มี'}</b>{r.accAuto ? ' (ระบบสุ่มให้)' : ''}</span></div>}
-    {iAcc && r.phase !== 'night' && <div className="clue bad"><span className="clue-ico">🤝</span><span>คุณเป็นลูกสมุนของ <b>{nameOf(r.thief)}</b></span></div>}
+    {vThief && r.accDone && <div className="clue"><span className="clue-ico">🤝</span><span>ลูกสมุน: <b>{accList(r).map(nameOf).join(', ') || 'ไม่มี'}</b>{r.accAuto ? ' (ระบบสุ่มให้)' : ''}</span></div>}
+    {vAcc && r.phase !== 'night' && <div className="clue bad"><span className="clue-ico">🤝</span><span>คุณเป็นลูกสมุนของ <b>{nameOf(r.thief)}</b></span></div>}
   </div>;
 
   // ตารางจดคำให้การ (เห็นแค่เครื่องตัวเอง)
-  const ok = possibleHour(iThief ? null : cakeSeen, myDie);
+  const ok = possibleHour(vThief ? null : vSeen, myDie);
   const testimony = <div className="testimony">
     <SecH icon="📝">จดว่าใครบอกว่าตื่นตีไหน <small>แตะช่อง • เห็นแค่คุณ</small></SecH>
     <div className="tm-grid" style={{ '--cols': HOURS }}>
       <span className="tm-corner" />
-      {Array.from({ length: HOURS }, (_, i) => i + 1).map(x => <span key={x} className={'tm-h' + (ok(x) ? '' : ' no')}>ตี {x}<small>{iThief ? '' : ok(x) ? 'เป็นไปได้' : 'ไม่ใช่'}</small></span>)}
+      {Array.from({ length: HOURS }, (_, i) => i + 1).map(x => <span key={x} className={'tm-h' + (ok(x) ? '' : ' no')}>ตี {x}<small>{vThief ? '' : ok(x) ? 'เป็นไปได้' : 'ไม่ใช่'}</small></span>)}
       {order.map(id => { const mine = id === myId; const c = mine ? myDie : claims[id];
         return <React.Fragment key={id}>
           <span className="tm-name"><Avatar id={id} av={av} size={22} />{nameOf(id)}{mine && ' (คุณ)'}</span>
           {Array.from({ length: HOURS }, (_, i) => i + 1).map(x => <button key={x} type="button" disabled={mine} className={'tm-cell' + (c === x ? ' on' : '') + (ok(x) ? '' : ' no') + (c === x && !ok(x) && !mine ? ' alibi' : '')} onClick={() => setClaims(s => ({ ...s, [id]: s[id] === x ? undefined : x }))}>{c === x ? (mine ? '⏰' : '●') : ''}</button>)}
         </React.Fragment>; })}
     </div>
-    {!iThief && <p className="hint">ช่องสีเทา = ขโมยไม่ได้ตื่นตีนั้น (จากที่คุณเห็นเอง) • ใครบอกว่าตื่นตีสีเขียว น่าสงสัยกว่า (แต่ทุกคนโกหกได้!)</p>}
+    {!vThief && <p className="hint">ช่องสีเทา = ขโมยไม่ได้ตื่นตีนั้น (จากที่คุณเห็นเอง) • ใครบอกว่าตื่นตีสีเขียว น่าสงสัยกว่า (แต่ทุกคนโกหกได้!)</p>}
   </div>;
 
   const accIds = order.filter(id => id !== myId);
   return <div className="explore-game cake-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">{r.phase === 'night' ? (h === 0 ? '🌙 กำลังจะหลับ' : h > HOURS ? '🌅 ใกล้เช้า' : `🌙 ตี ${h}`) : res ? '🏁 จบเกม' : '☀️ เช้าแล้ว'}</span></div>
     <div className="gcols flow"><div className="gmain">
-    {!res && iAcc && r.phase === 'day' && <div className="acc-banner" role="alert"><Art name="acc" size={58} /><div><b>😈 คุณคือลูกสมุนของ {nameOf(r.thief)}!</b><span>คุณอยู่ฝ่ายขโมยแล้ว — ช่วยปั่นให้เพื่อนโหวตจับคนผิด อย่าโหวต <b className="acc-thief">{nameOf(r.thief)}</b> • ขโมยรอด คุณได้ +{CAKE_SCORE.acc}</span></div></div>}
+    {!res && vAcc && r.phase === 'day' && <div className="acc-banner" role="alert"><Art name="acc" size={58} /><div><b>😈 คุณคือลูกสมุนของ {nameOf(r.thief)}!</b><span>คุณอยู่ฝ่ายขโมยแล้ว — ช่วยปั่นให้เพื่อนโหวตจับคนผิด อย่าโหวต <b className="acc-thief">{nameOf(r.thief)}</b> • ขโมยรอด คุณได้ +{CAKE_SCORE.acc}</span></div></div>}
     <Steps items={['ทอยเต๋า', 'กลางคืน', 'เช้า: โหวต', 'เฉลย']} at={res ? 3 : r.phase === 'day' ? 2 : h === 0 ? 0 : 1} />
     {r.phase === 'night' && <CakeClock r={r} h={h} myDie={myDie} srvNow={srvNow} mode="night" />}
     {/* ฉากห้องครัวเคลื่อนไหว: เห็นเฉพาะสิ่งที่ตัวเองเห็นตอนตื่น */}
-    {!res && <CakeStage mode={r.phase === 'day' ? 'morning' : awakeNow ? (iThief ? 'thief' : cakeSeen) : 'sleep'} hour={r.phase === 'night' && h >= 1 && h <= HOURS ? h : 0} />}
+    {!res && <CakeStage mode={r.phase === 'day' ? 'morning' : awakeNow ? (vThief ? 'thief' : vSeen) : 'sleep'} hour={r.phase === 'night' && h >= 1 && h <= HOURS ? h : 0} />}
 
     {/* ---------- กลางคืน ---------- */}
     {!res && r.phase === 'night' && h === 0 && <Phase art="bed" tone="night" kicker="🌙 คืนนี้" title="ทุกคนเข้านอน…" aside={<TimerRing secs={secLeft} total={h === 0 ? 8 : Math.round(r.hourMs / 1000)} label="วินาที" />}>
@@ -216,17 +221,17 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
     {!res && r.phase === 'night' && h >= 1 && h <= HOURS && !awakeNow && <Phase art="bed" tone="night" kicker={`🌙 ตี ${h}`} title="คุณหลับอยู่… 😴" aside={<TimerRing secs={secLeft} total={h === 0 ? 8 : Math.round(r.hourMs / 1000)} label="วินาที" />}>
       {h < myDie ? <>อีก <b>{myDie - h}</b> ชั่วโมงจะถึง <b>ตี {myDie}</b> ที่คุณตื่น</> : 'คุณตื่นไปแล้ว นอนต่อจนเช้า'} • ทุกชั่วโมงยาวเท่ากัน ดูจากเวลาไม่ได้ว่ามีใครตื่น</Phase>}
     {!res && awakeNow && <>
-      <Phase art={iThief ? 'thiefEat' : S.art} tone="me" kicker={`⏰ ตี ${h} — คุณตื่นแล้ว!`} title={iThief ? (mates.length ? 'มีคนเห็นคุณกินเค้ก! 👀' : 'แอบกินเค้กสำเร็จ ไม่มีใครเห็น') : cakeSeen === 'vanish' ? `เห็น ${nameOf(r.thief)} ถือเค้กคามือ!` : S.title} aside={<TimerRing secs={secLeft} total={Math.round(r.hourMs / 1000)} label="วินาที" />}>
-        {iThief ? (mates.length ? 'จะชวนพยานมาเป็นลูกสมุน หรือจะไปแก้ตัวตอนเช้า?' : 'จำไว้ว่าต้องโกหกตอนเช้าว่าตื่นตีไหน') : <Html s={deduce} />}
+      <Phase art={vThief ? 'thiefEat' : S.art} tone="me" kicker={`⏰ ตี ${h} — คุณตื่นแล้ว!`} title={vThief ? (mates.length ? 'มีคนเห็นคุณกินเค้ก! 👀' : 'แอบกินเค้กสำเร็จ ไม่มีใครเห็น') : vSeen === 'vanish' ? `เห็น ${nameOf(r.thief)} ถือเค้กคามือ!` : S.title} aside={<TimerRing secs={secLeft} total={Math.round(r.hourMs / 1000)} label="วินาที" />}>
+        {vThief ? (mates.length ? 'จะชวนพยานมาเป็นลูกสมุน หรือจะไปแก้ตัวตอนเช้า?' : 'จำไว้ว่าต้องโกหกตอนเช้าว่าตื่นตีไหน') : <Html s={deduce} />}
       </Phase>
-      {mates.length > 0 ? <><SecH icon="👀">ตื่นพร้อมคุณ <small>คุยกันได้ในห้องเสียง คนที่หลับไม่ได้ยิน</small></SecH><PlayerGrid ids={mates} av={av} nameOf={nameOf} small badge={id => iThief ? <span className="tag bad">เห็นคุณ!</span> : id === r.thief ? <span className="tag bad">ถือเค้ก!</span> : <span className="tag">ตื่นด้วย</span>} /></>
+      {mates.length > 0 ? <><SecH icon="👀">ตื่นพร้อมคุณ <small>คุยกันได้ในห้องเสียง คนที่หลับไม่ได้ยิน</small></SecH><PlayerGrid ids={mates} av={av} nameOf={nameOf} small badge={id => vThief ? <span className="tag bad">เห็นคุณ!</span> : id === r.thief ? <span className="tag bad">ถือเค้ก!</span> : <span className="tag">ตื่นด้วย</span>} /></>
         : <div className="tip"><Art name="flashlight" size={42} /><span><b>คุณตื่นคนเดียว</b> — ได้สิทธิ์แอบดูเลขเต๋าของเพื่อน 1 คน (รู้ว่าเขาตื่นตีไหน)</span></div>}
-      {iThief && r.accN > 0 && !r.accDone && <div className="action-box">
+      {vThief && r.accN > 0 && !r.accDone && <div className="action-box">
         <SecH icon="🤝">เลือกลูกสมุน <small>เลือกได้ {r.accN} คน • แตะรูป</small></SecH>
         <PlayerGrid ids={accIds} av={av} nameOf={nameOf} myId={myId} selected={accSel} onPick={id => { sfx(sound, 'click'); setAccSel(s => s.includes(id) ? s.filter(x => x !== id) : s.length >= r.accN ? s : [...s, id]); }} badge={id => mates.includes(id) ? <span className="tag bad">พยาน</span> : null} />
         <button className="primary wide" onClick={confirmAcc}>🤝 ยืนยัน{accSel.length ? `ลูกสมุน (${accSel.length}/${r.accN})` : ' ไม่เอาลูกสมุน'}</button>
         <p className="hint">ลูกสมุนจะรู้ตัวตอนเช้า • ถ้าไม่กดยืนยันก่อนหมดเวลา ระบบสุ่มให้</p></div>}
-      {iThief && r.accDone && <div className="confirmed">🤝 ลูกสมุน: {accList(r).length ? <><Voters ids={accList(r)} av={av} /> <b>{accList(r).map(nameOf).join(', ')}</b></> : 'ไม่มี'}</div>}
+      {vThief && r.accDone && <div className="confirmed">🤝 ลูกสมุน: {accList(r).length ? <><Voters ids={accList(r)} av={av} /> <b>{accList(r).map(nameOf).join(', ')}</b></> : 'ไม่มี'}</div>}
       {!mates.length && (myPeek ? <div className="peek-result"><Avatar id={myPeek.t} av={av} size={44} /><span><b>{nameOf(myPeek.t)}</b> ทอยได้</span><Art name="die" n={myPeek.die} size={56} /><span>→ ตื่น <b>ตี {myPeek.die}</b></span></div>
         : <div className="action-box"><SecH icon="🔦">แอบดูเต๋าของใครดี? <small>ดูได้ 1 คน</small></SecH><PlayerGrid ids={accIds} av={av} nameOf={nameOf} onPick={peek} badge={() => <span className="tag">🔦 ดูเต๋า</span>} /></div>)}
     </>}
@@ -267,7 +272,7 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
     </>}
     </div><div className="gside">
     {/* ---------- บทบาท (ระหว่างเล่น) ---------- */}
-    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={role.art} name={role.name} side={role.side} sideLabel={role.label} cover="die" n={myDie} coverTitle="บทบาทลับของคุณ" coverText={`เต๋าของคุณ: ${myDie} (ตื่นตี ${myDie}) • กดเปิดดูบทบาทคนเดียว`}>
+    {!res && <RoleCard show={card.show} onToggle={card.toggle} disguiseNote art={role.art} name={role.name} side={role.side} sideLabel={role.label} cover="die" n={myDie} coverTitle="บทบาทลับของคุณ" coverText={`เต๋าของคุณ: ${myDie} (ตื่นตี ${myDie}) • กดเปิดดูบทบาทคนเดียว`}>
       <p>{role.desc}</p><div className="info-line"><Art name="die" n={myDie} size={30} /> ตื่นตอน <b>ตี {myDie}</b></div></RoleCard>}
 
     {!res && (r.phase === 'day' || (r.phase === 'night' && h > myDie)) && clues}

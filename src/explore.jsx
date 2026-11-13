@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
-import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters, Choice } from './ui.jsx';
+import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters, Choice } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { ExploreStage } from './stages.jsx';
 import { shuffle, pickBad } from './rand.js';
@@ -133,9 +133,11 @@ export function skipLeader(cur) {
 const ROLE_ART = { explorer: 'explorer', lantern: 'lantern', traitor: 'dagger', mole: 'snake' };
 export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, msg, onBack }) {
   const r = room.round; const res = room.status === 'result' && room.result;
-  const [showRole, setShowRole] = useState(false);
+  const card = useRoleCard(r.number);
   const [sel, setSel] = useState([]);
   const myRole = r.roles?.[myId]; const info = ROLE_INFO[myRole] || ROLE_INFO.explorer; const bad = info.side === 'bad';
+  // โหมดเนียน: ซ่อนบทบาทแล้ว → โจร/ผู้ถือตะเกียงเห็นจอแบบนักสำรวจธรรมดา (โค้ดชุดเดียวกัน)
+  const vBad = bad && !card.disguise, vLantern = myRole === 'lantern' && !card.disguise;
   const leader = leaderId(r); const amLeader = leader === myId && !res;
   const size = r.sizes?.[r.stage]; const hist = r.history || []; const t = tally(hist);
   const team = r.team || []; const inTeam = team.includes(myId);
@@ -210,21 +212,21 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
     {/* ตามล่าผู้ถือตะเกียง */}
     {!res && r.phase === 'hunt' && <>
       <Phase art="target" tone="bad" kicker="🗡️ โอกาสสุดท้ายของโจร" title="ตามล่าผู้ถือตะเกียง!">นักสำรวจผ่านครบ {WIN_AT} ด่านแล้ว แต่ถ้าโจร<b>ทุกคนชี้คนเดียวกัน</b>และชี้ถูกตัวผู้ถือตะเกียง = โจรพลิกชนะ</Phase>
-      {bad ? <>
+      {vBad ? <>
         <SecH icon="🎯">ใครคือผู้ถือตะเกียง? <small>แตะรูป เปลี่ยนใจได้</small></SecH>
         <PlayerGrid ids={order.filter(id => sideOf(r.roles?.[id]) !== 'bad')} av={av} nameOf={nameOf} myId={myId} selected={huntVotes[myId]} onPick={hunt}
           badge={id => { const who = Object.keys(huntVotes).filter(b => huntVotes[b] === id && room.players?.[b]); return who.length ? <Voters ids={who} av={av} size={20} /> : null; }} />
         <p className="hint">เพื่อนโจร: <b>{mates.map(nameOf).join(', ') || '— ไม่มี —'}</b> • ระบบสรุปเมื่อโจรทุกคนชี้ตรงกัน</p>
-      </> : <div className="waiting">⏳ ฝ่ายโจรกำลังเลือกว่าใครคือผู้ถือตะเกียง… {myRole === 'lantern' ? 'ทำตัวเนียน ๆ ไว้!' : 'ช่วยกันมั่วให้โจรสับสน!'}</div>}
+      </> : <div className="waiting">⏳ ฝ่ายโจรกำลังเลือกว่าใครคือผู้ถือตะเกียง… {vLantern ? 'ทำตัวเนียน ๆ ไว้!' : 'ช่วยกันมั่วให้โจรสับสน!'}</div>}
       {isHost && <HostBar><button className="secondary" onClick={hostSkipHunt}>ฝ่ายโจรหลุดหมด — จบเกม</button></HostBar>}
     </>}
 
     {/* ส่งการ์ดสำรวจ */}
     {!res && r.phase === 'mission' && <>
       <Phase art="cards" tone={inTeam && !cards[myId] ? 'me' : ''} kicker={`${ST.icon} ด่านที่ ${r.stage + 1}`} title={`คณะกำลังบุก${ST.name}`}>
-        {inTeam ? (cards[myId] ? 'ส่งการ์ดแล้ว รอเพื่อนร่วมคณะ' : bad ? 'เลือกการ์ดแบบลับ ๆ — ทุกคนเห็นแค่จำนวนการ์ดก่อวินาศ ไม่รู้ว่าใครส่ง' : 'นักสำรวจต้องส่ง “สำรวจต่อ” เสมอ') : `มีการ์ดก่อวินาศ ${r.need?.[r.stage] > 1 ? '2 ใบขึ้นไป' : 'แม้แต่ใบเดียว'} = ด่านพัง`}</Phase>
+        {inTeam ? (cards[myId] ? 'ส่งการ์ดแล้ว รอเพื่อนร่วมคณะ' : vBad ? 'เลือกการ์ดแบบลับ ๆ — ทุกคนเห็นแค่จำนวนการ์ดก่อวินาศ ไม่รู้ว่าใครส่ง' : 'นักสำรวจต้องส่ง “สำรวจต่อ” เสมอ') : `มีการ์ดก่อวินาศ ${r.need?.[r.stage] > 1 ? '2 ใบขึ้นไป' : 'แม้แต่ใบเดียว'} = ด่านพัง`}</Phase>
       <PlayerGrid ids={team} av={av} nameOf={nameOf} myId={myId} small badge={id => id in cards ? <span className="tag good">✓ ส่งแล้ว</span> : <span className="ptile-note">กำลังเลือก…</span>} />
-      {inTeam && !cards[myId] && <div className="choices"><Choice art="lantern" label="สำรวจต่อ" sub="ช่วยให้ผ่านด่าน" tone="good" onClick={() => play(false)} />{bad ? <Choice art="bomb" label="ก่อวินาศ" sub="แอบทำให้ด่านพัง" tone="bad" onClick={() => play(true)} /> : <Choice art="explorer" label="นักสำรวจ" sub="ส่งได้แค่สำรวจต่อ" disabled />}</div>}
+      {inTeam && !cards[myId] && <div className="choices"><Choice art="lantern" label="สำรวจต่อ" sub="ช่วยให้ผ่านด่าน" tone="good" onClick={() => play(false)} />{vBad ? <Choice art="bomb" label="ก่อวินาศ" sub="แอบทำให้ด่านพัง" tone="bad" onClick={() => play(true)} /> : <Choice art="explorer" label="นักสำรวจ" sub="ส่งได้แค่สำรวจต่อ" disabled />}</div>}
       {isHost && <HostBar><button className="secondary" onClick={() => hostForce('mission')}>เปิดผลเลย (ไม่รอคนหลุด)</button></HostBar>}
     </>}
 
@@ -252,7 +254,7 @@ export function ExploreGame({ db, room, roomCode, myId, players, isHost, scores,
     <div className="ex-score"><span className="good">นักสำรวจ {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.ok ? 'on' : ''} />)} ผ่าน {WIN_AT} ด่านชนะ</span><span className="bad">โจร {Array.from({ length: WIN_AT }, (_, i) => <i key={i} className={i < t.bad ? 'on' : ''} />)} พัง {WIN_AT} ด่านชนะ</span></div>
     <div className="ex-rejects"><span>คณะถูกค้านติดกัน</span>{Array.from({ length: MAX_REJECT }, (_, i) => <i key={i} className={i < (r.rejects || 0) ? 'on' : ''} />)}<small>ครบ {MAX_REJECT} = คณะแตก โจรชนะ</small></div>
     {/* บทบาท */}
-    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={ROLE_ART[myRole] || 'explorer'} cover="map" name={info.name} side={bad ? 'bad' : 'good'} sideLabel={bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}>
+    {!res && <RoleCard show={card.show} onToggle={card.toggle} disguiseNote art={ROLE_ART[myRole] || 'explorer'} cover="map" name={info.name} side={bad ? 'bad' : 'good'} sideLabel={bad ? '🗡️ ฝ่ายโจร' : '🧭 ฝ่ายนักสำรวจ'}>
       <p>{info.desc}</p>
       {bad && <div className="info-line">พวกเดียวกัน: {mates.length ? <><Voters ids={mates} av={av} /> <b>{mates.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}</div>}
       {myRole === 'lantern' && <div className="info-line">🏮 โจรที่ส่องเห็น: {seen.length ? <><Voters ids={seen} av={av} /> <b className="bad">{seen.map(nameOf).join(', ')}</b></> : '— ไม่มี —'}{Object.values(r.roles || {}).includes('mole') && <small> (มีจอมแฝงตัวอีก 1 คนที่มองไม่เห็น)</small>}</div>}

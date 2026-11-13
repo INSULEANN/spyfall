@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
-import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters } from './ui.jsx';
+import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { WolfStage } from './stages.jsx';
 import { Replay } from './replay.jsx';
@@ -198,7 +198,7 @@ export function wolfScenes(r, res) {
 }
 export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, onBack }) {
   const r = room.round; const res = room.status === 'result' && room.result;
-  const [showRole, setShowRole] = useState(false);
+  const card = useRoleCard(r.number);
   const [pair, setPair] = useState([]);
   const myRole = r.roles?.[myId]; const info = W_ROLES[myRole] || W_ROLES.villager;
   const alive = r.alive || {}; const meAlive = !!alive[myId];
@@ -207,7 +207,9 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   const n = r.night || {}; const votes = r.votes || {};
   const wolves = Object.keys(r.roles || {}).filter(id => r.roles[id] === 'wolf');
   const seeAll = !meAlive || res; // คนตายดูเกมได้ทั้งหมด (ห้ามบอกคนที่ยังเล่น!)
-  const showRoleOf = id => seeAll || (r.reveal && !alive[id]) || id === myId || (myRole === 'wolf' && r.roles[id] === 'wolf');
+  // โหมดเนียน: ซ่อนบทบาทแล้ว → หมาป่าเห็นจอแบบชาวบ้าน และทุกคนไม่เห็นบทบาทตัวเอง/เพื่อนในรายชื่อ (จอเหมือนกันทุกบรรทัด)
+  const vRole = card.disguise && myRole === 'wolf' ? 'villager' : myRole;
+  const showRoleOf = id => seeAll || (r.reveal && !alive[id]) || (!card.disguise && (id === myId || (myRole === 'wolf' && r.roles[id] === 'wolf')));
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), cur => { if (!cur || cur.status !== 'playing' || cur.round?.kind !== 'wolf') return; return f(cur); });
   const act = (kind, t) => { sfx(sound, 'click'); return tx(cur => nightAct(cur, myId, kind, t)); };
   const lovers = r.lovers || []; const myLove = lovers.includes(myId) ? lovers.find(id => id !== myId) : null;
@@ -254,12 +256,12 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     {/* ---------- กลางคืน ---------- */}
     {!res && r.phase === 'night' && <>
       {!meAlive ? <Phase art="tombstone" tone="night" kicker={`🌙 คืนที่ ${r.day}`} title="คุณตายแล้ว 👻">ดูเกมต่อได้และเห็นบทบาททุกคน แต่<b>ห้ามพูดหรือใบ้</b>คนที่ยังเล่นอยู่</Phase>
-        : myRole === 'wolf' ? <Phase art="wolf" tone="me" kicker={`🌙 คืนที่ ${r.day} — หมาป่าออกล่า`} title="เลือกเหยื่อคืนนี้">หมาป่าทุกตัวต้องเลือก<b>คนเดียวกัน</b> (เปลี่ยนใจได้){wolves.length > 1 && <> • คุยกับเพื่อนหมาป่าได้ในห้องเสียง</>}</Phase>
+        : vRole === 'wolf' ? <Phase art="wolf" tone="me" kicker={`🌙 คืนที่ ${r.day} — หมาป่าออกล่า`} title="เลือกเหยื่อคืนนี้">หมาป่าทุกตัวต้องเลือก<b>คนเดียวกัน</b> (เปลี่ยนใจได้){wolves.length > 1 && <> • คุยกับเพื่อนหมาป่าได้ในห้องเสียง</>}</Phase>
         : myRole === 'seer' ? <Phase art="crystal" tone={n.seer ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอดู`} title={n.seer ? `คืนนี้ส่อง ${nameOf(n.seer)} แล้ว` : 'ส่องลูกแก้วดู 1 คน'}>{n.seer ? 'ผลจะขึ้นในการ์ดบทบาทตอนเช้า' : 'เลือกแล้วเปลี่ยนไม่ได้ • รู้ว่าเขาเป็นหมาป่าหรือไม่'}</Phase>
         : myRole === 'doctor' ? <Phase art="potion" tone={n.doc ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอยา`} title={n.doc ? `คืนนี้ปกป้อง ${nameOf(n.doc)}` : 'เลือกปกป้อง 1 คน'}>{n.doc ? 'ถ้าหมาป่ากัดคนนี้ เขาจะรอด' : <>ปกป้องตัวเองได้{r.lastDoc ? <> • คืนก่อนปกป้อง <b>{nameOf(r.lastDoc)}</b> คืนนี้ห้ามซ้ำ</> : ''}</>}</Phase>
         : myRole === 'cupid' && r.day === 1 ? <Phase art="cupid" tone={lovers.length ? 'good' : 'me'} kicker="🌙 คืนแรก — กามเทพ" title={lovers.length ? `จับคู่ ${nameOf(lovers[0])} 💘 ${nameOf(lovers[1])} แล้ว` : 'ยิงศรรักให้ 2 คน'}>{lovers.length ? 'คู่รักรู้ตัวแล้ว • ถ้าคนหนึ่งตาย อีกคนตรอมใจตายตาม' : <>เลือก 2 คน (รวมตัวเองได้) • เลือกแล้วเปลี่ยนไม่ได้ • คู่รักจะรู้ว่าคู่ของตัวเองคือใคร</>}</Phase>
         : <Phase art="night" tone="night" kicker={`🌙 คืนที่ ${r.day}`} title="หลับตาฝันดี… 😴">คุณไม่มีอะไรต้องทำคืนนี้ ทำหน้าเฉย ๆ ไว้ อย่าให้ใครรู้ว่าคุณว่าง</Phase>}
-      {meAlive && myRole === 'wolf' && <PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} />}
+      {meAlive && vRole === 'wolf' && <PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} />}
       {meAlive && myRole === 'seer' && !n.seer && <PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => act('seer', t)} badge={() => <span className="tag">🔮 ส่อง</span>} />}
       {meAlive && myRole === 'cupid' && r.day === 1 && !lovers.length && <div className="action-box">
         <PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} selected={pair} onPick={pickLove} badge={id => pair.includes(id) ? <span className="tag love">💘 คู่ที่ {pair.indexOf(id) + 1}</span> : <span className="ptile-note">แตะเพื่อเลือก</span>} />
@@ -305,7 +307,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
 
     </div><div className="gside">
     {/* ---------- บทบาท ---------- */}
-    {!res && <RoleCard show={showRole} onToggle={() => setShowRole(!showRole)} art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : info.side === 'fool' ? 'warn' : 'good'} sideLabel={SIDE_LABEL[info.side]}>
+    {!res && <RoleCard show={card.show} onToggle={card.toggle} disguiseNote art={W_ART[myRole] || 'villager'} cover="moon" name={info.name} side={info.side === 'wolf' ? 'bad' : info.side === 'fool' ? 'warn' : 'good'} sideLabel={SIDE_LABEL[info.side]}>
       <p>{info.desc}</p>
       {myLove && <div className="info-line">💞 คู่รักของคุณ: <Avatar id={myLove} av={av} size={22} /> <b>{nameOf(myLove)}</b> (ไม่รู้บทบาทของกันและกัน)</div>}
       {myRole === 'cupid' && lovers.length === 2 && <div className="info-line">💘 คู่ที่คุณจับ: <b>{nameOf(lovers[0])} ❤ {nameOf(lovers[1])}</b></div>}
