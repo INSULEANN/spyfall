@@ -79,8 +79,20 @@ function defOffer(r) {
 }
 // โครงดีลเปลี่ยน (เจ้าของ/คนนั่ง) → ข้อเสนอกลับเป็นแบ่งเท่า ๆ กัน คำตอบรีเซ็ต + ต่อเวลา
 function touch(r, now) {
-  const n = r.nego; n.offer = defOffer(r); n.ok = null;
+  const n = r.nego; n.offer = defOffer(r); n.ok = null; pruneAsk(n);
   n.until = Math.min(n.start + NEGO_CAP, Math.max(n.until, now + 20000));
+}
+// คำขอส่วนแบ่ง: เก็บไว้จนกว่าเจ้าของดีลให้ตรงตามขอ หรือคนนั้นไม่ได้ถือที่นั่งในดีลแล้ว
+function pruneAsk(n) {
+  if (!n.ask) return; const D = DEALS[n.deal]; const ps = partsOf(n); const a = {};
+  Object.entries(n.ask).forEach(([id, w]) => { if (id !== n.boss && slotsOf(D).some(p => n.seats?.[p] === id) && !(ps.includes(id) && (n.offer?.[id] || 0) === w)) a[id] = w; });
+  n.ask = Object.keys(a).length ? a : null;
+}
+// ข้อเสนอใหม่: ใครได้เท่าเดิมหรือมากขึ้นยังนับว่าตกลงอยู่ ใครโดนลดต้องตอบใหม่
+function applyOffer(n, o) {
+  const old = n.offer || {}; const ok = {};
+  Object.entries(n.ok || {}).forEach(([id, y]) => { if (y === true && (o[id] || 0) >= (old[id] || 0)) ok[id] = true; });
+  n.offer = o; n.ok = Object.keys(ok).length ? ok : null; pruneAsk(n);
 }
 const boardDone = r => (r.tiles || []).every(t => t == null || t < 0);
 function finish(cur, why = 'limit') {
@@ -125,11 +137,32 @@ export function setOffer(cur, me, others, now) {
   const r = cur.round; const n = r.nego; if (cur.status !== 'playing' || r.phase !== 'nego' || n.boss !== me) return;
   const v = DEALS[n.deal].v; const ps = partsOf(n).filter(id => id !== me); const o = {}; let sum = 0;
   for (const id of ps) { const x = Math.floor(+others?.[id] || 0); if (x < 0) return; o[id] = x; sum += x; }
-  if (sum > v) return; o[me] = v - sum; n.offer = o; n.ok = null; return cur;
+  if (sum > v) return; o[me] = v - sum; applyOffer(n, o); return cur;
+}
+// เจ้าของดีลกด − / + ทีละส่วน (ส่งทันที) • d = 'ask' ให้ตามที่คนนั้นขอ • d = 'even' แบ่งเท่า ๆ กัน
+export function bumpOffer(cur, me, id, d, now) {
+  const r = cur.round; const n = r.nego; if (cur.status !== 'playing' || r.phase !== 'nego' || n.boss !== me) return;
+  if (d === 'even') { applyOffer(n, defOffer(r)); return cur; }
+  if (id === me || !partsOf(n).includes(id)) return;
+  const v = DEALS[n.deal].v; const others = partsOf(n).filter(x => x !== me); const o = {}; others.forEach(x => { o[x] = Math.max(0, n.offer?.[x] || 0); });
+  const left = v - others.reduce((a, x) => a + o[x], 0); const was = o[id];
+  const nv = d === 'ask' ? Math.min(n.ask?.[id] ?? was, was + left) : Math.max(0, Math.min(was + (+d || 0), was + left));
+  if (nv === was && d !== 'ask') return;
+  o[id] = nv; o[me] = v - others.reduce((a, x) => a + o[x], 0); applyOffer(n, o); return cur;
+}
+// คนที่ถือที่นั่งในดีล (ทั้งตัวจริงและตัวเลือก) ขอส่วนแบ่ง N ส่วน → เจ้าของดีลกด "ให้" ได้ทันที
+export function askShare(cur, me, want, now) {
+  const r = cur.round; const n = r.nego; if (cur.status !== 'playing' || r.phase !== 'nego' || n.boss === me) return;
+  const D = DEALS[n.deal]; if (!slotsOf(D).some(p => n.seats?.[p] === me)) return;
+  const w = Math.max(0, Math.min(D.v, Math.floor(+want || 0))); const inDeal = partsOf(n).includes(me);
+  n.ask = { ...(n.ask || {}), [me]: w }; if (n.ok?.[me] === true) n.ok = { ...n.ok, [me]: false };
+  say(r, inDeal ? `🙏 {${me}} ขอ ${w} ส่วน` : `🙋 {${me}} เสนอตัว ขอแค่ ${w} ส่วน`, { by: me, act: inDeal ? `🙏 ขอ ${w} ส่วน` : `🙋 ขอแค่ ${w} ส่วน` });
+  return cur;
 }
 // คนในดีลตอบรับ/ปฏิเสธข้อเสนอ
 export function answer(cur, me, yes, now) {
   const r = cur.round; const n = r.nego; if (cur.status !== 'playing' || r.phase !== 'nego' || me === n.boss || !partsOf(n).includes(me)) return;
+  if (yes && n.ask?.[me] != null) { const a = { ...n.ask }; delete a[me]; n.ask = Object.keys(a).length ? a : null; }
   n.ok = { ...(n.ok || {}), [me]: !!yes }; say(r, `${yes ? '✅' : '❌'} {${me}} ${yes ? 'ตกลง' : 'ไม่เอา'} (${n.offer?.[me] || 0} ส่วน)`, { by: me, act: yes ? '✅ ตกลง!' : '❌ ไม่เอา!' }); return cur;
 }
 export const canClose = n => { if (!n) return false; const D = DEALS[n.deal]; const ch = n.chosen || []; return D.need.every(p => n.seats?.[p]) && ch.length === pickOf(D) && ch.every(p => n.seats?.[p]) && partsOf(n).filter(id => id !== n.boss).every(id => n.ok?.[id] === true); };
@@ -245,6 +278,8 @@ export function DealCard({ id, t: t0, onClick, ok = true, sel, className = '' })
   const inner = <><span className="dc-art"><svg viewBox="0 0 100 76" aria-hidden="true">{CARD_ART[t](p || 'bank')}</svg></span><b>{title}</b><small>{t === 'link' && p ? 'เข้าดีลแทน' + PARTNERS[p].n + 'เอง หรือเติมที่ที่ถูกกัน' : C.text}</small></>;
   return onClick ? <button type="button" className={cls} style={style} onClick={onClick}>{inner}</button> : <div className={cls} style={style}>{inner}</div>;
 }
+// สีประจำคนในดีล (แถบแบ่งส่วน)
+const UCOL = ['#f5c451', '#3fbf7f', '#5aa9ff', '#ff7a90', '#b48cff', '#ffa24d'];
 const DIE = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 // ฉากกลางกระดาน: ตึกสูงกรุงเทพฯ ยามค่ำ ไฟหน้าต่างกะพริบ
 const Sky = () => <svg className="mid-sky" viewBox="0 0 200 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
@@ -286,13 +321,11 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
   const n = r.nego; const D = dealOf(r); const cur = curOf(r); const meIn = inGame(r, myId);
   const myTurn = !res && r.phase === 'turn' && cur === myId && meIn;
   const myHand = hand(r, myId); const parts = n ? partsOf(n) : []; const iBoss = n?.boss === myId; const iPart = parts.includes(myId) && !iBoss;
-  const [draft, setDraft] = useState(null); const [pickCard, setPickCard] = useState(null);
+  const [pickCard, setPickCard] = useState(null);
   const [flip, setFlip] = useState(null); const flipAt = useRef(r.lastPay?.at || 0);
   useEffect(() => { const L = r.lastPay; if (!L || L.at <= flipAt.current) return; flipAt.current = L.at; setFlip(L); const t = setTimeout(() => setFlip(null), 5200); return () => clearTimeout(t); }, [r.lastPay?.at]);
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), c => { if (!c || c.status !== 'playing' || c.round?.kind !== 'deal') return; const R = c.round; R.hands = R.hands || {}; R.money = R.money || {}; R.ctrl = R.ctrl || {}; if (R.nego) R.nego.seats = R.nego.seats || {}; return f(c); });
   const nm = s => String(s).replace(/\{([^}]+)\}/g, (_, id) => nameOf(id));
-  const offerKey = JSON.stringify(n?.offer || null) + (n?.boss || '');
-  useEffect(() => { setDraft(null); }, [offerKey]);
   useEffect(() => { setPickCard(null); }, [r.phase, n?.boss, JSON.stringify(n?.seats || null), myHand.length]);
   // หมดเวลา
   const deadline = r.phase === 'turn' ? (r.at || 0) + TURN_MS : n?.until || 0; const secs = Math.max(0, Math.ceil((deadline - srvNow) / 1000));
@@ -319,20 +352,44 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
   const [endFx, setEndFx] = useState(null); const endAt = useRef(r.endFlip?.at || 0);
   useEffect(() => { const E = r.endFlip; if (!E || E.at <= endAt.current) return; endAt.current = E.at; const delay = r.lastPay?.at === E.at ? 5400 : 200; const t1 = setTimeout(() => { setEndFx(E); sfx(sound, 'reveal'); }, delay); const t2 = setTimeout(() => setEndFx(null), delay + 3200); return () => { clearTimeout(t1); clearTimeout(t2); }; }, [r.endFlip?.at]);
   const v = D?.v || 0;
-  const offer = draft || n?.offer || {};
+  const offer = n?.offer || {}; const ask = n?.ask || {}; const chosen = n?.chosen || [];
   const others = parts.filter(id => id !== n?.boss);
   const bossShare = v - others.reduce((a, id) => a + (offer[id] || 0), 0);
-  const bump = (id, d) => { const o = { ...offer }; const nv = Math.max(0, (o[id] || 0) + d); if (d > 0 && bossShare <= 0) return; o[id] = nv; sfx(sound, 'click'); setDraft(o); };
-  const sendOffer = () => { if (!draft) return; sfx(sound, 'confirm'); tx(c => setOffer(c, myId, Object.fromEntries(others.map(id => [id, draft[id] || 0])), srvNow)); };
+  const bump = (id, d) => { sfx(sound, 'click'); tx(c => bumpOffer(c, myId, id, d, srvNow)); };
+  const askFor = w => { sfx(sound, 'select'); tx(c => askShare(c, myId, w, srvNow)); };
+  // สถานะดีล: ① ทีมครบ → ② ทุกคนตกลง → ③ ปิดดีล
+  const missing = n ? D.need.filter(p => !n.seats?.[p]) : []; const needPick = n ? Math.max(0, pickOf(D) - chosen.length) : 0;
+  const teamOk = !!n && !missing.length && !needPick && chosen.every(p => n.seats?.[p]);
+  const waitIds = others.filter(id => n?.ok?.[id] !== true); const ready = !!n && canClose(n);
+  const step = !teamOk ? 1 : !ready ? 2 : 3;
+  const myCand = !!n && !iBoss && !iPart && optOf(D).some(p => n.seats?.[p] === myId);
+  const seatsOf = id => (n ? [...D.need, ...chosen].filter(p => n.seats?.[p] === id) : []);
+  const colOf = id => UCOL[Math.max(0, parts.indexOf(id)) % UCOL.length];
+  const myAmt = offer[myId] || 0;
   // เล่นการ์ด
   const usable = c => { const { t, p } = cparse(c); if (res || !meIn) return false; if (t === 'take') return r.phase === 'nego' || myTurn; if (r.phase !== 'nego') return false; if (t === 'boss') return !iBoss; if (t === 'stop') return slotsOf(D).some(x => n.seats?.[x]); if (t === 'link') return slotsOf(D).includes(p) && n.seats?.[p] !== myId; return false; };
   const play = (c, arg) => { sfx(sound, 'card'); setPickCard(null); tx(x => playDealCard(x, myId, c, arg, srvNow)); };
   const tapCard = c => { if (!usable(c)) { msg(cparse(c).t === 'take' ? 'ซื้อกิจการใช้ได้ตอนถึงตาคุณ หรือระหว่างเจรจา' : 'การ์ดนี้ใช้ได้ระหว่างเจรจาดีล'); return; } const { t } = cparse(c); if (t === 'stop' || t === 'take') { sfx(sound, 'select'); setPickCard(pickCard === c ? null : c); return; } play(c); };
   const pk = pickCard ? cparse(pickCard).t : null;
-  const seatRow = (p, req) => { const who = n.seats?.[p]; const by = n.blocked?.[p]; const ch = (n.chosen || []).includes(p); const full = (n.chosen || []).length >= pickOf(D);
-    return <div key={p} className={'seat-p' + (who ? '' : ' empty') + (req ? ' req' : ch ? ' chosen' : ' cand')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={26} off={!who || (!req && !ch)} /><span><b>{PARTNERS[p].n}{!req && ch ? ' ✅' : ''}</b>{who ? <small><Avatar id={who} av={av} size={16} /> {who === myId ? 'คุณ' : nameOf(who)}{who !== r.ctrl[p] ? ' (เด็กเส้น)' : ''}</small> : <small className="bad">⛔ ถูกกันโดย {nameOf(by)}{req ? ' — ต้องมีเด็กเส้นมาแทน' : ''}</small>}</span>
-      {!req && iBoss && who && <button type="button" className={'opt-btn' + (ch ? ' on' : '')} disabled={!ch && full} onClick={() => { sfx(sound, 'select'); tx(c => chooseOpt(c, myId, p, srvNow)); }}>{ch ? 'เอาออก' : 'เลือก'}</button>}
-      {!req && !iBoss && <span className="opt-st">{ch ? 'อยู่ในดีล' : '—'}</span>}</div>; };
+  const you = id => (id === myId ? 'คุณ' : nameOf(id));
+  // กล่อง "ตอนนี้ต้องทำอะไร" ตามบทบาท
+  const doBox = !n ? null : iBoss ? (step === 1 ? (missing.length
+      ? <><b>⛔ ขาด{missing.map(p => PARTNERS[p].n).join(' / ')}</b><span>หุ้นส่วนจำเป็นถูกกันออก — ใช้การ์ด 🤝 เด็กเส้น เติมเอง หรือถอนตัว</span></>
+      : <><b>① เลือกหุ้นส่วนเพิ่มอีก {needPick} ราย</b><span>แตะ “เลือก” ในกลุ่ม 🧩 ตัวเลือกด้านล่าง — ใครขอส่วนแบ่งน้อย เลือกคนนั้น</span></>)
+    : step === 2 ? <><b>② แบ่งส่วน แล้วรอทุกคนกดตกลง</b><span>กด − / + ข้างชื่อ ปรับได้เลย ไม่ต้องกดส่ง • ยังรอ: {waitIds.map(you).join(', ')}</span></>
+    : <><b>③ ทุกคนตกลงแล้ว! 🎉</b><span>กดปิดดีล แล้วสุ่มการ์ดเงินมาคูณ</span></>)
+    : iPart ? (n.ok?.[myId] === true ? <><b>✅ คุณตกลงรับ <em>{myAmt} ส่วน</em> แล้ว</b><span>รอเจ้าของดีลกดปิดดีล</span></>
+      : <><b>เจ้าของดีลให้คุณ <em>{myAmt} ส่วน</em></b><span>ได้ {myAmt}–{myAmt * 5} ล้าน (แล้วแต่การ์ดเงิน){ask[myId] != null ? ` • คุณขอไป ${ask[myId]} ส่วน — รอเจ้าของดีลตอบ` : ''}</span></>)
+    : myCand ? <><b>🙋 คุณเป็นหุ้นส่วนตัวเลือก</b><span>เจ้าของดีลยังไม่เลือกคุณ — เสนอขอส่วนน้อย ๆ เพื่อให้ถูกเลือก{ask[myId] != null ? ` (ตอนนี้ขอ ${ask[myId]} ส่วน)` : ''}</span></>
+    : <><b>👀 คุณไม่ได้อยู่ในดีลนี้</b><span>แทรกได้ด้วยการ์ดในมือ: 🎩 แย่งคุมดีล • ✋ กันคนออก • 🤝 เด็กเส้นเข้าดีลเอง</span></>;
+  const doBtns = !n ? null : iBoss ? <>
+      <button className={'primary wide ng-close' + (ready ? ' go' : '')} disabled={!ready} onClick={() => { sfx(sound, 'confirm'); tx(c => closeDeal(c, myId, srvNow)); }}>🤝 {ready ? 'ปิดดีลเลย!' : 'ปิดดีล (ยังไม่ครบ)'}</button>
+      <div className="ng-mini"><button className="secondary" disabled={!teamOk} onClick={() => bump(null, 'even')}>⚖️ แบ่งเท่า ๆ กัน</button><button className="secondary" onClick={() => { if (confirm('ถอนตัวจากดีลนี้? (ดีลล่ม)')) tx(c => cancelDeal(c, myId, srvNow)); }}>💨 ถอนตัว</button></div></>
+    : iPart ? (n.ok?.[myId] === true
+      ? <div className="ng-mini"><button className="secondary" onClick={() => askFor(myAmt + 1)}>🙏 เปลี่ยนใจ ขอ {myAmt + 1} ส่วน</button></div>
+      : <div className="ng-btns"><button className="primary" onClick={() => { sfx(sound, 'confirm'); tx(c => answer(c, myId, true, srvNow)); }}>✅ ตกลง {myAmt} ส่วน</button><button className="secondary" disabled={Math.max(myAmt, ask[myId] || 0) >= v} onClick={() => askFor(Math.max(myAmt, ask[myId] || 0) + 1)}>🙏 ขอ {Math.max(myAmt, ask[myId] || 0) + 1} ส่วน</button></div>)
+    : myCand ? <div className="ng-mini">{[1, 2, 3].filter(w => w < v).map(w => <button key={w} className={'secondary' + (ask[myId] === w ? ' on' : '')} onClick={() => askFor(w)}>🙋 ขอแค่ {w} ส่วน</button>)}</div>
+    : null;
 
   const center = res ? <div className="mid-res">🏆<b>{nameOf(res.winner)}</b><small>รวยสุด {money(res.winner)} ล้าน</small></div>
     : r.phase === 'nego' ? <div className="mid-nego"><span className="mid-die">{DIE[n.die]}</span><span className="mid-e">{D.e}</span><b>{D.n}</b><small>×{v} ส่วน • <Avatar id={n.boss} av={av} size={18} /> คุมดีล</small><TimerRing secs={secs} total={Math.round(NEGO_MS / 1000)} size={40} /></div>
@@ -342,52 +399,61 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • ตาที่ {(r.turns || 0) + 1}</span><span className="cat-tag">💼 ปิดแล้ว {r.closed || 0}/{TILES}</span></div>
     <div className="gcols"><div className="gmain"><Board r={r} res={res} myId={myId} av={av} nameOf={nameOf} center={center} /></div><div className="gside">
 
-    {/* หุ้นส่วน: ใครคุมใคร + เงิน */}
-    {!res && <div className="end-row"><span className="er-h">🎴 การ์ดจบเกม</span><span className="er-cards">{endNums.length ? endNums.map(x => <b key={x} className="end-card">{x}</b>) : <em>ยังไม่เปิด</em>}</span><small>{!endOn ? `เริ่มเปิดเมื่อปิดดีลครบ ${END_START} ดีล (ตอนนี้ ${Math.min(r.closed || 0, END_START)}/${END_START}) แล้วเปิดทุก ${END_EVERY} ตา` : <>{endNums.length ? `ทอยได้ ${endNums.join(' / ')} = จบเกม` : 'ทอยได้เลขบนการ์ด = จบเกม'} • {endLeft ? `ใบใหม่ในอีก ${nextEnd} ตา` : 'เปิดครบแล้ว'}</>}</small></div>}
-    <div className="ctrl-row">{PK.map(p => <span key={p} className={'ctrl-chip' + (r.ctrl[p] === myId ? ' mine' : '')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={22} /><span><b>{PARTNERS[p].n}</b><small><Avatar id={r.ctrl[p]} av={av} size={16} /> {r.ctrl[p] === myId ? 'คุณ' : nameOf(r.ctrl[p])}</small></span></span>)}</div>
-    <div className="money-row">{[...r.order].sort((a, b) => money(b) - money(a)).map(id => <span key={id} className={(id === cur && !res ? 'cur ' : '') + (r.out?.[id] ? 'out' : '')}><Avatar id={id} av={av} size={22} /> {id === myId ? 'คุณ' : nameOf(id)} <b>💰{money(id)}</b><small>🃏{hand(r, id).length}</small></span>)}</div>
-
-    {/* ตาของคุณ */}
-    {myTurn && <div className="turn-acts"><button className="primary big-roll" onClick={() => { sfx(sound, 'roll'); tx(c => rollDeal(c, myId, srvNow)); }}>🎲 ทอยหาดีล<small>{endNums.length ? `⚠️ ทอยได้ ${endNums.join(' / ')} = จบเกมทันที` : 'เดินหมวกเจ้าสัว แล้วเป็นเจ้าของดีลที่หยุด'}</small></button>
-      <button className="secondary" onClick={() => { sfx(sound, 'draw'); tx(c => drawTurn(c, myId, srvNow)); }}>🃏 จั่วการ์ด 2 ใบ<small>แล้วจบตา</small></button><p className="kbd-hint">⌨️ กด <kbd>R</kbd> ทอย • <kbd>D</kbd> จั่ว</p></div>}
-    {!res && r.phase === 'turn' && !myTurn && <div className="waiting">⏳ รอ {nameOf(cur)} ทอยเต๋าหรือจั่วการ์ด… ({secs} วิ)</div>}
-
-    {/* เจรจา */}
-    {!res && r.phase === 'nego' && <div className={'nego' + (iBoss ? ' boss' : iPart ? ' part' : '')}>
-      <div className="nego-h"><span className="nego-e">{D.e}</span><div><b>{D.n} • ×{v}</b><small>แบ่ง {v} ส่วน • ปิดดีลแล้วเปิดการ์ดเงิน ส่วนละ 1–5 ล้าน</small><small>เจ้าของดีล: <Avatar id={n.boss} av={av} size={18} /> {n.boss === myId ? 'คุณ' : nameOf(n.boss)} • เหลือ {secs} วิ</small></div></div>
-      <div className="seats">
-        {D.need.length > 0 && <span className="seats-h">🔒 หุ้นส่วนจำเป็น</span>}
-        {D.need.map(p => seatRow(p, true))}
-        {optOf(D).length > 0 && <span className="seats-h">🧩 เลือกอีก {pickOf(D)} จาก {optOf(D).length} ราย <small>{iBoss ? `เลือกแล้ว ${(n.chosen || []).length}/${pickOf(D)} — แตะ “เลือก” คนที่ยอมรับส่วนแบ่งน้อย ๆ` : `เจ้าของดีลเลือกแล้ว ${(n.chosen || []).length}/${pickOf(D)} — อยากถูกเลือกต้องต่อรองดี ๆ`}</small></span>}
-        {optOf(D).map(p => seatRow(p, false))}
-      </div>
-      <SecH icon="💵">ข้อเสนอแบ่งส่วน <small>{iBoss ? 'กด +/− ปรับส่วนแบ่ง แล้วกดส่งข้อเสนอ' : 'เจ้าของดีลเป็นคนเสนอ'}</small></SecH>
-      <div className="offer">{parts.map(id => { const isB = id === n.boss; const amt = isB ? (draft ? bossShare : offer[id] || 0) : offer[id] || 0; const st = isB ? '🎩' : n.ok?.[id] === true ? '✅' : n.ok?.[id] === false ? '❌' : '⏳';
-        return <div key={id} className={'of-row' + (id === myId ? ' me' : '')}><Avatar id={id} av={av} size={26} /><span className="of-name">{id === myId ? 'คุณ' : nameOf(id)}{isB ? ' (เจ้าของดีล)' : ''}</span>
-          {iBoss && !isB && <button type="button" className="of-btn" onClick={() => bump(id, -1)}>−</button>}<b className="of-amt">{amt}<small> ส่วน</small></b>{iBoss && !isB && <button type="button" className="of-btn" onClick={() => bump(id, 1)}>+</button>}<span className="of-st">{st}</span></div>; })}</div>
-      {iBoss && draft && <button className="secondary wide" onClick={sendOffer}>📨 ส่งข้อเสนอนี้</button>}
-      {iBoss && <div className="nego-acts"><button className="primary" disabled={!canClose(n) || !!draft} onClick={() => { sfx(sound, 'confirm'); tx(c => closeDeal(c, myId, srvNow)); }}>🤝 ปิดดีล!</button><button className="secondary" onClick={() => { if (confirm('ถอนตัวจากดีลนี้? (ดีลล่ม)')) tx(c => cancelDeal(c, myId, srvNow)); }}>💨 ถอนตัว</button></div>}
-      {iBoss && !canClose(n) && <p className="hint">{D.need.some(x => !n.seats?.[x]) ? '⛔ หุ้นส่วนจำเป็นถูกกันอยู่ — ใช้เด็กเส้นเติมเอง หรือรอคนอื่น' : (n.chosen || []).length < pickOf(D) ? `🧩 เลือกหุ้นส่วนตัวเลือกให้ครบ ${pickOf(D)} รายก่อน` : '⏳ รอทุกคนในดีลกด “ตกลง” ก่อน ถึงจะปิดดีลได้'}</p>}
-      {iPart && <div className="nego-acts"><button className={'primary' + (n.ok?.[myId] === true ? ' on' : '')} onClick={() => { sfx(sound, 'confirm'); tx(c => answer(c, myId, true, srvNow)); }}>✅ ตกลง ({offer[myId] || 0} ส่วน)</button><button className={'secondary' + (n.ok?.[myId] === false ? ' on' : '')} onClick={() => { sfx(sound, 'click'); tx(c => answer(c, myId, false, srvNow)); }}>❌ ไม่เอา ขอเพิ่ม</button></div>}
-      {!iBoss && !iPart && meIn && <p className="hint">คุณไม่ได้อยู่ในดีลนี้ — แต่ใช้การ์ดขัดขาหรือแทรกเข้าดีลได้ (คุยต่อรองในห้องเสียง)</p>}
-    </div>}
-
-    {/* การ์ดในมือ */}
-    {!res && meIn && <>
-      <SecH icon="🃏">การ์ดในมือ <small>{myHand.length}/{HAND_MAX} ใบ • แตะเพื่อใช้</small></SecH>
-      <div className="dc-hand">{myHand.map(c => { const { t, p } = cparse(c); const ok = usable(c);
-        return <DealCard key={c} id={c} ok={ok} sel={pickCard === c} onClick={() => tapCard(c)} />; })}
-        {!myHand.length && <p className="hint">ไม่มีการ์ด — จั่วได้ตอนถึงตา</p>}</div>
-      {pk === 'stop' && <div className="act-box"><b>✋ กันหุ้นส่วนรายไหน?</b><div className="pick-p">{D && slotsOf(D).filter(p => n.seats?.[p]).map(p => <button type="button" key={p} style={{ '--pc': PARTNERS[p].c }} onClick={() => play(pickCard, p)}><Dot p={p} size={24} />{PARTNERS[p].n}<small>{nameOf(n.seats[p])}</small></button>)}</div></div>}
-      {pk === 'take' && <div className="act-box"><b>📝 ซื้อกิจการหุ้นส่วนรายไหน?</b><div className="pick-p">{PK.filter(p => r.ctrl[p] !== myId).map(p => <button type="button" key={p} style={{ '--pc': PARTNERS[p].c }} onClick={() => { if (confirm(`ซื้อ${PARTNERS[p].n}ต่อจาก ${nameOf(r.ctrl[p])}?`)) play(pickCard, p); }}><Dot p={p} size={24} />{PARTNERS[p].n}<small>{nameOf(r.ctrl[p])}</small></button>)}</div></div>}
-    </>}
-
     {res && <>
       <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รวยที่สุด! 🏆`}>{res.why === 'number' && r.lastRoll ? <>🎴 {nameOf(r.lastRoll.by)} ทอยได้ {r.lastRoll.die} ตรงการ์ดจบเกม<br /></> : res.why === 'board' ? <>💼 ปิดดีลครบทุกช่องแล้ว<br /></> : res.why === 'limit' ? <>⏱️ ครบจำนวนตาสูงสุด<br /></> : ''}เงินรวม {money(res.winner)} ล้าน • ปิดดีลไป {r.closed || 0} ดีล</Outcome>
       <div className="money-row big">{(res.rank || []).map((id, i) => <span key={id}><em>{i + 1}</em><Avatar id={id} av={av} size={26} /> {nameOf(id)} <b>💰{money(id)} ล้าน</b></span>)}</div>
       <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
+
+    {/* ตาของคุณ */}
+    {myTurn && <div className="turn-acts"><button className="primary big-roll" onClick={() => { sfx(sound, 'roll'); tx(c => rollDeal(c, myId, srvNow)); }}>🎲 ทอยหาดีล<small>{endNums.length ? `⚠️ ทอยได้ ${endNums.join(' / ')} = จบเกมทันที` : 'เดินหมวกเจ้าสัว แล้วเป็นเจ้าของดีลที่หยุด'}</small></button>
+      <button className="secondary" onClick={() => { sfx(sound, 'draw'); tx(c => drawTurn(c, myId, srvNow)); }}>🃏 จั่วการ์ด 2 ใบ<small>แล้วจบตา</small></button><p className="kbd-hint">⌨️ กด <kbd>R</kbd> ทอย • <kbd>D</kbd> จั่ว</p></div>}
+    {!res && r.phase === 'turn' && !myTurn && <div className="waiting">⏳ รอ {nameOf(cur)} ทอยเต๋าหรือจั่วการ์ด… ({secs} วิ)</div>}
+
+    {/* เจรจา: บอกชัด ๆ ว่าตอนนี้ต้องทำอะไร แล้วค่อยเป็นรายชื่อคนในดีล */}
+    {!res && r.phase === 'nego' && <div className={'nego2' + (iBoss ? ' boss' : iPart ? ' part' : myCand ? ' cand' : '')}>
+      <div className="ng-top"><span className="nego-e">{D.e}</span><div><b>{D.n} <span className="ng-x">×{v}</span></b><small>🎩 {you(n.boss)} คุมดีล • แบ่ง {v} ส่วน</small></div><TimerRing secs={secs} total={Math.round(NEGO_MS / 1000)} size={44} /></div>
+      <ol className="ng-steps">{['ทีมครบ', 'ทุกคนตกลง', 'ปิดดีล'].map((s, i) => <li key={s} className={step > i + 1 ? 'done' : step === i + 1 ? 'now' : ''}>{step > i + 1 ? '✓' : i + 1} {s}</li>)}</ol>
+      <div className="ng-do">{doBox}{doBtns}</div>
+
+      <div className="ng-h">👥 คนในดีล — แบ่ง {v} ส่วน <small>(ปิดแล้วเปิดการ์ดเงิน ส่วนละ 1–5 ล้าน)</small></div>
+      <div className="ng-bar" aria-hidden="true">{parts.flatMap(id => Array.from({ length: Math.max(0, id === n.boss ? bossShare : offer[id] || 0) }, (_, i) => <i key={id + i} style={{ background: colOf(id) }} />))}</div>
+      <div className="ng-people">{parts.map(id => { const isB = id === n.boss; const amt = isB ? bossShare : offer[id] || 0; const a = ask[id];
+        const st = isB ? <span className="ng-st boss">🎩 เจ้าของดีล • ได้ส่วนที่เหลือ</span>
+          : n.ok?.[id] === true ? <span className="ng-st ok">✅ ตกลงแล้ว</span>
+          : a != null ? <span className="ng-st ask">🙏 ขอ {a} ส่วน{iBoss && <button type="button" onClick={() => bump(id, 'ask')}>ให้</button>}</span>
+          : n.ok?.[id] === false ? <span className="ng-st no">❌ ยังไม่เอา</span> : <span className="ng-st">⏳ รอตอบ</span>;
+        return <div key={id} className={'ng-p' + (id === myId ? ' me' : '')} style={{ '--uc': colOf(id) }}><Avatar id={id} av={av} size={30} />
+          <span className="ng-n"><b>{you(id)}</b><span>{seatsOf(id).map(p => <Dot key={p} p={p} size={16} />)}{st}</span></span>
+          <span className="ng-amt">{iBoss && !isB && <button type="button" className="of-btn" disabled={amt <= 0} onClick={() => bump(id, -1)}>−</button>}<b>{amt}<small>ส่วน</small></b>{iBoss && !isB && <button type="button" className="of-btn" disabled={bossShare <= 0} onClick={() => bump(id, 1)}>+</button>}</span></div>; })}
+        {missing.map(p => <div key={p} className="ng-miss" style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={20} off /> ⛔ {PARTNERS[p].n} ถูก {you(n.blocked?.[p])} กันออก — ต้องมีเด็กเส้น{PARTNERS[p].n}มาแทน</div>)}
+      </div>
+
+      {optOf(D).length > 0 && <>
+        <div className="ng-h">🧩 ตัวเลือก — เลือก {pickOf(D)} จาก {optOf(D).length} ราย <small>(เลือกแล้ว {chosen.length}/{pickOf(D)})</small></div>
+        <div className="ng-cgrid">{optOf(D).map(p => { const who = n.seats?.[p]; const ch = chosen.includes(p); const a = who ? ask[who] : null;
+          return <div key={p} className={'ng-c' + (ch ? ' on' : '') + (who ? '' : ' empty')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={24} off={!who} />
+            <span><b>{PARTNERS[p].n}</b><small>{who ? you(who) : `⛔ ถูกกัน`}</small>{a != null && !ch && <em>🙋 ขอแค่ {a} ส่วน</em>}</span>
+            {iBoss && who ? <button type="button" className={'opt-btn' + (ch ? ' on' : '')} disabled={!ch && !needPick} onClick={() => { sfx(sound, 'select'); tx(c => chooseOpt(c, myId, p, srvNow)); }}>{ch ? '✓ เอาออก' : 'เลือก'}</button>
+              : <span className="opt-st">{ch ? '✓ ในดีล' : ''}</span>}</div>; })}</div>
+      </>}
+    </div>}
+
+    {/* การ์ดในมือ */}
+    {!res && meIn && <>
+      <SecH icon="🃏">การ์ดในมือ <small>{myHand.length}/{HAND_MAX} ใบ • {r.phase === 'nego' ? 'ใบที่สว่างใช้ได้ตอนนี้ แตะเพื่อใช้' : 'ใช้ได้ตอนมีคนเจรจาดีล'}</small></SecH>
+      <div className="dc-hand">{myHand.map(c => <DealCard key={c} id={c} ok={usable(c)} sel={pickCard === c} onClick={() => tapCard(c)} />)}
+        {!myHand.length && <p className="hint">ไม่มีการ์ด — จั่วได้ตอนถึงตา</p>}</div>
+      {pk === 'stop' && <div className="act-box"><b>✋ กันหุ้นส่วนรายไหน?</b><div className="pick-p">{D && slotsOf(D).filter(p => n.seats?.[p]).map(p => <button type="button" key={p} style={{ '--pc': PARTNERS[p].c }} onClick={() => play(pickCard, p)}><Dot p={p} size={24} />{PARTNERS[p].n}<small>{nameOf(n.seats[p])}</small></button>)}</div></div>}
+      {pk === 'take' && <div className="act-box"><b>📝 ซื้อกิจการหุ้นส่วนรายไหน?</b><div className="pick-p">{PK.filter(p => r.ctrl[p] !== myId).map(p => <button type="button" key={p} style={{ '--pc': PARTNERS[p].c }} onClick={() => { if (confirm(`ซื้อ${PARTNERS[p].n}ต่อจาก ${nameOf(r.ctrl[p])}?`)) play(pickCard, p); }}><Dot p={p} size={24} />{PARTNERS[p].n}<small>{nameOf(r.ctrl[p])}</small></button>)}</div></div>}
+    </>}
+
+    {/* หุ้นส่วน: ใครคุมใคร + เงิน + การ์ดจบเกม */}
+    {!res && <div className="end-row"><span className="er-h">🎴 การ์ดจบเกม</span><span className="er-cards">{endNums.length ? endNums.map(x => <b key={x} className="end-card">{x}</b>) : <em>ยังไม่เปิด</em>}</span><small>{!endOn ? `เริ่มเปิดเมื่อปิดดีลครบ ${END_START} ดีล (ตอนนี้ ${Math.min(r.closed || 0, END_START)}/${END_START}) แล้วเปิดทุก ${END_EVERY} ตา` : <>{endNums.length ? `ทอยได้ ${endNums.join(' / ')} = จบเกม` : 'ทอยได้เลขบนการ์ด = จบเกม'} • {endLeft ? `ใบใหม่ในอีก ${nextEnd} ตา` : 'เปิดครบแล้ว'}</>}</small></div>}
+    <SecH icon="💼">ใครคุมหุ้นส่วนไหน</SecH>
+    <div className="ctrl-row">{PK.map(p => <span key={p} className={'ctrl-chip' + (r.ctrl[p] === myId ? ' mine' : '')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={22} /><span><b>{PARTNERS[p].n}</b><small><Avatar id={r.ctrl[p]} av={av} size={16} /> {you(r.ctrl[p])}</small></span></span>)}</div>
+    {!res && <div className="money-row">{[...r.order].sort((a, b) => money(b) - money(a)).map(id => <span key={id} className={(id === cur ? 'cur ' : '') + (r.out?.[id] ? 'out' : '')}><Avatar id={id} av={av} size={22} /> {you(id)} <b>💰{money(id)}</b><small>🃏{hand(r, id).length}</small></span>)}</div>}
 
     {isHost && !res && (cur !== myId || r.phase === 'nego' || r.order.some(id => inGame(r, id) && !room.players?.[id])) && <HostBar>
       <button className="secondary" onClick={() => { if (confirm(r.phase === 'nego' ? 'จบการเจรจานี้เลย (ดีลล่ม)?' : `ให้ ${nameOf(cur)} จั่วการ์ดแล้วข้ามตา?`)) tx(c => forceDeal(c, srvNow)); }}>⏭️ {r.phase === 'nego' ? 'จบเจรจา' : `ข้ามตา ${nameOf(cur)}`}</button>
