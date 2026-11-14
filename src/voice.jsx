@@ -25,7 +25,10 @@ const sidGen = () => Math.random().toString(36).slice(2, 10);
 const level = an => { if (!an) return 0; const a = new Uint8Array(an.fftSize); an.getByteTimeDomainData(a); let s = 0; for (const v of a) { const x = (v - 128) / 128; s += x * x; } return Math.sqrt(s / a.length); };
 
 // gate = null (คุยได้ปกติ) หรือ { canTalk, hear: [ids], label } — ใช้ตอนกลางคืนในแวร์วูฟ: ไมค์คนที่ไม่ใช่หมาป่าถูกปิด และได้ยินเฉพาะคนใน hear
-export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, gate = null }) {
+export default function VoicePanel({ db, roomCode, myId, nameOf, msg, gate = null }) {
+  // รายชื่อคนในห้องเสียง: ฟังเองจากที่เก็บแยก (ไม่ผูกกับข้อมูลห้องเกม)
+  const [members, setMembers] = useState(null);
+  useEffect(() => onValue(ref(db, `rooms/${roomCode}_voice/members`), sn => setMembers(sn.val())), [roomCode]);
   const [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false);
   const [micOn, setMicOn] = useState(true);
@@ -34,7 +37,8 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, g
   const [states, setStates] = useState({});
   const [tick, setTick] = useState(0);
   const S = useRef({ pcs: new Map(), ctx: null, stream: null, sid: null, unsub: [], localAn: null, ice: null, fails: {}, last: {}, wait: {} }).current;
-  const base = `rooms/${roomCode}/voice`;
+  // ข้อมูลเสียงอยู่แยกจากห้องเกม — ข้อความเชื่อมต่อจะได้ไม่ทำให้ทุกเครื่องโหลดข้อมูลห้องเกมทั้งก้อนใหม่
+  const base = `rooms/${roomCode}_voice`;
   const others = Object.entries(members || {}).filter(([id]) => id !== myId);
   S.gate = gate; S.prefs = prefs; S.micOn = micOn; // ค่าล่าสุดให้ callback ของ WebRTC ใช้
   const gateKey = gate ? `${gate.canTalk}|${(gate.hear || []).join(',')}` : '';
@@ -140,7 +144,7 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, g
     await remove(inbox);
     onDisconnect(meRef).remove(); onDisconnect(inbox).remove();
     S.unsub.push(onChildAdded(inbox, snap => { handle(snap.val()); remove(snap.ref).catch(() => {}); }));
-    await set(meRef, { sid: S.sid, muted: false, at: Date.now() });
+    await set(meRef, { sid: S.sid, muted: false, at: Date.now() }); update(ref(db, base), { active: Date.now() }).catch(() => {});
     setMicOn(true); setJoined(true); setBusy(false);
   }
 
