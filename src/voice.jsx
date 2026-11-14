@@ -33,7 +33,7 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, g
   const [speaking, setSpeaking] = useState({});
   const [states, setStates] = useState({});
   const [tick, setTick] = useState(0);
-  const S = useRef({ pcs: new Map(), ctx: null, stream: null, sid: null, unsub: [], localAn: null, ice: null, fails: {} }).current;
+  const S = useRef({ pcs: new Map(), ctx: null, stream: null, sid: null, unsub: [], localAn: null, ice: null, fails: {}, last: {}, wait: {} }).current;
   const base = `rooms/${roomCode}/voice`;
   const others = Object.entries(members || {}).filter(([id]) => id !== myId);
   S.gate = gate; S.prefs = prefs; S.micOn = micOn; // ค่าล่าสุดให้ callback ของ WebRTC ใช้
@@ -88,6 +88,14 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, g
   // ลองเชื่อมใหม่: ฝ่ายเริ่ม (id น้อยกว่า) ทำ ICE restart สูงสุด 2 ครั้ง แล้วค่อยสร้างการเชื่อมต่อใหม่ทั้งหมด • อีกฝ่ายส่งคำขอ "redo" ไปให้ฝ่ายเริ่มทำ
   async function retry(id, hard = false) {
     if (!S.sid) return; const p = S.pcs.get(id);
+    // กันวนลองถี่จนข้อความเชื่อมต่อท่วม (ทำให้ข้อมูลเกมค้าง): เว้นระยะ 3→6→12…60 วิ และเลิกลองเองหลังพลาด 7 ครั้ง (ยังกดเชื่อมใหม่ได้)
+    const now = Date.now(), f = S.fails[id] || 0;
+    if (!hard) {
+      if (f > 6) { setState(id, 'failed'); return; }
+      const wait = Math.min(60000, 3000 * 2 ** f) - (now - (S.last[id] || 0));
+      if (wait > 0) { clearTimeout(S.wait[id]); S.wait[id] = setTimeout(() => retry(id), wait); return; }
+    }
+    clearTimeout(S.wait[id]); S.last[id] = now;
     if (!p) { if (myId < id) setTick(t => t + 1); return; }
     if (!p.initiator) { send(id, p.sid, { type: 'redo', hard }); p.arm(); return; }
     if (!hard && Date.now() - p.lastRetry < 4000) return; p.lastRetry = Date.now();
@@ -138,6 +146,7 @@ export default function VoicePanel({ db, roomCode, myId, members, nameOf, msg, g
 
   async function leave(silent) {
     S.unsub.splice(0).forEach(u => { try { u(); } catch {} });
+    Object.values(S.wait).forEach(clearTimeout); S.wait = {}; S.last = {}; S.fails = {};
     [...S.pcs.keys()].forEach(closePeer);
     S.stream?.getTracks().forEach(t => t.stop()); S.stream = null;
     try { await S.ctx?.close(); } catch {} S.ctx = null; S.localAn = null;
