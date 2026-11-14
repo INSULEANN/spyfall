@@ -104,3 +104,19 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   .deal-game .ng-btns,.deal-game .ng-mini{gap:10px}
   .deal-game .dc-hand{gap:12px}
 }
+
+/* จ่าตรวจฯ + เค้กหายไปไหน (จอคอม): แบบเดียวกับปิดดีล — 2 คอลัมน์เต็มความกว้าง รายชื่อคนในห้อง/ห้องเสียงย้ายลงล่าง */
+@media (min-width:1100px){
+  .room-grid.playing:has(.cp-game),.room-grid.playing:has(.cake-game){grid-template-columns:minmax(0,1fr)}
+  .room-grid.playing:has(.cp-game) .players-panel,.room-grid.playing:has(.cake-game) .players-panel{order:3;position:static;max-height:none;overflow:visible}
+  .room-grid .cp-game .gcols{grid-template-columns:minmax(0,1.2fr) minmax(460px,1fr);gap:26px}
+  .room-grid .cake-game .gcols{grid-template-columns:minmax(0,1.3fr) minmax(420px,1fr);gap:26px}
+}
+
+/* ทุกเกมกระดาน (จอคอม): 2 คอลัมน์เต็มความกว้าง รายชื่อคนในห้อง/ห้องเสียงย้ายลงล่าง
+   (เกมที่ตั้งสัดส่วนคอลัมน์เองไว้แล้ว เช่น ปิดดีล/จ่าตรวจ/เค้ก ใช้ค่าของตัวเอง — :where() ทำให้กฎกลางนี้อ่อนกว่า) */
+@media (min-width:1100px){
+  .room-grid.playing:has(.gcols){grid-template-columns:minmax(0,1fr)}
+  .room-grid.playing:has(.gcols) .players-panel{order:3;position:static;max-height:none;overflow:visible}
+  :where(.room-grid.playing) .gcols,:where(.room-grid.playing) .gcols.flow{grid-template-columns:minmax(0,1.25fr) minmax(440px,1fr);gap:26px}
+}
