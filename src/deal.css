@@ -225,3 +225,23 @@
 .ng-top b{white-space:normal}
 
 .mc-front b{font-size:56px;letter-spacing:-1px}
+
+/* ลงการ์ด: ป๊อปอัพการ์ดใหญ่เด้งดึ๋งกลางกระดาน */
+.deal-game .gmain{position:relative}
+.dfx{position:absolute;left:50%;top:46%;z-index:30;display:grid;justify-items:center;gap:10px;width:min(560px,92%);transform:translate(-50%,-50%);animation:dfxLife 2.6s ease both;cursor:pointer}
+.dfx-card{animation:dfxCard .65s cubic-bezier(.2,1.8,.4,1) both;filter:drop-shadow(0 18px 30px #000c)}
+.dfx-card.dc-hand{display:block;width:150px;margin:0}
+.dfx-card .dc{zoom:1.45;box-shadow:0 0 0 4px #ffd76a,0 0 40px #ffd76a88}
+.dfx-txt{padding:8px 20px;border-radius:30px;background:linear-gradient(90deg,#ff7a1a,#ffb347);color:#2b1000;font-weight:900;font-size:clamp(15px,1.7vw,21px);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 20px #000a;animation:dfxPop .5s .15s cubic-bezier(.2,1.8,.4,1) both}
+.dfx-sub{padding:7px 14px;border-radius:12px;background:#000000d0;color:#fff;font-size:13.5px;text-align:center;line-height:1.5;animation:dfxPop .45s .3s ease both}
+@keyframes dfxCard{0%{opacity:0;transform:scale(.25) rotate(-16deg) translateY(60px)}55%{opacity:1;transform:scale(1.25) rotate(4deg)}75%{transform:scale(.95) rotate(-1deg)}100%{transform:scale(1.05) rotate(0)}}
+@keyframes dfxPop{0%{opacity:0;transform:scale(.4)}70%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes dfxLife{0%,86%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.dfx,.dfx-card,.dfx-txt,.dfx-sub{animation:none}}
+/* ป๊อปอัพลงการ์ด: กลางหน้าจอ + พื้นหลังมืด • อยู่ 3 วินาที */
+.dfx{position:fixed;inset:0;left:0;top:0;width:auto;transform:none;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;background:radial-gradient(circle,#000a 0,#000d 75%);animation:dfxLife2 3s ease both}
+.dfx-card .dc{zoom:1.7}
+.dfx-sub{max-width:min(560px,92vw);font-size:15px}
+.dfx-txt{font-size:clamp(17px,2vw,24px)}
+@keyframes dfxLife2{0%{opacity:0}8%,88%{opacity:1}100%{opacity:0}}
+.dfx{pointer-events:none}

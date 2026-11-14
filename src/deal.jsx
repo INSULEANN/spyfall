@@ -350,6 +350,14 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
   });
   const money = id => r.money?.[id] || 0;
+  // ลงการ์ด → ป๊อปอัพเด้ง (กองทิ้งเพิ่ม = มีคนเพิ่งลงการ์ด • คนลง/ผลดูจากบันทึกล่าสุดที่มีชื่อคนทำ)
+  const [cfx, setCfx] = useState(null); const discN = useRef((r.discard || []).length);
+  useEffect(() => {
+    const d = r.discard || []; const was = discN.current; discN.current = d.length; if (d.length <= was) return;
+    const L = [...(r.log || [])].reverse().find(x => x.by && x.act); const k = Date.now();
+    setCfx({ k, card: d[d.length - 1], by: L?.by, text: L ? nm(L.text) : '' }); sfx(sound, 'slam');
+    const tm = setTimeout(() => setCfx(c => (c?.k === k ? null : c)), 3000); return () => clearTimeout(tm);
+  }, [(r.discard || []).length]);
   const endNums = r.endNums || []; const endLeft = (r.endDeck || []).length; const endOn = r.endFrom != null; const nextEnd = endOn ? END_EVERY - (((r.turns || 0) - r.endFrom) % END_EVERY) : null;
   const [endFx, setEndFx] = useState(null); const endAt = useRef(r.endFlip?.at || 0);
   useEffect(() => { const E = r.endFlip; if (!E || E.at <= endAt.current) return; endAt.current = E.at; const delay = r.lastPay?.at === E.at ? 5400 : 200; const t1 = setTimeout(() => { setEndFx(E); sfx(sound, 'reveal'); }, delay); const t2 = setTimeout(() => setEndFx(null), delay + 3200); return () => { clearTimeout(t1); clearTimeout(t2); }; }, [r.endFlip?.at]);
@@ -399,7 +407,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
 
   return <div className="deal-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • ตาที่ {(r.turns || 0) + 1}</span><span className="cat-tag">💼 ปิดแล้ว {r.closed || 0}/{TILES}</span></div>
-    <div className="gcols"><div className="gmain"><Board r={r} res={res} myId={myId} av={av} nameOf={nameOf} center={center} /></div><div className="gside">
+    <div className="gcols"><div className="gmain"><Board r={r} res={res} myId={myId} av={av} nameOf={nameOf} center={center} />{cfx && !res && <div key={cfx.k} className="dfx" onClick={() => setCfx(null)}><div className="dfx-card dc-hand"><DealCard id={cfx.card} /></div><span className="dfx-txt">{cfx.by === myId ? 'คุณ' : nameOf(cfx.by)} ใช้ “{cardTitle(cfx.card)}”!</span>{cfx.text && <span className="dfx-sub">{cfx.text}</span>}</div>}</div><div className="gside">
 
     {res && <>
       <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รวยที่สุด! 🏆`}>{res.why === 'number' && r.lastRoll ? <>🎴 {nameOf(r.lastRoll.by)} ทอยได้ {r.lastRoll.die} ตรงการ์ดจบเกม<br /></> : res.why === 'board' ? <>💼 ปิดดีลครบทุกช่องแล้ว<br /></> : res.why === 'limit' ? <>⏱️ ครบจำนวนตาสูงสุด<br /></> : ''}เงินรวม {fmtM(money(res.winner))} • ปิดดีลไป {r.closed || 0} ดีล</Outcome>
