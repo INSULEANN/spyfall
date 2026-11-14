@@ -6,7 +6,7 @@ import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle, rint } from './rand.js';
-import { Avatar, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, TimerRing } from './ui.jsx';
+import { Avatar, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, TimerRing, ActionSheet } from './ui.jsx';
 import './cardgames.css';
 import './tam.css';
 
@@ -336,8 +336,8 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
     {/* 7 แลกมือ / สุ่มรส */}
     {!res && r.phase === 'pick7' && (pickMine ? <div className="turn-banner me tam-tb"><TimerRing secs={secs} total={PICK_MS / 1000} size={48} /><div><b>🔁 เลือกคนที่จะแลกไพ่ทั้งมือ</b><small>แตะรูปที่วงไพ่ หรือเลือกด้านล่าง • ไม่เลือกระบบสุ่มให้</small></div></div>
       : <div className="waiting">🔁 {nameOf(r.pick.by)} กำลังเลือกคนแลกไพ่ทั้งมือ… ({secs} วิ)</div>)}
-    {!res && r.phase === 'pick7' && pickMine && <PlayerGrid ids={alive.filter(id => id !== myId)} av={av} nameOf={nameOf} small onPick={swapTo} note={id => `🃏 ${hand(r, id).length} ใบ`} />}
-    {!res && r.phase === 'roulette' && (pickMine ? <div className="act-box tam-act"><b>🎰 โดนสุ่มรส! เลือกรสที่จะเปิดหา</b><small>เปิดไพ่จากกองไปเรื่อย ๆ จนกว่าจะเจอรสที่เลือก เก็บไว้ทั้งหมด แล้วจบตา • {secs} วิ</small><FlavorPick onPick={c => { sfx(sound, 'confirm'); tx(x => rouletteSpin(x, myId, c, srvNow)); }} /></div>
+    <ActionSheet open={!res && r.phase === 'pick7' && pickMine} k={'p7' + (r.pick?.until || '')} icon="🔁" title="เลือกคนที่จะแลกไพ่ทั้งมือ" sub="ไม่เลือกก่อนหมดเวลา ระบบสุ่มให้" secs={secs} total={PICK_MS / 1000}><PlayerGrid ids={alive.filter(id => id !== myId)} av={av} nameOf={nameOf} small onPick={swapTo} note={id => `🃏 ${hand(r, id).length} ใบ`} /></ActionSheet>
+    {!res && r.phase === 'roulette' && (pickMine ? <ActionSheet open k={'rl' + (r.pick?.until || '')} icon="🎰" title="โดนสุ่มรส! เลือกรสที่จะเปิดหา" sub="เปิดไพ่จากกองไปเรื่อย ๆ จนกว่าจะเจอรสที่เลือก เก็บไว้ทั้งหมด แล้วจบตา" secs={secs} total={PICK_MS / 1000}><FlavorPick onPick={c => { sfx(sound, 'confirm'); tx(x => rouletteSpin(x, myId, c, srvNow)); }} /></ActionSheet>
       : <div className="waiting">🎰 {nameOf(r.pick.by)} โดนสุ่มรส กำลังเลือกรส… ({secs} วิ)</div>)}
 
     {/* ไพ่ในมือ */}

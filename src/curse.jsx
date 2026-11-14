@@ -5,7 +5,7 @@ import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle, rint, pickBad } from './rand.js';
-import { Avatar, Phase, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, RevealGrid } from './ui.jsx';
+import { Avatar, Phase, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, RevealGrid, ActionSheet } from './ui.jsx';
 import { CardFace } from './cards.jsx';
 import { CurseStage } from './stages.jsx';
 import { Replay } from './replay.jsx';
@@ -262,22 +262,22 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
 
     {/* ไต่สวน: ครบ 7 แต้ม ต้องเปิดไพ่ดวง */}
     {r.phase === 'reveal' && !res && (r.reveal.by === me ? <div className="reveal-box"><Phase art="evidence" tone="me" kicker="⚖️ ไต่สวน" title={`เลือกเปิดไพ่ดวงของ ${nameOf(r.reveal.target)} 1 ใบ`}>คุณไม่รู้ว่าใบไหนเป็นอะไร เลือกตามดวง • {Math.ceil(Math.max(0, r.reveal.until - srvNow) / 1000)} วิ</Phase>
-      <div className="hand-row">{fateOf(r, r.reveal.target).map((c, i) => c.open ? <Fate key={i} t={c.t} size="md" dim tag="เปิดแล้ว" /> : <CardFace key={i} back backKind="curse" size="md" onClick={() => { sfx(sound, 'reveal'); tx(x => revealFate(x, me, i)); }} />)}</div></div>
+      <ActionSheet open k={'rv' + r.reveal.target} icon="⚖️" title={`เลือกเปิดไพ่ดวงของ ${nameOf(r.reveal.target)} 1 ใบ`} sub="ไม่รู้ว่าใบไหนเป็นอะไร เลือกตามดวง" secs={Math.ceil(Math.max(0, r.reveal.until - srvNow) / 1000)} total={REVEAL_MS / 1000}><div className="hand-row">{fateOf(r, r.reveal.target).map((c, i) => c.open ? <Fate key={i} t={c.t} size="md" dim tag="เปิดแล้ว" /> : <CardFace key={i} back backKind="curse" size="md" onClick={() => { sfx(sound, 'reveal'); tx(x => revealFate(x, me, i)); }} />)}</div></ActionSheet></div>
       : <Phase art="evidence" tone="bad" kicker="⚖️ ไต่สวน" title={`${nameOf(r.reveal.target)} ถูกสงสัยครบ ${SUS_MAX} แต้ม!`}>{nameOf(r.reveal.by)} กำลังเลือกเปิดไพ่ดวง 1 ใบ…</Phase>)}
 
     {/* กลางคืน */}
     {r.phase === 'night' && !res && <div className="night-box">
       {!r.alive?.[me] ? <Phase art="tombstone" tone="night" kicker="🌑 คืนเดือนดับ" title="คุณตายแล้ว — นอนสงบ">ดูเฉย ๆ ห้ามใบ้</Phase>
         : iDark ? <><Phase art="dark" tone="me" kicker="🌑 คืนเดือนดับ — ผีปอปออกหากิน" title="เลือกเหยื่อคืนนี้">ผีปอปทุกคนต้องเลือก<b>คนเดียวกัน</b> • คุยกันได้ในห้องเสียง (คนอื่นไม่ได้ยิน) • {Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} วิ</Phase>
-          <PlayerGrid ids={alive.filter(id => !isDark(r, id))} av={av} nameOf={nameOf} small selected={nightN.kills?.[me]} onPick={id => { sfx(sound, 'click'); tx(c => nightAct(c, me, 'kill', id, srvNow)); }} badge={id => { const by = Object.keys(nightN.kills || {}).filter(k => nightN.kills[k] === id); return by.length ? <span className="tag bad">👻 {by.map(nameOf).join(', ')}</span> : null; }} /></>
+          {nightN.kills?.[me] ? <PlayerGrid ids={alive.filter(id => !isDark(r, id))} av={av} nameOf={nameOf} small selected={nightN.kills?.[me]} onPick={id => { sfx(sound, 'click'); tx(c => nightAct(c, me, 'kill', id, srvNow)); }} badge={id => { const by = Object.keys(nightN.kills || {}).filter(k => nightN.kills[k] === id); return by.length ? <span className="tag bad">👻 {by.map(nameOf).join(', ')}</span> : null; }} /> : <ActionSheet open k={'kill' + r.day} icon="👻" title="เลือกเหยื่อคืนนี้" sub="ผีปอปทุกคนต้องเลือกคนเดียวกัน • เปลี่ยนใจได้" secs={Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} total={NIGHT_MS / 1000}><PlayerGrid ids={alive.filter(id => !isDark(r, id))} av={av} nameOf={nameOf} small selected={nightN.kills?.[me]} onPick={id => { sfx(sound, 'click'); tx(c => nightAct(c, me, 'kill', id, srvNow)); }} badge={id => { const by = Object.keys(nightN.kills || {}).filter(k => nightN.kills[k] === id); return by.length ? <span className="tag bad">👻 {by.map(nameOf).join(', ')}</span> : null; }} /></ActionSheet>}</>
           : <>
             {iShaman && <><Phase art="shaman" tone="me" kicker="🌑 คืนเดือนดับ — หมอธรรม" title={nightN.guard ? `คุ้มกัน ${nameOf(nightN.guard)} แล้ว` : 'เลือกคุ้มกัน 1 คน'}>คุ้มกันตัวเองไม่ได้ • ถ้าผีปอปเลือกคนนี้ เขาจะรอด</Phase>
-              {!nightN.guard && <PlayerGrid ids={alive.filter(id => id !== me)} av={av} nameOf={nameOf} small onPick={id => { sfx(sound, 'confirm'); tx(c => nightAct(c, me, 'guard', id, srvNow)); }} badge={() => <span className="tag good">📿 คุ้มกัน</span>} />}</>}
+              <ActionSheet open={!nightN.guard} k={'guard' + r.day} icon="📿" title="เลือกคุ้มกัน 1 คน" sub="คุ้มกันตัวเองไม่ได้ • ถ้าผีปอปเลือกคนนี้ เขาจะรอด" secs={Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} total={NIGHT_MS / 1000}><PlayerGrid ids={alive.filter(id => id !== me)} av={av} nameOf={nameOf} small onPick={id => { sfx(sound, 'confirm'); tx(c => nightAct(c, me, 'guard', id, srvNow)); }} badge={() => <span className="tag good">📿 คุ้มกัน</span>} /></ActionSheet></>}
             {nightN.sworn?.[me] != null ? <div className="confirmed">🙏 คุณสาบานตนแล้ว (จะเปิดไพ่ดวงใบที่ {nightN.sworn[me] + 1} ตอนเช้า) — รอดแน่นอนคืนนี้ ถ้าไม่ใช่ปอปสิง</div>
               : nightN.slept?.[me] ? <div className="waiting">😴 หลับอยู่… รอเช้า</div>
                 : <><Phase art="night" tone="night" kicker="🌑 คืนเดือนดับ" title="จะสาบานตนไหม?">เปิดไพ่ดวงตัวเอง 1 ใบตอนเช้า = <b>รอดแน่นอนคืนนี้</b> (แต่ทุกคนจะเห็นไพ่ใบนั้น) • หรือนอนเสี่ยงดวง</Phase>
-                  <div className="hand-row">{myFate.map((c, i) => c.open ? null : <Fate key={i} t={c.t} size="sm" onClick={() => { sfx(sound, 'select'); tx(x => nightAct(x, me, 'swear', i, srvNow)); }} tag="สาบานด้วยใบนี้" />)}</div>
-                  <button className="secondary wide" onClick={() => tx(x => nightAct(x, me, 'sleep', null, srvNow))}>😴 นอนต่อ เสี่ยงดวง</button></>}
+                  <ActionSheet open={!iShaman || !!nightN.guard} k={'swear' + r.day} icon="🙏" title="จะสาบานตนไหม?" sub="เปิดไพ่ดวงตัวเอง 1 ใบตอนเช้า = รอดแน่นอนคืนนี้ (ทุกคนจะเห็นไพ่ใบนั้น) • หรือนอนเสี่ยงดวง" secs={Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} total={NIGHT_MS / 1000}><div className="hand-row">{myFate.map((c, i) => c.open ? null : <Fate key={i} t={c.t} size="sm" onClick={() => { sfx(sound, 'select'); tx(x => nightAct(x, me, 'swear', i, srvNow)); }} tag="สาบานด้วยใบนี้" />)}</div>
+                  <button className="secondary wide" onClick={() => tx(x => nightAct(x, me, 'sleep', null, srvNow))}>😴 นอนต่อ เสี่ยงดวง</button></ActionSheet></>}
           </>}
       <div className="whodone"><span>🌑 คืนนี้: ผีปอป{alive.some(id => isDark(r, id)) && alive.filter(id => isDark(r, id)).every(id => nightN.kills?.[id]) ? 'เลือกแล้ว' : 'ยังเลือกอยู่'} • หมอธรรม{!sham ? 'ไม่อยู่แล้ว' : nightN.guard ? 'เลือกแล้ว' : 'ยังเลือกอยู่'} • อีก {Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} วิ</span></div>
       {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ?')) tx(c => resolveNight(c, true, srvNow)); }}>🌅 ให้เช้าเลย (ไม่รอ)</button></HostBar>}

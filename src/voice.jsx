@@ -131,6 +131,22 @@ export default function VoicePanel({ db, roomCode, myId, nameOf, msg, gate = nul
     } catch (e) { console.warn('voice signal', e); }
   }
 
+  // ไมค์หลุด (ถอดหูฟัง/บลูทูธหลุด/โดนสายเรียกเข้าตัด) → ขอไมค์ใหม่แล้วสลับเข้าทุกสายโดยไม่ต้องเชื่อมใหม่
+  function watchMic(t) { t.onended = () => { if (S.sid) restartMic(); }; }
+  async function restartMic() {
+    if (S.micBusy) return; S.micBusy = true;
+    try {
+      const ns = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      if (!S.sid) { ns.getTracks().forEach(t => t.stop()); return; }
+      const nt = ns.getAudioTracks()[0];
+      for (const p of S.pcs.values()) p.pc.getSenders().forEach(sd => { if (!sd.track || sd.track.kind === 'audio') sd.replaceTrack(nt).catch(() => {}); });
+      S.stream?.getTracks().forEach(t => { t.onended = null; t.stop(); }); S.stream = ns;
+      try { S.ctx.createMediaStreamSource(ns).connect(S.localAn); } catch {}
+      watchMic(nt); applyMic(); msg('ไมค์หลุด — ต่อไมค์ใหม่ให้แล้ว 🎙️');
+    } catch { msg('ไมค์หลุด — กดออกจากห้องเสียงแล้วเข้าใหม่'); }
+    finally { S.micBusy = false; }
+  }
+
   async function join() {
     if (!navigator.mediaDevices?.getUserMedia) { msg('เบราว์เซอร์นี้ใช้ไมค์ไม่ได้ (ต้องเปิดผ่าน https)'); return; }
     setBusy(true); const iceP = getIce();
@@ -138,6 +154,7 @@ export default function VoicePanel({ db, roomCode, myId, nameOf, msg, gate = nul
       S.ctx = new (window.AudioContext || window.webkitAudioContext)(); await S.ctx.resume();
       S.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     } catch (e) { setBusy(false); try { S.ctx?.close(); } catch {} msg('เปิดไมค์ไม่ได้ — กดอนุญาตไมโครโฟนในเบราว์เซอร์ก่อนนะ'); return; }
+    S.stream.getAudioTracks().forEach(watchMic);
     S.localAn = S.ctx.createAnalyser(); S.localAn.fftSize = 512; S.ctx.createMediaStreamSource(S.stream).connect(S.localAn);
     S.ice = await iceP; S.sid = sidGen();
     const meRef = ref(db, `${base}/members/${myId}`), inbox = ref(db, `${base}/sig/${myId}`);
@@ -152,7 +169,7 @@ export default function VoicePanel({ db, roomCode, myId, nameOf, msg, gate = nul
     S.unsub.splice(0).forEach(u => { try { u(); } catch {} });
     Object.values(S.wait).forEach(clearTimeout); S.wait = {}; S.last = {}; S.fails = {};
     [...S.pcs.keys()].forEach(closePeer);
-    S.stream?.getTracks().forEach(t => t.stop()); S.stream = null;
+    S.stream?.getTracks().forEach(t => { t.onended = null; t.stop(); }); S.stream = null;
     try { await S.ctx?.close(); } catch {} S.ctx = null; S.localAn = null;
     if (S.sid) { const meRef = ref(db, `${base}/members/${myId}`), inbox = ref(db, `${base}/sig/${myId}`);
       try { onDisconnect(meRef).cancel(); onDisconnect(inbox).cancel(); } catch {}
@@ -195,8 +212,29 @@ export default function VoicePanel({ db, roomCode, myId, nameOf, msg, gate = nul
   }, [joined, micOn]);
 
   useEffect(() => () => { leave(true); }, []);
+  // เน็ตหลุดแล้วกลับมา: คำสั่ง onDisconnect ใช้ได้ครั้งเดียว ต้องตั้งใหม่ทุกครั้งที่ต่อติด ไม่งั้นหลุดรอบหน้าจะเหลือชื่อผีค้างในห้องเสียง
+  useEffect(() => {
+    if (!joined) return;
+    return onValue(ref(db, '.info/connected'), sn => {
+      if (sn.val() !== true || !S.sid) return;
+      const meRef = ref(db, `${base}/members/${myId}`), inbox = ref(db, `${base}/sig/${myId}`);
+      onDisconnect(meRef).remove(); onDisconnect(inbox).remove();
+      set(meRef, { sid: S.sid, muted: !S.micOn, at: Date.now() }).catch(() => {});
+    });
+  }, [joined]);
+  // มือถือ: สลับแอป/ล็อกจอ/รับสาย แล้วระบบพักเสียงไว้ → กลับมาแตะจอหรือเปิดแท็บเมื่อไหร่ ปลุกเสียงให้ใหม่
+  useEffect(() => {
+    if (!joined) return;
+    const wake = () => {
+      if (S.ctx && S.ctx.state !== 'running' && S.ctx.state !== 'closed') S.ctx.resume().catch(() => {});
+      for (const p of S.pcs.values()) if (p.el?.paused) p.el.play().catch(() => {});
+    };
+    const evs = [[document, 'visibilitychange'], [document, 'pointerdown'], [document, 'touchend'], [window, 'focus'], [window, 'online']];
+    evs.forEach(([t, e]) => t.addEventListener(e, wake)); if (S.ctx) S.ctx.onstatechange = wake;
+    return () => { evs.forEach(([t, e]) => t.removeEventListener(e, wake)); if (S.ctx) S.ctx.onstatechange = null; };
+  }, [joined]);
   // ถ้าถูกลบออกจากรายชื่อ (เช่น เน็ตหลุดแล้ว onDisconnect ทำงาน) ให้ใส่ชื่อกลับ
-  useEffect(() => { if (joined && S.sid && members && !members[myId]) set(ref(db, `${base}/members/${myId}`), { sid: S.sid, muted: !micOn, at: Date.now() }).catch(() => {}); }, [joined, !!members?.[myId]]);
+  useEffect(() => { if (joined && S.sid && members && !members[myId]) set(ref(db, `${base}/members/${myId}`), { sid: S.sid, muted: !S.micOn, at: Date.now() }).catch(() => {}); }, [joined, !!members?.[myId]]);
 
   const count = Object.keys(members || {}).length;
   const stLabel = s => s === 'connected' ? null : s === 'failed' ? 'เชื่อมไม่ได้ • ลองใหม่อยู่' : s === 'disconnected' ? 'สัญญาณหลุด • ต่อใหม่อยู่' : 'กำลังเชื่อม…';

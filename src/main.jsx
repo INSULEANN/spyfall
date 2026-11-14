@@ -33,7 +33,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.29';
+const APP_VERSION = '1.31';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -145,7 +145,8 @@ const rid = () => Math.random().toString(36).slice(2, 9).toUpperCase();
 const clean = s => String(s || '').trim().slice(0, 24);
 function App() {
   const [name,setName]=useState(localStorage.getItem('sf-name')||'');
-  const [roomCode,setRoomCode]=useState('');
+  // รีเฟรช/เน็ตหลุดแล้วโหลดหน้าใหม่ → กลับเข้าห้องเดิมเอง (จำรหัสห้องไว้ในแท็บนี้)
+  const [roomCode,setRoomCode]=useState(()=>{try{return sessionStorage.getItem('sf-room')||''}catch{return ''}});
   const [joinCode,setJoinCode]=useState(()=>{try{return (new URLSearchParams(location.search).get('join')||'').toUpperCase().slice(0,6)}catch{return ''}});
   const liveCode=useRef('');
   const [room,setRoom]=useState(null);
@@ -185,6 +186,10 @@ function App() {
     const check=async()=>{try{const h=await (await fetch('/?_='+Date.now(),{cache:'no-store'})).text();const m=h.match(/\/assets\/index-[^"']+\.js/);if(m&&!mine.endsWith(m[0])&&!mine.includes(m[0]))setNewBuild(true)}catch{}};
     check();const t=setInterval(check,60000);const vis=()=>document.visibilityState==='visible'&&check();document.addEventListener('visibilitychange',vis);return()=>{clearInterval(t);document.removeEventListener('visibilitychange',vis)}},[]);
   useEffect(()=>{sessionStorage.setItem('sf-player',myId);},[myId]);
+  useEffect(()=>{try{roomCode?sessionStorage.setItem('sf-room',roomCode):sessionStorage.removeItem('sf-room')}catch{}},[roomCode]);
+  // สถานะเน็ต: หลุดเกิน 2 วิ → แถบเตือนบนจอ (ที่กดไว้ระหว่างหลุดจะส่งเองเมื่อกลับมา)
+  const [netDown,setNetDown]=useState(false);
+  useEffect(()=>{if(!db)return;let t=null,seen=false;const unsub=onValue(ref(db,'.info/connected'),s=>{clearTimeout(t);if(s.val()===true){seen=true;setNetDown(false)}else t=setTimeout(()=>setNetDown(true),seen?2000:8000)});return()=>{clearTimeout(t);unsub()}},[]);
   useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),500);return()=>clearInterval(t)},[]);
   useEffect(()=>{if(!db)return;return onValue(ref(db,'.info/serverTimeOffset'),s=>setSkew(s.val()||0))},[]);
   useEffect(()=>{if(!db||!roomCode)return; const code=roomCode;liveCode.current=code; const unsub=onValue(ref(db,`rooms/${code}`),s=>{if(liveCode.current!==code)return;const v=s.val();if(v&&v.players?.[myId]){setRoom(v);setScreen('room')}else{if(v)msg('คุณไม่ได้อยู่ในห้องนี้แล้ว');else if(roomCode)msg('ห้องนี้ถูกปิดแล้ว');setRoom(null);setRoomCode('');setScreen('home')}});return()=>unsub();},[roomCode]);
@@ -336,7 +341,7 @@ function App() {
   const canEdit=isHost&&room?.status==='lobby';
   // ออนไลน์/หลุด: เน็ตหลุดหรือปิดแท็บ Firebase จะตั้ง online=false ให้เอง
   useEffect(()=>{if(!db||!roomCode)return;const code=roomCode;const pRef=ref(db,`rooms/${code}/players/${myId}`);const oRef=ref(db,`rooms/${code}/players/${myId}/online`);
-    const unsub=onValue(ref(db,'.info/connected'),s=>{if(s.val()!==true)return;onDisconnect(oRef).set(false).then(()=>runTransaction(pRef,p=>p&&p.id?{...p,online:true}:undefined)).catch(()=>{})});
+    const unsub=onValue(ref(db,'.info/connected'),s=>{if(s.val()!==true)return;onDisconnect(oRef).set(false).then(()=>runTransaction(pRef,p=>p&&p.id?{...p,online:true,v:APP_VERSION}:undefined)).catch(()=>{})});
     return()=>{unsub();onDisconnect(oRef).cancel().catch(()=>{})}},[roomCode]);
   // หัวหน้าห้องหลุดเกิน 12 วิ → คนที่ออนไลน์และเข้าห้องก่อนสุดรับตำแหน่งแทน
   const hostP=room?.players?.[room?.hostId];const hostGone=!!room&&(!hostP||hostP.online===false);
@@ -404,7 +409,7 @@ function App() {
     setVerdict({right,key:resultKey});sfx(sound,right?'right':'wrong');const t=setTimeout(()=>setVerdict(null),3500);return()=>clearTimeout(t)},[resultKey]);
   if(!configured||!db)return <div className="setup"><div className="brand"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></div><div className="setup-card"><span className="eyebrow">SETUP ก่อนเปิดเกม</span><h1>อีกนิดเดียวก็ได้โป๊ะกับเพื่อนแล้ว</h1><p>เว็บนี้พร้อมรันแล้ว แต่ต้องเชื่อม Firebase Realtime Database เพื่อให้ผู้เล่นคนละเครื่องเห็นข้อมูลห้องเดียวกัน</p><ol><li>สร้างโปรเจกต์ Firebase แล้วเปิด Realtime Database</li><li>คัดลอกค่าการตั้งค่ามาใส่ในไฟล์ <code>.env</code></li><li>ตั้งค่า Database Rules ตาม README แล้วรัน <code>npm run dev</code></li></ol><a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="primary">เปิด Firebase Console ↗</a><p className="muted">อ่าน README.md ในไฟล์โปรเจกต์เพื่อทำทีละขั้นตอน</p></div></div>;
 
-  return <div className="app"><Ambient theme={themeId}/>
+  return <div className="app"><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
     {intro&&<IntroFilm id={intro} sound={sound} onDone={()=>setIntro(null)}/>}
     <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo"><BrandMark/></span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?`${G.emoji} ${G.name}`:'รวมบอร์ดเกมเล่นกับแก๊งเพื่อน 🇹🇭'}</div><div className="sound-wrap" ref={mixRef}><button className={'sound'+(mixOpen?' open':'')} onClick={()=>setMixOpen(o=>!o)} title="ปรับเสียง" aria-label="ปรับเสียง" aria-expanded={mixOpen}>{sound&&(musicVol>0||sfxVol>0)?<Volume2/>:<VolumeX/>}</button>
       {mixOpen&&<div className="mixer" role="dialog" aria-label="ปรับเสียง">

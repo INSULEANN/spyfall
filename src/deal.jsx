@@ -71,7 +71,7 @@ const inGame = (r, id) => r.order.includes(id) && !r.out?.[id];
 function say(r, text, extra) { r.log = [...(r.log || []), { text, t: Date.now(), ...extra }].slice(-40); }
 function draw(r, id, n) {
   for (let i = 0; i < n; i++) {
-    if (!(r.deck || []).length) { if (!(r.discard || []).length) return; r.deck = shuffle(r.discard); r.discard = []; }
+    if (!(r.deck || []).length) { if (!(r.discard || []).length) break; r.deck = shuffle(r.discard); r.discard = []; }
     const d = [...r.deck]; r.hands[id] = [...hand(r, id), d.shift()]; r.deck = d;
   }
   capHand(r, id);
@@ -296,7 +296,8 @@ export function kickDeal(cur, id, now) {
   if (left.length < 2) return finish(cur, 'players');
   if (r.phase === 'nego' && (r.nego.boss === id || partsOf(r.nego).includes(id))) return failDeal(cur, now, 'มีคนหลุด');
   if (r.phase === 'nego') { const n = r.nego; const sig = sigOf(n); reseat(r); if (sigOf(n) !== sig) touch(r, now); guard(r, now); }
-  if (curOf(r) === id) return nextTurn(cur, now);
+  // กำลังเจรจาอยู่ → ปล่อยให้ดีลจบก่อน แล้ว nextTurn จะข้ามคนที่ออกไปเอง (ไม่งั้นการ์ดคนในเครือบนโต๊ะหาย)
+  if (r.phase === 'turn' && curOf(r) === id) return nextTurn(cur, now);
   return cur;
 }
 

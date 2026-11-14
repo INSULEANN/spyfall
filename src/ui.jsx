@@ -1,5 +1,6 @@
 // ชิ้นส่วนหน้าจอที่ทุกเกมใช้ร่วมกัน — ให้หน้าตาระหว่างเล่นเหมือนกันทุกเกม อ่านง่าย กดง่าย
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { Art } from './play-art.jsx';
 
@@ -146,4 +147,20 @@ export function TimerRing({ secs, total, size = 78, label }) {
     <svg viewBox="0 0 76 76"><circle cx="38" cy="38" r={R} className="tr-bg" /><circle cx="38" cy="38" r={R} className="tr-fg" strokeDasharray={C} strokeDashoffset={C * (1 - p)} /></svg>
     <b>{txt}</b>{label && <small>{label}</small>}
   </div>;
+}
+
+// ---------- ป๊อปอัปบังคับเลือก: งานที่ต้องกดให้ทันเวลา (เลือกลูกสมุน หมาป่ากัด ฯลฯ) เด้งกลางจอ ----------
+// ย่อได้ → เหลือแถบกะพริบลอยล่างจอ แตะเพื่อเปิดอีกครั้ง (กันลืม) • key เปลี่ยน = เด้งกลับมาเต็มจอ
+export function ActionSheet({ open, k, icon, title, sub, secs, total, children }) {
+  const [min, setMin] = useState(false);
+  useEffect(() => { if (open) setMin(false); }, [open, k]);
+  if (!open || typeof document === 'undefined') return null;
+  const ring = secs != null && total ? <TimerRing secs={secs} total={total} size={60} label="วินาที" /> : null;
+  return createPortal(min
+    ? <button type="button" className={'asheet-pill' + (secs != null && secs <= 10 ? ' low' : '')} onClick={() => setMin(false)}><span>{icon}</span><b>{title}</b>{secs != null && <em>{secs} วิ</em>}<span className="asheet-up">แตะเพื่อเลือก ▴</span></button>
+    : <div className="asheet-back"><div className="asheet" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="asheet-head"><span className="asheet-ico">{icon}</span><div className="asheet-tt"><b>{title}</b>{sub && <small>{sub}</small>}</div>{ring}</div>
+      <div className="asheet-body">{children}</div>
+      <button type="button" className="asheet-min" onClick={() => setMin(true)}>ย่อไว้ก่อน ▾</button>
+    </div></div>, document.body);
 }

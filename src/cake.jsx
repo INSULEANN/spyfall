@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
-import { TimerRing, Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Avatar, Voters } from './ui.jsx';
+import { TimerRing, Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Avatar, Voters, ActionSheet } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { CakeStage } from './cakestage.jsx';
 import { Replay } from './replay.jsx';
@@ -227,14 +227,13 @@ export function CakeGame({ db, room, roomCode, myId, players, isHost, scores, so
       </Phase>
       {mates.length > 0 ? <><SecH icon="👀">ตื่นพร้อมคุณ <small>คุยกันได้ในห้องเสียง คนที่หลับไม่ได้ยิน</small></SecH><PlayerGrid ids={mates} av={av} nameOf={nameOf} small badge={id => vThief ? <span className="tag bad">เห็นคุณ!</span> : id === r.thief ? <span className="tag bad">ถือเค้ก!</span> : <span className="tag">ตื่นด้วย</span>} /></>
         : <div className="tip"><Art name="flashlight" size={42} /><span><b>คุณตื่นคนเดียว</b> — ได้สิทธิ์แอบดูเลขเต๋าของเพื่อน 1 คน (รู้ว่าเขาตื่นตีไหน)</span></div>}
-      {vThief && r.accN > 0 && !r.accDone && <div className="action-box">
-        <SecH icon="🤝">เลือกลูกสมุน <small>เลือกได้ {r.accN} คน • แตะรูป</small></SecH>
+      <ActionSheet open={vThief && r.accN > 0 && !r.accDone} k={'acc' + h} icon="🤝" title={`เลือกลูกสมุน ${r.accN} คน`} sub="แตะรูปเพื่อเลือก แล้วกดยืนยัน • ลูกสมุนจะรู้ตัวตอนเช้า" secs={secLeft} total={Math.round(r.hourMs / 1000)}>
         <PlayerGrid ids={accIds} av={av} nameOf={nameOf} myId={myId} selected={accSel} onPick={id => { sfx(sound, 'click'); setAccSel(s => s.includes(id) ? s.filter(x => x !== id) : s.length >= r.accN ? s : [...s, id]); }} badge={id => mates.includes(id) ? <span className="tag bad">พยาน</span> : null} />
         <button className="primary wide" onClick={confirmAcc}>🤝 ยืนยัน{accSel.length ? `ลูกสมุน (${accSel.length}/${r.accN})` : ' ไม่เอาลูกสมุน'}</button>
-        <p className="hint">ลูกสมุนจะรู้ตัวตอนเช้า • ถ้าไม่กดยืนยันก่อนหมดเวลา ระบบสุ่มให้</p></div>}
+        <p className="hint">ถ้าไม่กดยืนยันก่อนหมดเวลา ระบบสุ่มให้</p></ActionSheet>
       {vThief && r.accDone && <div className="confirmed">🤝 ลูกสมุน: {accList(r).length ? <><Voters ids={accList(r)} av={av} /> <b>{accList(r).map(nameOf).join(', ')}</b></> : 'ไม่มี'}</div>}
       {!mates.length && (myPeek ? <div className="peek-result"><Avatar id={myPeek.t} av={av} size={44} /><span><b>{nameOf(myPeek.t)}</b> ทอยได้</span><Art name="die" n={myPeek.die} size={56} /><span>→ ตื่น <b>ตี {myPeek.die}</b></span></div>
-        : <div className="action-box"><SecH icon="🔦">แอบดูเต๋าของใครดี? <small>ดูได้ 1 คน</small></SecH><PlayerGrid ids={accIds} av={av} nameOf={nameOf} onPick={peek} badge={() => <span className="tag">🔦 ดูเต๋า</span>} /></div>)}
+        : <ActionSheet open k={'peek' + h} icon="🔦" title="แอบดูเต๋าของใครดี?" sub="คุณตื่นคนเดียว — ดูได้ 1 คน รู้ว่าเขาตื่นตีไหน" secs={secLeft} total={Math.round(r.hourMs / 1000)}><PlayerGrid ids={accIds} av={av} nameOf={nameOf} onPick={peek} badge={() => <span className="tag">🔦 ดูเต๋า</span>} /></ActionSheet>)}
     </>}
     {!res && r.phase === 'night' && h > HOURS && <Phase art="day" tone="day" kicker="🌅 ใกล้เช้า" title="ไก่ขันแล้ว… กำลังจะเช้า" />}
 

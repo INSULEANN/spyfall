@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { Art } from './play-art.jsx';
-import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters } from './ui.jsx';
+import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters, ActionSheet } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { WolfStage } from './stages.jsx';
 import { Replay } from './replay.jsx';
@@ -261,12 +261,13 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
         : myRole === 'doctor' ? <Phase art="potion" tone={n.doc ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอยา`} title={n.doc ? `คืนนี้ปกป้อง ${nameOf(n.doc)}` : 'เลือกปกป้อง 1 คน'}>{n.doc ? 'ถ้าหมาป่ากัดคนนี้ เขาจะรอด' : <>ปกป้องตัวเองได้{r.lastDoc ? <> • คืนก่อนปกป้อง <b>{nameOf(r.lastDoc)}</b> คืนนี้ห้ามซ้ำ</> : ''}</>}</Phase>
         : myRole === 'cupid' && r.day === 1 ? <Phase art="cupid" tone={lovers.length ? 'good' : 'me'} kicker="🌙 คืนแรก — กามเทพ" title={lovers.length ? `จับคู่ ${nameOf(lovers[0])} 💘 ${nameOf(lovers[1])} แล้ว` : 'ยิงศรรักให้ 2 คน'}>{lovers.length ? 'คู่รักรู้ตัวแล้ว • ถ้าคนหนึ่งตาย อีกคนตรอมใจตายตาม' : <>เลือก 2 คน (รวมตัวเองได้) • เลือกแล้วเปลี่ยนไม่ได้ • คู่รักจะรู้ว่าคู่ของตัวเองคือใคร</>}</Phase>
         : <Phase art="night" tone="night" kicker={`🌙 คืนที่ ${r.day}`} title="หลับตาฝันดี… 😴">คุณไม่มีอะไรต้องทำคืนนี้ ทำหน้าเฉย ๆ ไว้ อย่าให้ใครรู้ว่าคุณว่าง</Phase>}
-      {meAlive && vRole === 'wolf' && <PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} />}
-      {meAlive && myRole === 'seer' && !n.seer && <PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => act('seer', t)} badge={() => <span className="tag">🔮 ส่อง</span>} />}
-      {meAlive && myRole === 'cupid' && r.day === 1 && !lovers.length && <div className="action-box">
+      {meAlive && vRole === 'wolf' && (n.wolf?.[myId] ? <PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} />
+        : <ActionSheet open k={'wolf' + r.day} icon="🐺" title="เลือกเหยื่อคืนนี้" sub={wolves.length > 1 ? 'หมาป่าทุกตัวต้องเลือกคนเดียวกัน • เลือกแล้วเปลี่ยนใจได้' : 'แตะรูปคนที่จะกัด • เลือกแล้วเปลี่ยนใจได้'}><PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} /></ActionSheet>)}
+      <ActionSheet open={meAlive && myRole === 'seer' && !n.seer} k={'seer' + r.day} icon="🔮" title="ส่องลูกแก้วดู 1 คน" sub="เลือกแล้วเปลี่ยนไม่ได้ • รู้ว่าเขาเป็นหมาป่าหรือไม่"><PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => act('seer', t)} badge={() => <span className="tag">🔮 ส่อง</span>} /></ActionSheet>
+      <ActionSheet open={meAlive && myRole === 'cupid' && r.day === 1 && !lovers.length} k="cupid" icon="💘" title="ยิงศรรักให้ 2 คน" sub="รวมตัวเองได้ • เลือกแล้วเปลี่ยนไม่ได้">
         <PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} selected={pair} onPick={pickLove} badge={id => pair.includes(id) ? <span className="tag love">💘 คู่ที่ {pair.indexOf(id) + 1}</span> : <span className="ptile-note">แตะเพื่อเลือก</span>} />
-        <button className="primary wide" disabled={pair.length !== 2} onClick={sendLove}>💘 {pair.length === 2 ? `ยิงศร: ${nameOf(pair[0])} ❤ ${nameOf(pair[1])}` : `เลือกอีก ${2 - pair.length} คน`}</button></div>}
-      {meAlive && myRole === 'doctor' && !n.doc &&<PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => act('doc', t)} off={id => id === r.lastDoc} badge={id => id === r.lastDoc ? <span className="ptile-note">คืนก่อนแล้ว</span> : <span className="tag good">💉 ปกป้อง</span>} />}
+        <button className="primary wide" disabled={pair.length !== 2} onClick={sendLove}>💘 {pair.length === 2 ? `ยิงศร: ${nameOf(pair[0])} ❤ ${nameOf(pair[1])}` : `เลือกอีก ${2 - pair.length} คน`}</button></ActionSheet>
+      <ActionSheet open={meAlive && myRole === 'doctor' && !n.doc} k={'doc' + r.day} icon="💉" title="เลือกปกป้อง 1 คน" sub={r.lastDoc ? `ปกป้องตัวเองได้ • คืนก่อนปกป้อง ${nameOf(r.lastDoc)} คืนนี้ห้ามซ้ำ` : 'ปกป้องตัวเองได้'}><PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => act('doc', t)} off={id => id === r.lastDoc} badge={id => id === r.lastDoc ? <span className="ptile-note">คืนก่อนแล้ว</span> : <span className="tag good">💉 ปกป้อง</span>} /></ActionSheet>
       {seeAll && <div className="tip"><Art name="crystal" size={42} /><span>👻 มุมคนตาย — หมาป่าเล็ง: <b>{Object.entries(n.wolf || {}).map(([w, t]) => `${nameOf(w)}→${nameOf(t)}`).join(', ') || '-'}</b> • หมอดู: <b>{n.seer ? nameOf(n.seer) : '-'}</b> • หมอยา: <b>{n.doc ? nameOf(n.doc) : '-'}</b>{lovers.length === 2 && <> • คู่รัก: <b>{nameOf(lovers[0])} 💘 {nameOf(lovers[1])}</b></>}</span></div>}
       {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ? (คนที่หลุดหรือยังไม่เลือกจะถูกข้าม)')) tx(cur => resolveNight(cur, true)); }}>จบคืนนี้เลย (ไม่รอ)</button></HostBar>}
     </>}
@@ -274,8 +275,8 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     {/* ---------- นายพราน ---------- */}
     {!res && r.phase === 'hunter' && <>
       <Phase art="bow" tone={r.hunter === myId ? 'me' : 'bad'} kicker="🏹 ก่อนตาย…" title={r.hunter === myId ? 'คุณคือนายพราน! ยิงใครดี?' : `${nameOf(r.hunter)} คือนายพราน!`}>นายพรานยิงพาใครไปด้วยได้ 1 คน (หรือไม่ยิงก็ได้)</Phase>
-      {r.hunter === myId ? <><PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => { if (confirm(`ยิง ${nameOf(t)}?`)) tx(cur => hunterShoot(cur, myId, t)); }} badge={() => <span className="tag bad">🏹 ยิง</span>} />
-        <button className="secondary wide" onClick={() => tx(cur => hunterShoot(cur, myId, null))}>ไม่ยิงใคร</button></>
+      {r.hunter === myId ? <ActionSheet open k="hunter" icon="🏹" title="คุณคือนายพราน! ยิงใครดี?" sub="ยิงพาไปด้วยได้ 1 คน หรือไม่ยิงก็ได้"><PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => { if (confirm(`ยิง ${nameOf(t)}?`)) tx(cur => hunterShoot(cur, myId, t)); }} badge={() => <span className="tag bad">🏹 ยิง</span>} />
+        <button className="secondary wide" onClick={() => tx(cur => hunterShoot(cur, myId, null))}>ไม่ยิงใคร</button></ActionSheet>
         : <div className="waiting">⏳ รอนายพรานเล็งเป้า…</div>}
       {isHost && r.hunter !== myId && <HostBar><button className="secondary" onClick={() => { if (confirm('ข้ามนายพราน (ไม่ยิงใคร)?')) tx(cur => hunterShoot(cur, cur.round.hunter, null)); }}>ข้ามนายพราน</button></HostBar>}
     </>}
