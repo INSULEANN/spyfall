@@ -84,10 +84,10 @@
 /* การ์ด */
 .dc-hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:10px}
 .dc-hand .dc{position:relative;display:grid;grid-template-rows:auto auto 1fr;align-content:start;justify-items:center;gap:0;padding:0;border-radius:14px;overflow:hidden;border:2px solid var(--k1);background:#fbf7ee;color:#1d2340;font:inherit;text-align:center;white-space:normal;cursor:pointer;box-shadow:0 4px 0 color-mix(in srgb,var(--k2) 75%,#000),0 8px 18px #0006;transition:transform .15s,box-shadow .15s,opacity .2s,filter .2s}
-.dcard.t-boss{--k1:#f5c451;--k2:#a8771c}.dcard.t-stop{--k1:#ef4a4a;--k2:#9e1c22}.dcard.t-take{--k1:#4a78d9;--k2:#1f3f8a}.dcard.t-link{--k1:var(--pc,#3fbf7f);--k2:color-mix(in srgb,var(--pc,#3fbf7f) 55%,#000)}
+.dcard.t-boss{--k1:#f5c451;--k2:#a8771c}.dcard.t-stop{--k1:#ef4a4a;--k2:#9e1c22}.dcard.t-buy{--k1:#4a78d9;--k2:#1f3f8a}.dcard.t-trip{--k1:var(--pc,#e8a33a);--k2:color-mix(in srgb,var(--pc,#e8a33a) 55%,#000)}.dcard.t-clan{--k1:var(--pc,#3fbf7f);--k2:color-mix(in srgb,var(--pc,#3fbf7f) 55%,#000)}
 .dcard .dc-art{display:block;width:100%;aspect-ratio:100/76;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--k1) 55%,#fff) 0,var(--k1) 50%,var(--k2) 100%)}
 .dcard.t-boss .dc-art{background:radial-gradient(circle at 50% 42%,#4a3d7a 0,#26305e 55%,#141a3a 100%)}
-.dcard.t-take .dc-art{background:radial-gradient(circle at 50% 40%,#cfe0ff 0,#7fa3ea 55%,#3a5fb5 100%)}
+.dcard.t-buy .dc-art{background:radial-gradient(circle at 50% 40%,#cfe0ff 0,#7fa3ea 55%,#3a5fb5 100%)}
 .dcard .dc-art svg{display:block;width:100%;height:100%}
 .dcard b{font-family:var(--display),'Kanit',sans-serif;font-weight:800;font-size:14px;line-height:1.2;margin:7px 6px 2px;color:#1d2340}
 .dcard small{font-size:10.5px;line-height:1.35;color:#4a4f68;margin:0 7px 9px}
@@ -257,3 +257,28 @@
   .deal-game .dcard b{font-size:15px;margin:8px 8px 3px}
   .deal-game .dcard small{font-size:11.5px;line-height:1.45}
 }
+
+/* พักร้อน: ท้องฟ้าทะเล */
+.dcard.t-trip .dc-art{background:linear-gradient(#8fd8ff 0,#c9eeff 60%,#f3d9a4 100%)}
+/* คูลดาวน์การ์ด 2 วิ: มือมืดลง + ตัวเลขนับ */
+.dc-hand.cd{position:relative}
+.dc-hand.cd .dc{opacity:.38;filter:grayscale(.8) brightness(.8);transform:none}
+.cd-badge-t{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 18px;border-radius:30px;background:#000d;color:#ffd76a;font-family:var(--display),'Kanit',sans-serif;font-size:22px;font-weight:900;box-shadow:0 0 0 2px #ffd76a88,0 8px 20px #000a;pointer-events:none;white-space:nowrap}
+/* นับถอยหลังปิดดีล 5 วิ: ตัวเลขใหญ่กลางจอทุกคน (คลิกทะลุได้) */
+.close-cd{position:fixed;left:50%;top:max(110px,16%);z-index:95;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:4px;padding:16px 34px 18px;border-radius:26px;background:radial-gradient(circle,#1b2a1ef2 0,#0d1510f2 100%);border:3px solid #3fdc85;box-shadow:0 0 0 6px #3fdc8533,0 0 60px #3fdc8588,0 20px 40px #000c;pointer-events:none;text-align:center;animation:ccIn .35s cubic-bezier(.2,1.8,.4,1) both}
+.close-cd small{color:#cfe9d8;font-size:14px;font-weight:700}
+.close-cd b{font-family:var(--display),'Kanit',sans-serif;font-size:clamp(70px,9vw,104px);line-height:1;color:#7dffb5;text-shadow:0 0 30px #3fdc85,0 6px 0 #0a5a2e;animation:ccTick 1s ease-out both}
+.close-cd span{font-weight:900;font-size:clamp(16px,1.8vw,21px);color:#fff}
+.close-cd.off{border-color:#ff4b5c;background:radial-gradient(circle,#2a1214f2 0,#160809f2 100%);box-shadow:0 0 0 6px #ff4b5c33,0 0 60px #ff4b5c88,0 20px 40px #000c;animation:ccIn .3s cubic-bezier(.2,1.8,.4,1) both,ccOut .4s 1.4s ease-in forwards}
+.close-cd.off b{font-size:64px;text-shadow:none;animation:none}
+.close-cd.off span{font-size:clamp(24px,3vw,34px);color:#ff7a86}
+@keyframes ccIn{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}}
+@keyframes ccOut{to{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+@keyframes ccTick{0%{transform:scale(1.6);opacity:.3}40%{transform:scale(.95);opacity:1}100%{transform:scale(1)}}
+/* ห้าม!: การ์ดที่โดนยกเลิกโดนประทับตรา */
+.dfx-cards{display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vw,40px)}
+.dfx-card.was{position:relative;filter:grayscale(.7) brightness(.75) drop-shadow(0 18px 30px #000c);animation:dfxCard .5s cubic-bezier(.2,1.8,.4,1) both}
+.dfx-stamp{position:absolute;left:50%;top:45%;padding:6px 16px;border:5px solid #ff3b4e;border-radius:12px;color:#ff3b4e;background:#ffffffe0;font-family:var(--display),'Kanit',sans-serif;font-size:clamp(26px,3.4vw,40px);font-weight:900;white-space:nowrap;transform:translate(-50%,-50%) rotate(-14deg);box-shadow:0 0 0 3px #fff6,0 8px 20px #0009;animation:dfxStamp .7s .35s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes dfxStamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(3)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(.92)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
+@media (max-width:700px){.dfx.nope .dfx-card.dc-hand{width:140px}}
+@media (prefers-reduced-motion:reduce){.close-cd,.close-cd b,.dfx-stamp,.dfx-card.was{animation:none}}
