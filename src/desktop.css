@@ -90,3 +90,17 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   .deal-game .gmain .db-pawn{font-size:clamp(22px,2vw,34px)}
 }
 @media (min-width:1600px){.deal-game .gcols{grid-template-columns:minmax(0,1.55fr) minmax(380px,.7fr)}}
+
+/* ปิดดีล (จอคอม): กระดาน + แผงเกมใช้ความกว้างเต็ม • ย้ายรายชื่อคนในห้อง/ห้องเสียงลงไปไว้ข้างล่าง */
+@media (min-width:1100px){
+  .room-grid.playing:has(.deal-game){grid-template-columns:minmax(0,1fr)}
+  .room-grid.playing:has(.deal-game) .players-panel{order:3;position:static;max-height:none;overflow:visible}
+  .deal-game .gcols{grid-template-columns:minmax(0,1.15fr) minmax(440px,1fr);gap:26px}
+  .deal-game .gside{display:grid;gap:12px;align-content:start}
+  .deal-game .gside>*{margin-top:0;margin-bottom:0}
+  .deal-game .nego2{gap:14px;padding:16px}
+  .deal-game .ng-people{gap:8px}
+  .deal-game .ng-p{padding:10px 12px 10px 12px}
+  .deal-game .ng-btns,.deal-game .ng-mini{gap:10px}
+  .deal-game .dc-hand{gap:12px}
+}
