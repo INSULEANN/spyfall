@@ -8,12 +8,13 @@ import { Mic, MicOff, Headphones, PhoneOff, Volume2, VolumeX } from 'lucide-reac
 //   หรือ VITE_TURN_API = URL ที่ตอบกลับเป็น iceServers (JSON array หรือ { iceServers })
 const STUN = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }];
 const ENV = (typeof import.meta !== 'undefined' && import.meta.env) || {};
-export const HAS_TURN = !!(ENV.VITE_TURN_URLS || ENV.VITE_TURN_API);
+export const HAS_TURN = true;
 let iceCache = null;
 async function getIce() {
   if (iceCache && Date.now() - iceCache.at < 30 * 60e3) return iceCache.list;
   const urls = String(ENV.VITE_TURN_URLS || '').split(',').map(x => x.trim()).filter(Boolean);
-  let extra = urls.length ? [{ urls, username: ENV.VITE_TURN_USER || '', credential: ENV.VITE_TURN_PASS || '' }] : [];
+  // TURN ค่าเริ่มต้น (Metered ของเจ้าของเว็บ) — ใช้เมื่อไม่ได้ตั้งค่าตอน build
+  let extra = urls.length ? [{ urls, username: ENV.VITE_TURN_USER || '', credential: ENV.VITE_TURN_PASS || '' }] : [{ urls: ["turn:global.relay.metered.ca:80", "turn:global.relay.metered.ca:80?transport=tcp", "turn:global.relay.metered.ca:443", "turns:global.relay.metered.ca:443?transport=tcp"], username: "de7b7a5711cd1d274f491715", credential: "Qwxb3XTjmO4VedAP" }];
   if (ENV.VITE_TURN_API) { try { const r = await fetch(ENV.VITE_TURN_API); if (r.ok) { const j = await r.json(); const l = Array.isArray(j) ? j : j.iceServers || []; if (l.length) extra = l; } } catch { } }
   const list = [...STUN, ...extra]; iceCache = { at: Date.now(), list }; return list;
 }
