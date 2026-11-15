@@ -32,11 +32,12 @@ import { UcGame, UcLobby, makeUcRound, UC_MIN, UC_MAX, UC_SCORE } from './underc
 import { InsGame, InsLobby, makeInsRound, INS_MIN, INS_MAX, INS_SCORE } from './insider.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
+import { preloadCards } from './cards.jsx';
 import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.39';
+const APP_VERSION = '1.41';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -220,6 +221,7 @@ function App() {
     return()=>{alive=false;ev.forEach(e=>document.removeEventListener(e,get));lock?.release().catch(()=>{});lock=null}},[inRoom]);
   const joke=useMemo(()=>pick(jokes),[room?.round?.number,room?.status]);
   const themeId=screen==='room'&&room?gid:(game||'hub');
+  useEffect(()=>{preloadCards(themeId)},[themeId]);   // ภาพการ์ดของเกมนี้ โหลดไว้ก่อนเริ่ม
   useEffect(()=>{document.documentElement.dataset.theme=themeId;setSfxTheme(themeId);setMusic(themeId);
     // สีแถบเบราว์เซอร์บนมือถือให้ตรงกับธีมเกม
     const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();const m=document.querySelector('meta[name=theme-color]');if(m&&bg)m.setAttribute('content',bg)},[themeId]);

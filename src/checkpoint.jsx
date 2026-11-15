@@ -7,6 +7,7 @@ import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle } from './rand.js';
 import { Avatar, HostBar, SecH, Outcome, Leaderboard, TimerRing } from './ui.jsx';
+import { CardImg } from './cards.jsx';
 import './checkpoint.css';
 
 export const CP_MIN = 3, CP_MAX = 6;
@@ -262,7 +263,7 @@ function finish(cur, why) {
 export function CpCard({ id, t: t0, onClick, sel, mark, dim, small, className = '', style }) {
   const t = id ? typeOf(id) : t0; const G = GOODS[t]; if (!G) return null;
   const cls = 'cpc' + (G.legal ? ' legal' : ' bad') + (sel ? ' sel' : '') + (dim ? ' dim' : '') + (small ? ' sm' : '') + (onClick ? ' tap' : '') + (className ? ' ' + className : '');
-  const inner = <><span className="cpc-v" title="ราคาตอนจบเกม (บาท)">{G.v}<small> บาท</small></span><span className="cpc-p" title="ค่าปรับต่อชิ้น (บาท)">ปรับ {G.p}</span><span className="cpc-e">{G.e}</span><b>{G.n}</b>{!G.legal && <i className="cpc-rib">ของเถื่อน</i>}{mark && <em className="cpc-mark">{mark}</em>}</>;
+  const inner = <><span className="cpc-v" title="ราคาตอนจบเกม (บาท)">{G.v}<small> บาท</small></span><span className="cpc-p" title="ค่าปรับต่อชิ้น (บาท)">ปรับ {G.p}</span><span className="cpc-e"><CardImg k={'cp_' + t} fallback={G.e} /></span><b>{G.n}</b>{!G.legal && <i className="cpc-rib">ของเถื่อน</i>}{mark && <em className="cpc-mark">{mark}</em>}</>;
   return onClick ? <button type="button" className={cls} style={{ '--gc': G.c, ...style }} onClick={onClick}>{inner}</button> : <div className={cls} style={{ '--gc': G.c, ...style }}>{inner}</div>;
 }
 // กระเป๋า: ยิ่งยัดเยอะยิ่งพอง

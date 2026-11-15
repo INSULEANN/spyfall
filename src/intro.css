@@ -1,8 +1,57 @@
-.intro-film{position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;animation:intro-in .25s ease-out}
+.intro-film{position:fixed;inset:0;z-index:9999;background:rgba(4,3,12,.94);display:flex;align-items:center;justify-content:center;animation:intro-in .25s ease-out;padding:16px}
 .intro-film.leaving{opacity:0;transition:opacity .45s ease-in;pointer-events:none}
-.intro-film video{width:100%;height:100%;object-fit:contain;background:#000}
-.intro-skip{position:absolute;right:16px;bottom:16px;padding:10px 18px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-size:15px;cursor:pointer;backdrop-filter:blur(4px)}
+.if-frame{width:min(100%,820px);display:flex;flex-direction:column;align-items:center;gap:14px}
+.if-svg{width:100%;height:auto;max-height:72vh;border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.6);background:#000}
+.if-cap{display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;text-align:center;animation:if-cap .5s .3s both}
+.if-cap b{font-family:Kanit,sans-serif;font-size:clamp(24px,5vw,38px);font-weight:800}
+.if-cap span{font-size:clamp(15px,3vw,19px);opacity:.8}
+.intro-skip{position:absolute;right:16px;bottom:16px;padding:10px 18px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:inherit;font-size:15px;cursor:pointer}
 .intro-skip:hover{background:rgba(255,255,255,.18)}
-.intro-unmute{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:10px 18px;border:0;border-radius:999px;background:#fff;color:#111;font:inherit;font-size:15px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.4)}
 @keyframes intro-in{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.intro-film{animation:none}}
+@keyframes if-cap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ชิ้นที่ขยับ (SVG) */
+.if-svg *{transform-box:fill-box}
+.if-tick{transform-origin:50% 88%;animation:if-tick 3s steps(6) infinite}
+.if-door{transform-origin:100% 50%;animation:if-door .7s 1.2s ease-in-out both}
+.if-glow{animation:if-fade .5s 1.2s both}
+.if-spill{opacity:0;animation:if-spill .6s 1.3s both}
+.if-sneak{animation:if-sneak 1.9s 1.6s ease-in-out both}
+.if-bob{animation:if-bob .35s infinite alternate ease-in-out}.if-bob.fast{animation-duration:.16s}
+.if-blink{transform-origin:50% 50%;animation:if-blink 2.2s infinite}
+.if-pop{transform-origin:50% 50%;animation:if-pop .45s cubic-bezier(.3,1.6,.5,1) both}
+.if-dark{animation:if-dark .2s .3s both}
+.if-shake{animation:if-shake .12s .5s 8 alternate}
+.if-in-l{animation:if-in-l .45s cubic-bezier(.3,1.4,.5,1) both}
+.if-stamp{transform-origin:50% 50%;animation:if-stamp .4s cubic-bezier(.3,1.5,.5,1) both}
+.if-run{animation:if-run 1.3s .5s ease-in both}
+.if-puff{opacity:0;animation:if-puff .9s both}
+.if-road{animation:if-road .4s linear 5}
+.if-red{opacity:0;animation:if-flash .7s infinite}.if-blue{opacity:0;animation:if-flash .7s .35s infinite}
+.if-lr{animation:if-lamp .7s infinite}.if-lb{animation:if-lamp .7s .35s infinite}
+.if-bike{transform-origin:50% 100%;animation:if-bike 1.9s cubic-bezier(.2,.7,.4,1) both,if-jolt .3s 1.9s}
+.if-wave{transform-origin:100% 100%;animation:if-wave .35s 2.4s 6 alternate ease-in-out}
+.if-door.now,.if-glow.now{animation-duration:.01s;animation-delay:0s}
+.d08{animation-delay:.8s}.d10{animation-delay:1s}.d12{animation-delay:1.2s}.d16{animation-delay:1.6s}.d24{animation-delay:2.4s}.d26{animation-delay:2.6s}.d35{animation-delay:3.5s}
+
+@keyframes if-tick{to{transform:rotate(36deg)}}
+@keyframes if-door{to{transform:scaleX(.12)}}
+@keyframes if-fade{from{opacity:0}to{opacity:1}}
+@keyframes if-spill{to{opacity:.3}}
+@keyframes if-sneak{from{transform:translateX(-60px)}to{transform:translateX(196px)}}
+@keyframes if-bob{to{transform:translateY(-6px)}}
+@keyframes if-blink{0%,90%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes if-pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes if-dark{to{opacity:0}}
+@keyframes if-shake{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
+@keyframes if-in-l{from{transform:translateX(-220px)}to{transform:none}}
+@keyframes if-stamp{from{transform:scale(3) rotate(-14deg);opacity:0}to{transform:scale(1) rotate(-8deg);opacity:1}}
+@keyframes if-run{from{transform:translateX(320px)}to{transform:translateX(-140px)}}
+@keyframes if-puff{0%{opacity:0}30%{opacity:.8}100%{opacity:0;transform:translateX(-30px)}}
+@keyframes if-road{to{stroke-dashoffset:-34}}
+@keyframes if-flash{0%,100%{opacity:0}50%{opacity:.16}}
+@keyframes if-lamp{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes if-bike{from{transform:translateY(-40px) scale(.22)}to{transform:none}}
+@keyframes if-jolt{50%{transform:translateY(4px) rotate(-2deg)}}
+@keyframes if-wave{from{transform:rotate(-22deg)}to{transform:rotate(18deg)}}
+@media (prefers-reduced-motion:reduce){.intro-film,.if-svg *{animation-duration:.01s!important;animation-iteration-count:1!important}}

@@ -320,3 +320,10 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .ins-guesses>small{width:100%;text-align:center;color:var(--muted)}
 .ins-guesses span{padding:4px 10px;border-radius:999px;background:var(--chip);font-size:14px}
 .ins-guesses span.ok{background:#1f6b45;color:#fff}
+
+/* ภาพการ์ดที่เจนจริง */
+.card-img{display:block;object-fit:cover;user-select:none;-webkit-user-drag:none}
+.gc-img{aspect-ratio:1;border-radius:12%;box-shadow:0 2px 0 #0003;filter:none}
+.dcard .dc-art .card-img{width:100%;height:100%}
+.cpc .cpc-e .card-img{width:48px;height:48px;border-radius:10px;box-shadow:0 2px 6px #0005}
+.cpc.sm .cpc-e .card-img{width:32px;height:32px;border-radius:7px}

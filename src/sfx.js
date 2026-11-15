@@ -260,6 +260,39 @@ Object.assign(SFX, {
   defuse: () => { noise(0.4, { gain: 0.08, freq: 1500, to: 300 }); tone(1400, 0.35, { gain: 0.06, to: 500 }); arp([659, 784, 1047], 0.1, { type: 'triangle', gain: 0.07, at: 0.4 }); },
 });
 
+// ---------- เสียงประกอบฉากเปิด/ปิดเกม (intro.jsx) — สังเคราะห์สด ไม่มีไฟล์ ----------
+const tick = (at = 0) => tone(2200, 0.025, { type: 'square', at, gain: 0.018, attack: 0.001 });
+const step = (at = 0, g = 0.07) => { noise(0.05, { at, gain: g, freq: 500, type: 'lowpass' }); tone(120, 0.06, { at, gain: g * 0.6, to: 70, attack: 0.002 }); };
+export const FILMS = {
+  cake: () => {
+    [0, 0.5, 1, 1.5, 2, 2.5].forEach(at => tick(at + 0.1));
+    tone(170, 0.9, { type: 'sawtooth', at: 1.25, gain: 0.035, to: 115, vib: 18, vibRate: 16, lp: 800, attack: 0.05 }); // ประตูตู้เย็นเอี๊ยด
+    noise(2.6, { at: 1.4, gain: 0.025, freq: 160 }); tone(60, 2.4, { at: 1.4, gain: 0.025, attack: 0.3 });     // ตู้เย็นหึ่ง
+    [1.8, 2.15, 2.5, 2.85, 3.2].forEach((at, i) => step(at, 0.03 + i * 0.008));                                  // ย่อง ๆ
+    tone(311, 1.2, { type: 'triangle', at: 3.55, gain: 0.07, vib: 5 }); tone(330, 1.2, { type: 'triangle', at: 3.55, gain: 0.05 }); thump(3.55, 0.3);
+  },
+  'cake-caught': () => {
+    noise(0.03, { at: 0.3, gain: 0.2, freq: 4000, type: 'highpass' }); tone(1500, 0.03, { type: 'square', at: 0.3, gain: 0.03 }); // ไฟเปิด แช้ะ
+    tone(880, 0.25, { type: 'triangle', at: 0.55, gain: 0.07, to: 1400 }); tone(990, 0.25, { type: 'triangle', at: 0.75, gain: 0.07, to: 1500 }); // !! 
+    brass(392, 0.22, 1.2); brass(523, 0.22, 1.4); stamp(1.6); brass(659, 0.9, 1.6, 0.08);
+    boing(2.6); [1047, 1319, 1568].forEach((f, i) => box(f, 3.1 + i * 0.12, 0.05));
+  },
+  'cake-escape': () => {
+    munch(0.1);
+    for (let i = 0; i < 9; i++) step(0.7 + i * 0.13, 0.06);
+    noise(0.5, { at: 1.6, gain: 0.08, freq: 500, to: 4000, type: 'bandpass', q: 1.2 });   // ฟิ้ว
+    noise(0.2, { at: 2.0, gain: 0.12, freq: 650 }); thump(2.02, 0.45);                     // ปึง!
+    [784, 698, 587, 523, 392].forEach((f, i) => pluck(f, 2.5 + i * 0.16, 0.12)); tone(392, 0.7, { type: 'triangle', at: 3.4, gain: 0.06, vib: 8 });
+  },
+  checkpoint: () => {
+    siren(0.05, 3);
+    tone(55, 1.6, { type: 'sawtooth', at: 0.2, gain: 0.03, to: 90, lp: 400, attack: 0.3 });                    // มอไซค์มาแต่ไกล
+    tone(2300, 0.6, { type: 'sawtooth', at: 1.9, gain: 0.025, to: 1700, lp: 3500 }); noise(0.6, { at: 1.9, gain: 0.06, freq: 3000, type: 'bandpass', q: 3 }); // เบรกเอี๊ยด
+    pea(2.6, 0.16); pea(2.85, 0.6); thump(3.6, 0.3);
+  },
+};
+export const playFilm = (on, id) => { if (!on) return; try { FILMS[id]?.(); } catch { /* ignore */ } };
+
 let theme = 'hub';
 export const setSfxTheme = t => { theme = t || 'hub'; };
 // เรียกแบบปลอดภัย: ปิดเสียงอยู่ = ไม่เล่น • เลือกเสียงตามธีมเกมที่เปิดอยู่ก่อน

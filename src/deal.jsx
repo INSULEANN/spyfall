@@ -8,6 +8,7 @@ import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle, rint } from './rand.js';
 import { Avatar, HostBar, SecH, Outcome, Leaderboard, TimerRing } from './ui.jsx';
+import { CardImg } from './cards.jsx';
 import './deal.css';
 
 export const DEAL_MIN = 3, DEAL_MAX = 6;
@@ -357,7 +358,7 @@ export function DealCard({ id, t: t0, onClick, ok = true, sel, className = '' })
   const { t, p } = id ? cparse(id) : { t: t0, p: null }; const C = CARDS[t]; if (!C) return null;
   const title = id ? cardTitle(id) : C.n; const cls = 'dc dcard t-' + t + (ok ? ' ok' : ' dim') + (sel ? ' sel' : '') + (className ? ' ' + className : '');
   const style = PARTNERS[p] ? { '--pc': PARTNERS[p].c } : undefined;
-  const inner = <><span className="dc-art"><svg viewBox="0 0 100 76" aria-hidden="true">{CARD_ART[t](p || 'any')}</svg></span><b>{title}</b><small>{t === 'clan' && PARTNERS[p] ? 'นั่งที่' + PARTNERS[p].n + 'ในดีลนี้เอง ไม่ได้ใช้ = กลับเข้ามือ' : t === 'trip' && PARTNERS[p] ? 'ส่ง' + PARTNERS[p].n + 'ไปพักร้อน ที่นั่งว่างจนจบดีล' : t === 'trip' ? 'ส่งหุ้นส่วนสีไหนก็ได้ไปพักร้อน' : C.text}</small></>;
+  const inner = <><span className="dc-art"><CardImg k={t} fallback={<svg viewBox="0 0 100 76" aria-hidden="true">{CARD_ART[t](p || 'any')}</svg>} /></span><b>{title}</b><small>{t === 'clan' && PARTNERS[p] ? 'นั่งที่' + PARTNERS[p].n + 'ในดีลนี้เอง ไม่ได้ใช้ = กลับเข้ามือ' : t === 'trip' && PARTNERS[p] ? 'ส่ง' + PARTNERS[p].n + 'ไปพักร้อน ที่นั่งว่างจนจบดีล' : t === 'trip' ? 'ส่งหุ้นส่วนสีไหนก็ได้ไปพักร้อน' : C.text}</small></>;
   return onClick ? <button type="button" className={cls} style={style} onClick={onClick}>{inner}</button> : <div className={cls} style={style}>{inner}</div>;
 }
 // สีประจำคนในดีล (แถบแบ่งส่วน)

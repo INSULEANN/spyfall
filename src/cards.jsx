@@ -1,5 +1,5 @@
 // ไพ่ของเกมไพ่ (ทุเรียนตูม / จับผีปอป) — กรอบไพ่ + ภาพวาด SVG ของไพ่ทุกใบ
-import React from 'react';
+import React, { useState } from 'react';
 import './cardgames.css';
 
 const W = '#ffffff', INK = '#2b1d10';
@@ -55,12 +55,30 @@ export const CARD_ART = {
 
 // ---------- กรอบไพ่ ----------
 // cat: สี/หมวดของไพ่ • back: ด้านหลัง
+// ---------- ภาพการ์ดที่เจนจริง (public/cards/*.webp) — โหลดไม่ขึ้นจะกลับไปใช้ SVG ----------
+export const CARD_SETS = {
+  boom: ['bomb', 'clip', 'nope', 'skip', 'attack', 'future', 'shuffle', 'favor', 'bottom', 'market', 'f1', 'f2', 'f3', 'f4', 'f5'],
+  curse: ['gossip', 'evidence', 'witness', 'alibi', 'stocks', 'arson', 'cleanse', 'steal', 'scapegoat', 'ordain', 'amulet', 'bind', 'night', 'ritual', 'dark', 'pure', 'shaman'],
+  deal: ['boss', 'stop', 'trip', 'clan', 'buy'],
+  checkpoint: ['cp_pork', 'cp_ball', 'cp_tea', 'cp_shirt', 'cp_lamp', 'cp_spk', 'cp_pipe', 'cp_fire'],
+};
+const IMG_KEYS = new Set(Object.values(CARD_SETS).flat());
+export const cardImg = k => (IMG_KEYS.has(k) ? `/cards/${k}.webp` : null);
+export function CardImg({ k, className = '', fallback = null }) {
+  const [bad, setBad] = useState(false); const src = cardImg(k);
+  if (!src || bad) return fallback;
+  return <img className={'card-img ' + className} src={src} alt="" decoding="async" draggable={false} onError={() => setBad(true)} />;
+}
+// โหลดภาพการ์ดของเกมไว้ก่อน จะได้ไม่มีภาพว่างตอนจั่ว
+const loaded = new Set();
+export function preloadCards(game) { (CARD_SETS[game] || []).forEach(k => { if (loaded.has(k)) return; loaded.add(k); const i = new Image(); i.src = cardImg(k); }); }
+
 export function CardFace({ art, name, text, cat = 'act', tag, size = 'md', back, backKind = 'boom', selected, dim, onClick, badge, title, corner }) {
   const cls = `gcard ${size} cat-${cat}${selected ? ' sel' : ''}${dim ? ' dim' : ''}${back ? ' back back-' + backKind : ''}${onClick ? ' tap' : ''}`;
   const inner = back ? <div className="gc-back"><span>{backKind === 'boom' ? '💥' : '👻'}</span></div> : <>
     <div className="gc-top">{tag && <span className="gc-tag">{tag}</span>}</div>
     {corner && <svg className="gc-corner" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>}
-    <svg className="gc-art" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>
+    <CardImg k={art} className="gc-art gc-img" fallback={<svg className="gc-art" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>} />
     <b className="gc-name">{name}</b>
     {text && size !== 'sm' && <small className="gc-text">{text}</small>}
   </>;
