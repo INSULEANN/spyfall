@@ -163,25 +163,26 @@ export const randomLook = () => ({ hair: Math.floor(Math.random() * HAIRS.length
 // คนที่ยังไม่เคยแต่ง (เช่น เครื่องเวอร์ชันเก่า): สุ่มจาก id ให้ทุกเครื่องเห็นเหมือนกัน
 export const lookFromId = id => { let h = 7; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const r = k => { h = (h * 1103515245 + 12345) >>> 0; return h % k; }; return { hair: r(HAIRS.length), hc: r(HAIR_COLORS.length), eyes: r(EYES.length), mouth: r(MOUTHS.length) }; };
 
-// ตัวละคร: full = ทั้งตัว ยืนตรงแขนแนบลำตัว (ไว้ใช้ทำท่าในเกม) • ไม่งั้นครึ่งตัว (รูปโปรไฟล์ในวงกลม)
-// สีเรียบ ไม่มีเงา/ไล่เฉด • ลายเส้นโค้งมน (ตัวทรงถั่ว แขนเรียวโค้ง ขาป้อม)
-const ARM = 'M35 75 C26 80 21 91 21 101 C21 106.5 28 107.5 29.3 102.5 C30.5 95 33 88 38 82.5 Z';
-const LEG = 'M38.5 110 C37.5 118 36.5 125 37.5 131 C38.5 136 47.5 136 48.3 131 C48.8 125 48.6 118 48.6 111 Z';
-const TORSO = 'M37 67.5 C29 71 26.5 83 27.5 95 C28.5 108 33.5 116 42 117 C47 117.7 53 117.7 58 117 C66.5 116 71.5 108 72.5 95 C73.5 83 71 71 63 67.5 Z';
+// ตัวละคร: ตัวไข่ชิ้นเดียว (หัวกับตัวเป็นก้อนเดียวกัน) แขนกุดสองข้าง ขาสั้นสองขา — แขน/ขาวาดไว้หลังตัว เส้นเลยต่อกันเป็นโครงเดียว ไม่ซ้อนเป็นชิ้น ๆ
+// full = ทั้งตัว (หน้าแต่งตัว/ท่าในเกม) • ไม่งั้นครึ่งบน (รูปโปรไฟล์ในวงกลม)
+const EGG = 'M50 8 C73 8 87 36 87 67 C87 95 71 112 50 112 C29 112 13 95 13 67 C13 36 27 8 50 8 Z';
+const ARM = 'M19 70 C10 73 5.5 86 8 94 C9.6 99.5 16 99 18 94 Z';
+const LEG = 'M36 103 C35.4 111 34.8 118 35.3 124 C35.8 130.5 48.7 130.5 49.2 124 C49.6 118 49.4 111 49 105 Z';
+// ผม/หน้าวาดไว้สำหรับหัวกลม (กลางที่ 50,44) → เลื่อน/ขยายให้พอดีปลายไข่
+const HAIR_FIT = 'translate(50 0) scale(1.07 1) translate(-50 -5)';
 function CharImpl({ look, color = 0, full = false, size }) {
   const l = fixLook(look); const body = (BODY_COLORS[color] || BODY_COLORS[0]).f; const hc = HAIR_COLORS[l.hc].f; const H = HAIRS[l.hair];
   const part = (d, k) => <path key={k} d={d} fill={body} stroke={OL} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />;
-  return <svg viewBox={full ? '4 0 92 140' : '8 6 84 84'} width={size} height={full ? size * 140 / 92 : size} className="char" aria-hidden="true">
-    {H.back?.(hc)}
-    {full ? <g>
-      {part(LEG, 'll')}{mirror(part(LEG, 'lr'))}
-      {part(TORSO, 't')}
-      {part(ARM, 'al')}{mirror(part(ARM, 'ar'))}
-    </g> : part('M19 102 C20 84 33 71.5 50 71.5 C67 71.5 80 84 81 102 Z', 'b')}
-    <circle cx="50" cy="44" r="30" fill={body} stroke={OL} strokeWidth={SW} />
-    <ellipse cx="31" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" /><ellipse cx="69" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" />
-    <g transform="translate(0 -1)">{EYES[l.eyes].d()}{MOUTHS[l.mouth].d()}</g>
-    {H.front?.(hc)}
+  return <svg viewBox={full ? '0 -8 100 140' : '6 -4 88 88'} width={size} height={full ? size * 1.4 : size} className="char" aria-hidden="true">
+    <g transform={HAIR_FIT}>{H.back?.(hc)}</g>
+    {part(ARM, 'al')}{mirror(part(ARM, 'ar'))}
+    {part(LEG, 'll')}{mirror(part(LEG, 'lr'))}
+    {part(EGG, 'egg')}
+    <g transform="translate(0 6)">
+      <ellipse cx="30" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" /><ellipse cx="70" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" />
+      <g transform="translate(0 -1)">{EYES[l.eyes].d()}{MOUTHS[l.mouth].d()}</g>
+    </g>
+    <g transform={HAIR_FIT}>{H.front?.(hc)}</g>
   </svg>;
 }
 export const Char = memo(CharImpl, (a, b) => a.color === b.color && a.full === b.full && a.size === b.size && JSON.stringify(a.look) === JSON.stringify(b.look));
