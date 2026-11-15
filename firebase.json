@@ -32,6 +32,15 @@
         ]
       },
       {
+        "source": "/pics/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=2592000"
+          }
+        ]
+      },
+      {
         "source": "/cards/**",
         "headers": [
           {

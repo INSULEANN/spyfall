@@ -138,6 +138,28 @@
 }
 [data-theme="insider"] .hero h1 em{color:#f2c14e;text-shadow:0 0 22px #2fd6a066}
 
+/* 🖼️ ภาพนี้มีพิรุธ — หอศิลป์ยามค่ำ ผนังแดงเลือดนก กรอบทอง ไฟส่องภาพ */
+[data-theme="pics"]{
+  --display:'Trirong',serif;--display-weight:800;--radius:16px;
+  --bg:#140a0c;--panel:#22121a;--inset:#1a0e13;--chip:#3a1c26;--glow:#5a1a2a;
+  --text:#fbf3ea;--soft:#e8d8c8;--muted:#b59a8c;--dim:#7d6458;
+  --accent:#e8b84a;--accent-hi:#f5d07a;--accent-2:#c9733a;--on-accent:#1a1000;
+  --hero-1:#1e0b10;--hero-2:#4a1424;--hero-3:#6a4a10;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect x='14' y='12' width='22' height='28' fill='none' stroke='%23e8b84a' stroke-opacity='.05' stroke-width='3'/%3E%3C/svg%3E");
+}
+[data-theme="pics"] .hero h1 em{color:#f5d07a;text-shadow:0 0 22px #c9733a66}
+
+/* ⛏️ ขุดสมบัติป่าช้า — ป่าช้ายามค่ำ แสงจันทร์เขียวหม่น ตะเกียงสีทองอุ่น ดินใต้หลุม */
+[data-theme="dig"]{
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:16px;
+  --bg:#0d0c12;--panel:#1a1720;--inset:#14121a;--chip:#2c2634;--glow:#3a2a1a;
+  --text:#f6efe4;--soft:#e2d6c4;--muted:#a89a88;--dim:#6e6252;
+  --accent:#f0b94a;--accent-hi:#ffd27a;--accent-2:#7fc8a0;--on-accent:#1a1000;
+  --hero-1:#0f0d16;--hero-2:#2a2238;--hero-3:#5a3a14;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M20 50 V30 Q20 20 30 20 Q40 20 40 30 V50 Z' fill='%23f0b94a' fill-opacity='.04'/%3E%3C/svg%3E");
+}
+[data-theme="dig"] .hero h1 em{color:#ffd27a;text-shadow:0 0 22px #f0b94a66}
+
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}
 body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}

@@ -1,0 +1,75 @@
+/* ⛏️🪦 ขุดสมบัติป่าช้า */
+.dig-game{display:grid;gap:10px}
+.dig-tile{display:block;width:100%;height:100%}
+.dig-board-wrap{overflow-x:auto;border-radius:14px;background:#1a120d;border:2px solid #4a3424;padding:6px;box-shadow:inset 0 0 30px #000a}
+.dig-board{display:grid;grid-template-columns:repeat(var(--bw),minmax(30px,1fr));gap:2px;min-width:340px;max-width:640px;margin:0 auto}
+.dig-cell{aspect-ratio:1;padding:0;border:0;border-radius:4px;background:#24180f;overflow:hidden;position:relative;cursor:default;min-height:0}
+.dig-cell:not(.on):not(.goal){background:repeating-linear-gradient(45deg,#22170f 0 6px,#26190f 6px 12px)}
+.dig-cell.can{cursor:pointer;outline:2px solid #ffd27a;outline-offset:-2px;animation:digGlow 1.1s ease-in-out infinite alternate}
+.dig-cell.can .dig-ghost{opacity:.55;display:block;width:100%;height:100%}
+.dig-cell.fall{cursor:pointer;outline:3px solid #ff5f6d;outline-offset:-3px;animation:digGlow 1s infinite alternate}
+.dig-cell.map{cursor:pointer;outline:3px solid #6fd3ff;outline-offset:-3px;animation:digGlow 1s infinite alternate}
+.dig-cell:disabled{opacity:1}
+@keyframes digGlow{from{box-shadow:inset 0 0 0 #ffd27a00}to{box-shadow:inset 0 0 14px #ffd27acc}}
+.dig-goal{display:block;width:100%;height:100%;position:relative}
+.dig-goal.ghost{opacity:.5;filter:grayscale(.3)}
+.dig-goal.open.gold{box-shadow:inset 0 0 0 2px #ffd34d}
+.dig-goal .dig-act-img,.dig-act .dig-act-img,.dig-role .dig-act-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
+.dig-seen{position:absolute;right:1px;bottom:1px;font-style:normal;font-size:12px;background:#000a;border-radius:6px;padding:0 2px}
+.dig-act,.dig-role{position:relative;display:inline-grid;place-items:center;border-radius:10px;overflow:hidden;background:#2c2018;flex:none}
+.dig-act-emo{font-size:32px}
+.dig-ov{position:absolute;inset:auto 2px 2px auto;font-style:normal;font-weight:900;line-height:1;display:grid;place-items:center;border-radius:50%;width:44%;height:44%;font-size:20px}
+.dig-ov.brk{color:#fff;background:#d6303acc;inset:0;width:auto;height:auto;border-radius:0;font-size:40px;background:radial-gradient(#d6303a99,#d6303a33);text-shadow:0 2px 4px #000}
+.dig-ov.fix{background:#2fae5add;font-size:18px;box-shadow:0 0 0 2px #fff8}
+.dig-act.fix{box-shadow:0 0 0 3px #2fae5a}
+.dig-act.brk{box-shadow:0 0 0 3px #d6303a}
+.dig-role.sab{box-shadow:0 0 0 3px #ff5f6d}.dig-role.dig{box-shadow:0 0 0 3px #ffc965}
+.dig-seats{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px}
+.dig-seat{display:grid;justify-items:center;gap:2px;min-width:64px;padding:6px 4px;border-radius:12px;background:var(--inset);border:2px solid transparent;font-size:12px}
+.dig-seat b{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dig-seat.now{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--inset))}
+.dig-seat.gone{opacity:.4}.dig-seat.me b{color:var(--accent)}
+.dig-seat-sub{display:flex;gap:2px;color:var(--muted)}.dig-seat-sub i{font-style:normal}
+.dig-brk{filter:grayscale(.2);position:relative}.dig-brk::after{content:'✖';position:absolute;left:0;right:0;text-align:center;color:#ff4d5e;font-weight:900}
+.dig-turn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:var(--panel);border:2px solid var(--chip)}
+.dig-turn>div{flex:1;display:grid;gap:1px}.dig-turn small{color:var(--muted);font-size:12px}.dig-turn b{font-size:18px}
+.dig-turn.me{border-color:var(--accent);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 35%,transparent)}
+.dig-hand-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.dig-warn{color:#ff8a8a;font-size:12px}
+.dig-hand{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px}
+.dig-card{display:grid;justify-items:center;gap:3px;padding:5px;border-radius:12px;background:var(--inset);border:2px solid var(--chip);min-width:70px;flex:none;cursor:pointer;color:var(--text)}
+.dig-card small{font-size:11px;max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dig-card .dig-tile{width:58px;height:58px;border-radius:6px}
+.dig-card.sel{border-color:var(--accent);transform:translateY(-6px);box-shadow:0 6px 16px #0008}
+.dig-card.dim{opacity:.55}
+.dig-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dig-desc{width:100%;font-size:13px;color:var(--soft)}
+.dig-peek{display:grid;justify-items:center;gap:8px;margin:6px 0 12px}
+.dig-peek .dig-goal{width:120px;height:120px;border-radius:14px;overflow:hidden}
+.dig-me .dig-role{flex:none}
+.dig-lobby-roles{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;padding:8px;border-radius:14px;background:var(--inset)}
+.dig-lobby-roles span{display:grid;justify-items:center;gap:4px}.dig-lobby-roles small{width:100%;text-align:center;color:var(--muted)}
+.dig-result{display:grid;justify-items:center;text-align:center;gap:6px;padding:16px;border-radius:18px;background:var(--panel)}
+.dig-result.dig{box-shadow:0 0 30px #ffd34d55}.dig-result.sab{box-shadow:0 0 30px #ff5f6d55}
+.dig-result-art{width:120px;height:120px;border-radius:18px;overflow:hidden;animation:digPop .6s cubic-bezier(.3,1.6,.5,1)}
+.dig-result-art>span{font-size:80px}
+.dig-roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.dig-rc{display:grid;justify-items:center;gap:2px;padding:8px;border-radius:12px;background:var(--inset);font-size:13px;text-align:center}
+.dig-rc.sab{box-shadow:inset 0 0 0 2px #ff5f6d}.dig-rc small{color:var(--muted);font-size:11px}.dig-rc em{font-style:normal;color:var(--accent)}
+@keyframes digPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+/* เอฟเฟกต์ */
+.dig-fx{position:fixed;inset:0;z-index:60;display:grid;place-items:center;pointer-events:auto;background:#0006;animation:digFade .3s}
+.dig-fx b{position:relative;z-index:2;font-size:30px;font-weight:900;color:#fff;text-shadow:0 3px 10px #000;animation:digPop .5s cubic-bezier(.3,1.6,.5,1)}
+.dig-fx.fall{animation:digFade .3s,digShake .5s .1s 2}
+.dig-fx .rock{position:absolute;top:-40px;left:var(--x);width:calc(34px*var(--s));height:calc(28px*var(--s));background:#7a6a5a;border-radius:40% 50% 45% 55%;box-shadow:inset -4px -4px 0 #4a3e34;animation:digDrop 1.1s var(--dl) cubic-bezier(.5,0,.9,.6) forwards}
+@keyframes digDrop{to{transform:translateY(110vh) rotate(260deg)}}
+@keyframes digShake{0%,100%{transform:translate(0)}25%{transform:translate(-8px,4px)}50%{transform:translate(7px,-5px)}75%{transform:translate(-5px,-3px)}}
+@keyframes digFade{from{opacity:0}}
+.dig-fx .chest{position:absolute;width:180px;height:180px;border-radius:22px;overflow:hidden;animation:digPop .6s cubic-bezier(.3,1.6,.5,1);box-shadow:0 0 60px #ffd34d88;display:grid;place-items:center;font-size:110px;top:calc(50% - 150px)}
+.dig-fx.rock .chest{box-shadow:0 0 40px #0008}
+.dig-fx .dig-fx-img{width:100%;height:100%;object-fit:cover}
+.dig-fx .coin{position:absolute;top:calc(50% - 60px);left:50%;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff6b0,#ffc31a 55%,#b07a00);animation:digCoin 1.4s var(--dl) ease-out forwards}
+@keyframes digCoin{from{transform:rotate(var(--a)) translateY(0) scale(.4);opacity:1}to{transform:rotate(var(--a)) translateY(-190px) scale(1);opacity:0}}
+.dig-fx .maskfx{font-size:90px;animation:digSpin .9s ease-out}
+@keyframes digSpin{from{transform:rotateY(0) scale(.3)}to{transform:rotateY(720deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.dig-fx *,.dig-cell.can{animation:none!important}}

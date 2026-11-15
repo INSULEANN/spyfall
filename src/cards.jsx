@@ -60,6 +60,7 @@ export const CARD_SETS = {
   boom: ['bomb', 'clip', 'nope', 'skip', 'attack', 'future', 'shuffle', 'favor', 'bottom', 'market', 'f1', 'f2', 'f3', 'f4', 'f5'],
   curse: ['gossip', 'evidence', 'witness', 'alibi', 'stocks', 'arson', 'cleanse', 'steal', 'scapegoat', 'ordain', 'amulet', 'bind', 'night', 'ritual', 'dark', 'pure', 'shaman'],
   deal: ['boss', 'stop', 'trip', 'clan', 'buy'],
+  dig: ['dig_pick', 'dig_lamp', 'dig_cart', 'dig_fall', 'dig_map', 'dig_role_d', 'dig_role_s', 'dig_gold', 'dig_rock', 'dig_spy', 'dig_mask', 'dig_swap'],
   checkpoint: ['cp_pork', 'cp_ball', 'cp_tea', 'cp_shirt', 'cp_lamp', 'cp_spk', 'cp_pipe', 'cp_fire'],
 };
 const IMG_KEYS = new Set(Object.values(CARD_SETS).flat());

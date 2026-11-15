@@ -439,5 +439,38 @@ function InsiderScene() {
     <g transform="translate(290 70)"><path d="M0 12 Q0 0 12 0 H92 Q104 0 104 12 V28 Q104 40 92 40 H30 L16 54 L20 40 H12 Q0 40 0 28 Z" fill="#fff" /><text x="52" y="26" textAnchor="middle" fontFamily="Mitr,sans-serif" fontWeight="600" fontSize="13" fill="#0f3d31">กินได้ไหม?</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene };
+// ---------- 🖼️ ภาพนี้มีพิรุธ: หอศิลป์ กรอบทองเรียงบนผนัง ไฟส่อง และภาพหนึ่งที่เอียงแปลก ๆ ----------
+function PicsScene() {
+  const fr = [[40, 60, 70, 90, '#3a6ea5', 0], [130, 48, 80, 104, '#c9733a', 0], [230, 64, 66, 84, '#6aa56a', 1], [312, 54, 64, 96, '#a54a6a', 0]];
+  return <S id="pics" label="ผนังหอศิลป์สีแดง กรอบทองสี่ภาพ ภาพหนึ่งเอียงและมีเครื่องหมายคำถาม">
+    <defs><linearGradient id="pc-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a1220" /><stop offset="1" stopColor="#5a1a2a" /></linearGradient>
+      <radialGradient id="pc-spot" cx=".5" cy="0" r="1"><stop offset="0" stopColor="#fff2c8" stopOpacity=".35" /><stop offset="1" stopColor="#fff2c8" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="url(#pc-wall)" /><rect y="210" width="400" height="50" fill="#2a1410" /><rect y="206" width="400" height="6" fill="#7a4a20" />
+    {fr.map(([x, y, w, h, c, odd], i) => <g key={i} transform={odd ? `rotate(7 ${x + w / 2} ${y + h / 2})` : undefined} className={odd ? 'bob' : ''}>
+      <path d={`M${x + w / 2 - 30} 0 L${x - 10} ${y + h + 40} L${x + w + 10} ${y + h + 40} L${x + w / 2 + 30} 0 Z`} fill="url(#pc-spot)" />
+      <rect x={x - 7} y={y - 7} width={w + 14} height={h + 14} fill="#c9973a" stroke="#7a5a1a" strokeWidth="3" />
+      <rect x={x} y={y} width={w} height={h} fill={c} /><circle cx={x + w * .65} cy={y + h * .3} r={w * .14} fill="#ffe08a" opacity=".85" /><path d={`M${x} ${y + h} L${x + w * .4} ${y + h * .55} L${x + w * .7} ${y + h * .8} L${x + w} ${y + h * .6} L${x + w} ${y + h} Z`} fill="#0003" />
+      {odd ? <text x={x + w / 2} y={y + h / 2 + 12} textAnchor="middle" fontSize="40" fontWeight="900" fill="#fff" fontFamily="Kanit,sans-serif">?</text> : null}
+    </g>)}
+    <g transform="translate(200 228)"><rect x="-60" y="-10" width="120" height="22" rx="4" fill="#1a0e13" stroke="#e8b84a" strokeWidth="2" /><text y="6" textAnchor="middle" fontSize="13" fontWeight="700" fill="#e8b84a" fontFamily="Trirong,serif">ภาพไหนมีพิรุธ?</text></g>
+  </S>;
+}
+// ---------- ⛏️ ขุดสมบัติป่าช้า: ป่าช้ายามค่ำ เจดีย์เก็บกระดูก จันทร์เต็มดวง ใต้ดินมีอุโมงค์ขุดไปหาหีบสมบัติ ----------
+function DigScene() {
+  return <S id="dig" label="ป่าช้ายามค่ำ เจดีย์เล็กและป้ายหลุม ใต้ดินมีอุโมงค์ ตะเกียง และหีบสมบัติเรืองแสง">
+    <defs><linearGradient id="dg-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#141022" /><stop offset="1" stopColor="#2a2238" /></linearGradient>
+      <radialGradient id="dg-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffd27a" stopOpacity=".7" /><stop offset="1" stopColor="#ffd27a" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="url(#dg-sky)" /><circle cx="322" cy="44" r="24" fill="#f2f0d8" /><circle cx="314" cy="38" r="5" fill="#d8d4b8" />
+    <g fill="#3a3348">{[[40, 70], [110, 60], [250, 66]].map(([x, h], i) => <path key={i} d={`M${x} 112 h28 v-${h * .4} l-6 -10 l-8 -${h * .5} l-8 ${h * .5} l-6 10 Z`} />)}</g>
+    <g fill="#5a5468" stroke="#2a2434" strokeWidth="2">{[[170, 92], [200, 96], [300, 90], [80, 98]].map(([x, y], i) => <path key={i} d={`M${x} 114 V${y + 6} Q${x} ${y - 6} ${x + 10} ${y - 6} Q${x + 20} ${y - 6} ${x + 20} ${y + 6} V114 Z`} />)}</g>
+    <rect y="112" width="400" height="148" fill="#3a2a1f" /><rect y="110" width="400" height="6" fill="#2a3a24" />
+    <g fill="#c79a5e" stroke="#8a6238" strokeWidth="3"><rect x="40" y="170" width="250" height="34" /><rect x="150" y="128" width="34" height="76" /><rect x="256" y="170" width="34" height="60" /></g>
+    <ellipse cx="167" cy="122" rx="22" ry="8" fill="#1a110b" />
+    <circle cx="340" cy="196" r="60" fill="url(#dg-glow)" className="pulse" />
+    <g transform="translate(316 180)"><rect width="48" height="30" rx="4" fill="#8a5530" stroke="#3a2010" strokeWidth="3" /><path d="M-2 4 Q24 -18 50 4" fill="#a86a3a" stroke="#3a2010" strokeWidth="3" /><rect x="20" y="6" width="8" height="10" fill="#ffd34d" /><g fill="#ffd34d"><circle cx="8" cy="-4" r="4" /><circle cx="40" cy="-6" r="4" /></g></g>
+    <g transform="translate(96 160)" className="bob"><rect x="-6" y="-14" width="12" height="4" fill="#6a5a3a" /><rect x="-8" y="-10" width="16" height="20" rx="3" fill="#ffd27a" stroke="#6a4a1a" strokeWidth="2" /><circle cx="0" cy="0" r="22" fill="url(#dg-glow)" /></g>
+    <g transform="translate(200 236)"><rect x="-70" y="-12" width="140" height="22" rx="4" fill="#14121a" stroke="#f0b94a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#f0b94a" fontFamily="Mitr,sans-serif">ใครแอบถล่มอุโมงค์?</text></g>
+  </S>;
+}
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }
