@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { Art } from './play-art.jsx';
+import { Char, BODY_COLORS, fixLook, lookFromId } from './char.jsx';
 
 // ---------- รูปโปรไฟล์ผู้เล่น: เลือกเองได้ 30 แบบ (เก็บใน players/{id}/av = เลขรูป) ----------
 // ใช้เฉพาะอีโมจิที่ Windows 10 / มือถือรุ่นเก่าแสดงได้
@@ -13,13 +14,14 @@ export const AVATARS = [
   { e: '🐧', h: 222, n: 'เพนกวิน' }, { e: '🦄', h: 290, n: 'ยูนิคอร์น' }, { e: '🐲', h: 125, n: 'มังกร' }, { e: '🦉', h: 32, n: 'นกฮูก' }, { e: '🐝', h: 50, n: 'ผึ้ง' }, { e: '🦖', h: 100, n: 'ไดโนเสาร์' },
   { e: '🤖', h: 200, n: 'หุ่นยนต์' }, { e: '👻', h: 258, n: 'ผี' }, { e: '👽', h: 160, n: 'เอเลี่ยน' }, { e: '🎃', h: 26, n: 'ฟักทอง' }, { e: '🍩', h: 320, n: 'โดนัท' }, { e: '🐳', h: 205, n: 'วาฬ' },
 ];
-const validAv = v => Number.isInteger(v) && v >= 0 && v < AVATARS.length;
+const validAv = v => Number.isInteger(v) && v >= 0 && v < BODY_COLORS.length; // av = สีตัวละคร
 // รูปของแต่ละคน: ใช้รูปที่เลือกไว้ (ห้ามซ้ำกันในห้อง คนเลือกก่อนได้ก่อน) คนที่ยังไม่เลือกได้รูปว่างตัวแรก — ทุกเครื่องคำนวณได้ตรงกัน
 export function makeAv(players) {
   const map = {}, used = new Set();
   [...players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0)).forEach(p => { if (validAv(p.av) && !used.has(p.av)) { map[p.id] = p.av; used.add(p.av); } });
-  let k = 0; players.forEach(p => { if (map[p.id] == null) { while (used.has(k) && k < AVATARS.length) k++; map[p.id] = k % AVATARS.length; used.add(map[p.id]); } });
-  const fn = id => map[id] == null ? { e: '👻', h: 250 } : AVATARS[map[id]];
+  let k = 0; players.forEach(p => { if (map[p.id] == null) { while (used.has(k) && k < BODY_COLORS.length) k++; map[p.id] = k % BODY_COLORS.length; used.add(map[p.id]); } });
+  const looks = {}; players.forEach(p => { looks[p.id] = p.look ? fixLook(p.look) : lookFromId(p.id); });
+  const fn = id => map[id] == null ? { c: 13, look: lookFromId(id), f: BODY_COLORS[13].f } : { c: map[id], look: looks[id], f: BODY_COLORS[map[id]].f };
   fn.idxOf = id => map[id];
   return fn;
 }
@@ -27,15 +29,15 @@ export function makeAv(players) {
 export function freeAv(players, want, exceptId) {
   const taken = new Set(players.filter(p => p.id !== exceptId && validAv(p.av)).map(p => p.av));
   if (validAv(want) && !taken.has(want)) return want;
-  const free = AVATARS.map((_, i) => i).filter(i => !taken.has(i));
+  const free = BODY_COLORS.map((_, i) => i).filter(i => !taken.has(i));
   return free.length ? free[Math.floor(Math.random() * free.length)] : 0;
 }
 export function Avatar({ id, av, size = 44, dead, title }) {
   const a = av(id);
-  return <span className={'av' + (dead ? ' dead' : '')} style={{ '--h': a.h, width: size, height: size, fontSize: Math.round(size * 0.56) }} title={title}>{a.e}{dead && <i className="av-x">💀</i>}</span>;
+  return <span className={'av ch' + (dead ? ' dead' : '')} style={{ '--cf': a.f, width: size, height: size, fontSize: Math.round(size * 0.56) }} title={title}><span className="ch-clip"><Char look={a.look} color={a.c} /></span>{dead && <i className="av-x">💀</i>}</span>;
 }
 // รูปเดี่ยว ๆ จากเลขรูป (ใช้ในหน้าเลือกรูป/ก่อนเข้าห้อง)
-export const AvFace = ({ i, size = 44 }) => { const a = AVATARS[i] || { e: '🙂', h: 250 }; return <span className="av" style={{ '--h': a.h, width: size, height: size, fontSize: Math.round(size * 0.56) }}>{a.e}</span>; };
+export const AvFace = ({ i, look, size = 44 }) => { const c = validAv(i) ? i : 0; return <span className="av ch" style={{ '--cf': BODY_COLORS[c].f, width: size, height: size, fontSize: Math.round(size * 0.56) }}><span className="ch-clip"><Char look={look} color={c} /></span></span>; };
 // หน้าต่างเลือกรูปโปรไฟล์
 export function AvatarPicker({ current, takenBy = {}, onPick, onClose }) {
   React.useEffect(() => { const k = e => e.key === 'Escape' && onClose(); document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k); }, []);

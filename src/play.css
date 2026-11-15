@@ -255,3 +255,26 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 @keyframes asheet-up{from{transform:translateY(100%)}}
 /* แถบเตือนเน็ตหลุด */
 .net-down{position:fixed;z-index:70;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);background:#c4374a;color:#fff;font-weight:600;font-size:13px;padding:10px 16px;border-radius:12px;box-shadow:0 8px 30px #0006;text-align:center;animation:vfade .2s}
+/* ตัวละคร */
+.av.ch{background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--cf) 42%,#262a3d),color-mix(in srgb,var(--cf) 22%,#10121c));font-size:0}
+.ch-clip{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:block}.ch-clip .char{width:100%;height:100%;display:block}
+.av.ch .av-x{font-size:max(12px,.3em)}
+.chedit{width:min(720px,100%)}
+.ch-main{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:start}
+.ch-stage{position:sticky;top:0;display:grid;justify-items:center;gap:10px;padding:14px 8px;border-radius:18px;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--accent) 18%,var(--inset)),var(--inset));border:1px solid #ffffff14}
+.ch-stage .char{filter:drop-shadow(0 6px 10px #0006);animation:ch-bob 2.6s ease-in-out infinite}
+@keyframes ch-bob{50%{transform:translateY(-4px)}}
+.ch-rand{padding:8px 14px;font-size:12px}
+.ch-tabs,.ch-g{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ch-tabs button,.ch-g button{border:1px solid #ffffff1c;background:var(--chip);color:var(--text);border-radius:20px;padding:7px 12px;font-size:12.5px}
+.ch-tabs button.on,.ch-g button.on{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
+.ch-g button{padding:5px 10px;font-size:12px}
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;max-height:46vh;overflow:auto;padding:2px}
+.chopt{position:relative;display:grid;justify-items:center;gap:3px;padding:8px 2px 6px;border-radius:14px;border:2px solid #ffffff12;background:var(--inset);color:var(--soft);font-size:11px}
+.chopt span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 3px}
+.chopt .char{border-radius:50%;background:#ffffff0d}
+.chopt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-2px)}
+.chopt.me{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--inset));color:var(--text)}
+.chopt.taken{opacity:.38;cursor:not-allowed}.chopt.taken span{color:#ff9b9b}
+.ch-zoom{display:block;width:56px;height:56px;overflow:hidden;border-radius:50%;background:#ffffff0d}.ch-zoom .char{transform:scale(1.9) translateY(4px);background:none}.ch-zoom.m .char{transform:scale(2) translateY(-6px)}
+@media(max-width:760px){.ch-main{grid-template-columns:1fr}.ch-stage{position:static;grid-template-columns:auto auto;align-items:center;justify-content:center}.ch-grid{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));max-height:40vh}}
