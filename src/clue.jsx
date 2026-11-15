@@ -88,7 +88,7 @@ export function giveClue(cur, me, w, n, now) {
   const r = cur.round; if (r.phase !== 'clue' || r.chief[r.turn] !== me || !active(r, me)) return;
   const word = String(w || '').trim().replace(/\s+/g, ' '); const num = Math.floor(+n);
   if (clueProblem(r, word) || !(num >= 1 && num <= 9)) return;
-  r.clue = { w: word, n: num, by: me, t: r.turn }; r.left = num + 1; r.guesses = 0; r.phase = 'guess'; r.at = now;
+  r.clue = { w: word, n: num, by: me, t: r.turn }; r.left = num; r.guesses = 0; r.phase = 'guess'; r.at = now;
   r.clues = [...r.clues, { w: word, n: num, t: r.turn, got: 0 }];
   say(r, `💬 ${TEAMS[r.turn].e} หัวหน้า {${me}} ใบ้ “${word}” × ${num}`, { clue: r.turn });
   return cur;
@@ -282,7 +282,7 @@ export function ClueGame({ db, room, roomCode, myId, players, isHost, scores, so
           <SecH icon="🔢">โยงไปกี่คำ?</SecH>
           <div className="cw-nums">{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(x => <button key={x} type="button" className={n === x ? 'on' : ''} onClick={() => { sfx(sound, 'select'); setN(x); }}>{x}</button>)}</div>
           <button className="primary wide" disabled={!w.trim() || !!prob} onClick={sendClue}>📣 ใบ้ “{w.trim() || '…'}” × {n}</button>
-          <small className="hint">ลูกทีมจะเปิดได้สูงสุด {n + 1} ครั้ง (เกิน 1 ไว้เก็บคำที่ตกค้างจากตาก่อน)</small>
+          <small className="hint">ลูกทีมจะเปิดได้สูงสุด {n} ครั้ง ตามเลขที่ใบ้</small>
         </div>}
 
         {iGuess && <div className="cw-panel">
