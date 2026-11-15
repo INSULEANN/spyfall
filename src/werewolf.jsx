@@ -6,6 +6,7 @@ import { Art } from './play-art.jsx';
 import { Phase, Steps, PlayerGrid, WhoDone, RoleCard, useRoleCard, Outcome, RevealGrid, Leaderboard, HostBar, SecH, Avatar, Voters, ActionSheet } from './ui.jsx';
 import { play as sfx } from './sfx.js';
 import { WolfStage } from './stages.jsx';
+import { WolfFx } from './wolffx.jsx';
 import { Replay } from './replay.jsx';
 import { shuffle, pickBad } from './rand.js';
 
@@ -236,6 +237,15 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     else if (r.phase === 'night') setTimeout(() => seq([[p.phase === 'day' ? (r.lastVote?.out ? 'execute' : 'safe') : null, p.phase === 'day' ? 1500 : 0], ['howl', 1800], ['night', 0]].filter(x => x[0])), t);
   });
   const roleTxt = id => `${W_ROLES[r.roles[id]]?.icon} ${W_ROLES[r.roles[id]]?.name}`;
+  // อนิเมชันเหตุการณ์ (ทุกเครื่องเห็นพร้อมกัน): เช้า = ถูกกัด/หมอช่วย/ไม่มีใครตาย • โหวต = ประหาร • นายพรานยิง • คู่รักตรอมใจ
+  const rTxt = id => (r.reveal ? roleTxt(id) : '');
+  const fxItems = [];
+  if (r.dawn) { const d = r.dawn; const ev = (d.dead || []).map(id => ({ kind: 'bite', who: id, role: rTxt(id) }));
+    if (d.saved) ev.push({ kind: 'save' }); if (!ev.length) ev.push({ kind: 'calm', day: true, text: '☀️ เช้านี้ไม่มีใครตาย 🙏' });
+    (d.love || []).forEach(id => ev.push({ kind: 'heart', who: id, role: rTxt(id) })); fxItems.push({ key: r.number + 'dawn' + d.day, events: ev }); }
+  if (r.lastVote) { const v = r.lastVote; const ev = v.out ? [{ kind: 'vote', who: v.out, role: rTxt(v.out) }] : [{ kind: 'calm', text: '🕊️ วันนี้ไม่มีใครถูกประหาร' }];
+    (v.love || []).forEach(id => ev.push({ kind: 'heart', who: id, role: rTxt(id) })); fxItems.push({ key: r.number + 'vote' + v.day, events: ev }); }
+  if (r.shot?.target) fxItems.push({ key: r.number + 'shot' + r.day + r.shot.target, events: [{ kind: 'shot', who: r.shot.target, role: rTxt(r.shot.target) }, ...(r.shot.love || []).map(id => ({ kind: 'heart', who: id, role: rTxt(id) }))] });
   const deadNames = ids => (ids || []).map(id => `${nameOf(id)}${r.reveal ? ` (${roleTxt(id)})` : ''}`).join(', ');
   const loveTxt = ids => ids?.length ? ` • 💔 ${deadNames(ids)} ตรอมใจตายตามคู่รัก` : '';
   const stack = list => list.length ? <Voters ids={list} av={av} size={20} /> : null;
@@ -244,6 +254,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span><span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
     <div className="gcols flow"><div className="gmain">
     {!res && <Steps items={['🌙 กลางคืน', '☀️ ประกาศ', '⚖️ โหวตประหาร']} at={r.phase === 'night' ? 0 : r.phase === 'hunter' ? 1 : 2} />}
+    <WolfFx items={fxItems} av={av} nameOf={nameOf} />
     <WolfStage mode={res ? (res.winner === 'wolf' ? 'wolfWin' : res.winner === 'fool' ? 'foolWin' : 'villageWin') : r.phase === 'night' ? 'night' : r.phase === 'hunter' ? 'hunter' : 'day'} dead={(r.dawn?.dead?.length || 0) + (r.dawn?.love?.length || 0)} />
 
     {/* คู่รัก: เห็นแค่ตัวเอง */}

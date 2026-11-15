@@ -170,10 +170,10 @@ const ARM = 'M19 70 C10 73 5.5 86 8 94 C9.6 99.5 16 99 18 94 Z';
 const LEG = 'M36 103 C35.4 111 34.8 118 35.3 124 C35.8 130.5 48.7 130.5 49.2 124 C49.6 118 49.4 111 49 105 Z';
 // ผม/หน้าวาดไว้สำหรับหัวกลม (กลางที่ 50,44) → เลื่อน/ขยายให้พอดีปลายไข่
 const HAIR_FIT = 'translate(50 0) scale(1.07 1) translate(-50 -5)';
-function CharImpl({ look, color = 0, full = false, size }) {
+function CharImpl({ look, color = 0, full = false, size, x, y }) {
   const l = fixLook(look); const body = (BODY_COLORS[color] || BODY_COLORS[0]).f; const hc = HAIR_COLORS[l.hc].f; const H = HAIRS[l.hair];
   const part = (d, k) => <path key={k} d={d} fill={body} stroke={OL} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />;
-  return <svg viewBox={full ? '0 -8 100 140' : '6 -4 88 88'} width={size} height={full ? size * 1.4 : size} className="char" aria-hidden="true">
+  return <svg viewBox={full ? '0 -8 100 140' : '6 -4 88 88'} width={size} height={full ? size * 1.4 : size} className="char" aria-hidden="true" x={x} y={y}>
     <g transform={HAIR_FIT}>{H.back?.(hc)}</g>
     {part(ARM, 'al')}{mirror(part(ARM, 'ar'))}
     {part(LEG, 'll')}{mirror(part(LEG, 'lr'))}
@@ -185,7 +185,7 @@ function CharImpl({ look, color = 0, full = false, size }) {
     <g transform={HAIR_FIT}>{H.front?.(hc)}</g>
   </svg>;
 }
-export const Char = memo(CharImpl, (a, b) => a.color === b.color && a.full === b.full && a.size === b.size && JSON.stringify(a.look) === JSON.stringify(b.look));
+export const Char = memo(CharImpl, (a, b) => a.color === b.color && a.full === b.full && a.size === b.size && a.x === b.x && a.y === b.y && JSON.stringify(a.look) === JSON.stringify(b.look));
 
 // ---------- หน้าแต่งตัว ----------
 const TABS = [['color', '🎨 สีตัว'], ['hair', '💇 ทรงผม'], ['hc', '🖌️ สีผม'], ['eyes', '👀 ตา'], ['mouth', '👄 ปาก']];

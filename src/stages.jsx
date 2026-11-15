@@ -2,6 +2,7 @@
 // แสดงเฉพาะสิ่งที่ผู้เล่นคนนั้นควรรู้ ไม่เผยข้อมูลลับ
 import React from 'react';
 import './stages.css';
+import { Char } from './char.jsx';
 
 // ---------- ชิ้นส่วนกลาง ----------
 const SKY = { night: ['#0b1030', '#1d2552'], day: ['#3a7cc4', '#a9dcff'], dusk: ['#2a0a14', '#e0873f'], dawn: ['#2c3a7a', '#ffb070'], dark: ['#07080f', '#171a2a'], jungle: ['#123322', '#5e9a4a'], party: ['#4a1d6a', '#ff7ab8'], ghost: ['#040a07', '#14301e'], blood: ['#1a0408', '#5a1018'] };
@@ -20,10 +21,10 @@ function Sky({ id, kind }) {
 }
 const Ground = ({ c = '#1a1430', line }) => <><rect y="150" width="400" height="40" fill={c} />{line && <path d="M0 150 H400" stroke={line} strokeWidth="3" />}</>;
 // ใบหน้าผู้เล่น (สัตว์ประจำตัว) ในฉาก
-const Face = ({ a, x, y, r = 14, cls = '', ring, children }) => <g transform={`translate(${x} ${y})`}><g className={'st-face ' + cls}>
-  {ring && <circle r={r + 4} fill="none" stroke={ring} strokeWidth="3" className="st-ring" />}
-  <circle r={r} fill={`hsl(${a?.h ?? 250} 55% 42%)`} stroke="#ffffff88" strokeWidth="1.5" />
-  <text textAnchor="middle" dominantBaseline="central" fontSize={r * 1.15} y="1">{a?.e || '🙂'}</text>{children}</g></g>;
+// ตัวละครผู้เล่นในฉาก: ยืนเต็มตัว เท้าอยู่ที่ (x, y + r)
+const Face = ({ a, x, y, r = 14, cls = '', ring, children }) => { const w = r * 2.5, h = w * 1.4; return <g transform={`translate(${x} ${y})`}><g className={'st-face ' + cls}>
+  {ring && <ellipse cy={r - 1} rx={r * 1.25} ry={r * 0.38} fill={ring} opacity=".55" className="st-ring" />}
+  <Char look={a?.look} color={a?.c ?? 13} full size={w} x={-w / 2} y={r - h + 2} />{children}</g></g>; };
 const Bubble = ({ x, y, text, cls = '', w = 34, dark }) => <g transform={`translate(${x} ${y})`}><g className={'st-bubble ' + cls}>
   <path d={`M${-w / 2} -12 h${w} q6 0 6 6 v8 q0 6 -6 6 h${-w / 2 + 8} l-6 7 l-1 -7 h${-w / 2 + 2} q-6 0 -6 -6 v-8 q0 -6 6 -6 z`} fill={dark ? '#241c3a' : '#fff'} />
   <text x="3" y="1" textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="800" fill={dark ? '#fff' : '#241c3a'} fontFamily="Kanit,sans-serif">{text}</text></g></g>;
@@ -177,8 +178,8 @@ export function HeadStage({ mode, a, word, mine, others = [], av }) {
     <g className="st-confetti">{Array.from({ length: 14 }, (_, i) => <rect key={i} x={(i * 29) % 400} y={(i * 17) % 60} width="5" height="3" fill={['#38d9c9', '#ffd23f', '#ff5fa2', '#fff'][i % 4]} className={'c' + (i % 4)} />)}</g>
     <Ground c="#3a1450" />
     {mode !== 'end' && <>
-      <g transform="translate(200 120)"><g className="st-bob"><circle r="30" fill={`hsl(${a?.h ?? 250} 55% 42%)`} stroke="#fff" strokeOpacity=".6" strokeWidth="2" /><text textAnchor="middle" dominantBaseline="central" fontSize="34" y="2">{a?.e || '🙂'}</text>
-        <g transform="translate(0 -46) rotate(-4)"><rect x="-44" y="-15" width="88" height="28" rx="4" fill="#fff6a8" stroke="#e8c84a" strokeWidth="1.5" /><rect x="-6" y="-19" width="12" height="7" rx="1.5" fill="#ffffffaa" /><text y="1" textAnchor="middle" dominantBaseline="central" fontSize={word && word.length > 8 ? 10 : 13} fontWeight="900" fill="#3a2a10" fontFamily="Kanit,sans-serif">{mine ? '???' : (word || '???').slice(0, 14)}</text></g></g></g>
+      <g transform="translate(200 120)"><g className="st-bob"><Char look={a?.look} color={a?.c ?? 13} full size={56} x={-28} y={-44} />
+        <g transform="translate(0 -60) rotate(-4)"><rect x="-44" y="-15" width="88" height="28" rx="4" fill="#fff6a8" stroke="#e8c84a" strokeWidth="1.5" /><rect x="-6" y="-19" width="12" height="7" rx="1.5" fill="#ffffffaa" /><text y="1" textAnchor="middle" dominantBaseline="central" fontSize={word && word.length > 8 ? 10 : 13} fontWeight="900" fill="#3a2a10" fontFamily="Kanit,sans-serif">{mine ? '???' : (word || '???').slice(0, 14)}</text></g></g></g>
       <g className="st-qmarks">{[['?', 150, 84, 'a'], ['?', 252, 80, 'b'], ['?', 238, 110, 'c']].map(([q, x, y, k]) => <text key={k} x={x} y={y} fontSize="18" fontWeight="900" fill="#fff" className={'st-q ' + k}>{q}</text>)}</g>
       {side.map((pid, i) => { const x = i < 2 ? 60 + i * 48 : 292 + (i - 2) * 48; return <g key={pid}><Face a={av?.(pid)} x={x} y={138} r={14} /><Bubble x={x} y={110} text={i % 2 ? 'ไม่ใช่ ✖' : 'ใช่ ✔'} w={44} cls={'st-talk ' + ['a', 'b', 'c', 'a'][i]} dark /></g>; })}
     </>}

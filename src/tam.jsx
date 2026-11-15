@@ -6,7 +6,7 @@ import { ref, runTransaction } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle, rint } from './rand.js';
-import { Avatar, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, TimerRing, ActionSheet } from './ui.jsx';
+import { Avatar, PlayerGrid, HostBar, SecH, Outcome, Leaderboard, TimerRing, ActionSheet, Figure } from './ui.jsx';
 import './cardgames.css';
 import './tam.css';
 
@@ -248,7 +248,7 @@ function TamTable({ r, room, myId, av, nameOf, res, canDraw, onDraw, pick, onPic
       return <div key={id} role={canPick ? 'button' : undefined} onClick={canPick ? () => onPick(id) : undefined}
         className={'seat' + (isCur ? ' turn' : '') + (alive ? '' : ' out') + (id === myId ? ' me' : '') + (canPick ? ' pick' : '')} style={{ left: x + '%', top: y + '%' }}>
         {isCur && <span className="seat-arrow">▼</span>}
-        <div className="seat-av"><Avatar id={id} av={av} size={40} dead={!alive} />{gone && alive && <span className="seat-off">📴</span>}{r.pick?.by === id && <span className="seat-tg">{r.phase === 'roulette' ? '🎰' : '🔁'}</span>}</div>
+        <div className="seat-av fig-seat"><Figure id={id} av={av} size={38} dead={!alive} />{gone && alive && <span className="seat-off">📴</span>}{r.pick?.by === id && <span className="seat-tg">{r.phase === 'roulette' ? '🎰' : '🔁'}</span>}</div>
         <b className="seat-name">{id === myId ? 'คุณ' : nameOf(id)}</b>
         {alive ? <span className="seat-cards"><MiniBacks n={cnt} /><em className={cnt >= 20 ? 'hot' : cnt === 1 ? 'one' : ''}>{cnt}</em></span> : <span className="seat-out">🥵 ตกรอบ</span>}
         {b && <span key={b.k} className="seat-bubble">{b.text}</span>}
