@@ -321,9 +321,26 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .ins-guesses span{padding:4px 10px;border-radius:999px;background:var(--chip);font-size:14px}
 .ins-guesses span.ok{background:#1f6b45;color:#fff}
 
-/* ภาพการ์ดที่เจนจริง */
+/* ภาพการ์ดที่เจนจริง: ภาพเต็มใบ ชื่อทับบนแถบไล่เงาด้านล่าง กรอบสีตามหมวดเดิม */
 .card-img{display:block;object-fit:cover;user-select:none;-webkit-user-drag:none}
-.gc-img{aspect-ratio:1;border-radius:12%;box-shadow:0 2px 0 #0003;filter:none}
-.dcard .dc-art .card-img{width:100%;height:100%}
-.cpc .cpc-e .card-img{width:48px;height:48px;border-radius:10px;box-shadow:0 2px 6px #0005}
-.cpc.sm .cpc-e .card-img{width:32px;height:32px;border-radius:7px}
+.gc-cap{display:contents}
+.gcard:has(>.gc-img){padding:0;gap:0}
+.gcard:has(>.gc-img):before{z-index:1;height:30%;background:linear-gradient(180deg,#0006,transparent)}
+.gcard>.gc-img{position:absolute;inset:0;width:100%;height:100%;margin:0;border-radius:0;filter:none}
+.gcard:has(>.gc-img) .gc-cap{display:flex;flex-direction:column;align-items:center;gap:1px;position:absolute;left:0;right:0;bottom:0;z-index:2;padding:calc(var(--cw)*.2) calc(var(--cw)*.05) calc(var(--cw)*.06);background:linear-gradient(180deg,transparent,#000b 45%,#000e)}
+.gcard:has(>.gc-img) .gc-name{color:#fff;text-shadow:0 1px 3px #000}
+.gcard:has(>.gc-img) .gc-text{color:#ffffffd0}
+.gcard:has(>.gc-img) .gc-top{z-index:3}
+.gcard:has(>.gc-img):after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;box-shadow:inset 0 0 0 1px #fff3,inset 0 0 calc(var(--cw)*.12) #0008;pointer-events:none}
+.dcard .dc-art .card-img{width:100%;height:100%;object-position:center 45%}
+.dcard .dc-art:has(.card-img){position:relative}
+.dcard .dc-art:has(.card-img):after{content:"";position:absolute;inset:0;box-shadow:inset 0 -10px 14px -6px #0007;pointer-events:none}
+.cpc:has(.card-img){padding:0;overflow:hidden;align-content:end;gap:0}
+.cpc:has(.card-img) .cpc-e{position:absolute;inset:0;filter:none}
+.cpc .cpc-e .card-img{width:100%;height:100%}
+.cpc:has(.card-img) b{position:relative;z-index:1;justify-self:stretch;padding:22px 3px 5px;background:linear-gradient(180deg,transparent,#000c 55%);color:#fff;text-shadow:0 1px 2px #000}
+.cpc.bad:has(.card-img) b{padding-bottom:17px}
+.cpc:has(.card-img) .cpc-v,.cpc:has(.card-img) .cpc-p{z-index:1;padding:1px 5px;border-radius:8px;background:#000a;color:#fff;font-size:11px}
+.cpc:has(.card-img) .cpc-v small{color:#fffc}
+.cpc:has(.card-img) .cpc-rib,.cpc:has(.card-img) .cpc-mark{z-index:2}
+.cpc.sm:has(.card-img) b{padding:16px 2px 4px}

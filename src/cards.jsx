@@ -79,8 +79,8 @@ export function CardFace({ art, name, text, cat = 'act', tag, size = 'md', back,
     <div className="gc-top">{tag && <span className="gc-tag">{tag}</span>}</div>
     {corner && <svg className="gc-corner" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>}
     <CardImg k={art} className="gc-art gc-img" fallback={<svg className="gc-art" viewBox="0 0 100 100" aria-hidden="true">{CARD_ART[art] ? React.createElement(CARD_ART[art]) : null}</svg>} />
-    <b className="gc-name">{name}</b>
-    {text && size !== 'sm' && <small className="gc-text">{text}</small>}
+    <div className="gc-cap"><b className="gc-name">{name}</b>
+    {text && size !== 'sm' && <small className="gc-text">{text}</small>}</div>
   </>;
   return onClick ? <button type="button" className={cls} onClick={onClick} title={title || name}>{inner}{badge}</button> : <div className={cls} title={title || name}>{inner}{badge}</div>;
 }
