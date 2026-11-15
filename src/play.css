@@ -262,7 +262,9 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .chedit{width:min(720px,100%)}
 .ch-main{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:start}
 .ch-stage{position:sticky;top:0;display:grid;justify-items:center;gap:10px;padding:14px 8px;border-radius:18px;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--accent) 18%,var(--inset)),var(--inset));border:1px solid #ffffff14}
-.ch-stage .char{filter:drop-shadow(0 6px 10px #0006);animation:ch-bob 2.6s ease-in-out infinite}
+.ch-stage .char{animation:ch-bob 2.6s ease-in-out infinite;will-change:transform}
+.avpick-bg.ch-bg{-webkit-backdrop-filter:none;backdrop-filter:none;background:#05040ae6}
+.chedit .ch-grid{contain:content}
 @keyframes ch-bob{50%{transform:translateY(-4px)}}
 .ch-rand{padding:8px 14px;font-size:12px}
 .ch-tabs,.ch-g{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
