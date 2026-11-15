@@ -411,5 +411,33 @@ function ClueScene() {
     <g className="peek"><path d="M8 118 h84 q8 0 8 8 v22 q0 8 -8 8 h-50 l-10 12 l0 -12 h-24 q-8 0 -8 -8 v-22 q0 -8 8 -8 Z" fill="#fff" /><text x="50" y="143" textAnchor="middle" fontSize="15" fontWeight="900" fill="#d8283d" fontFamily="Kanit,sans-serif">“ทะเล” 2</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene };
+// ---------- 🤫 Insider: Master ใต้โคมไฟ เพื่อนล้อมถาม มีคนหนึ่งยิ้มรู้ทัน ----------
+function InsiderScene() {
+  const ppl = [[70, '#2fd6a0', 0], [140, '#7aa8ff', 0], [260, '#ff8fb1', 1], [330, '#ffd23f', 0]];
+  return <S id="insider" label="Master ใต้โคมไฟถือการ์ดคำลับ เพื่อนสี่คนล้อมถาม หนึ่งในนั้นยิ้มเจ้าเล่ห์">
+    <defs>
+      <linearGradient id="in-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#041210" /><stop offset="1" stopColor="#0f3d31" /></linearGradient>
+      <radialGradient id="in-lamp" cx=".5" cy="0" r="1"><stop offset="0" stopColor="#ffe08a" stopOpacity=".55" /><stop offset="1" stopColor="#ffe08a" stopOpacity="0" /></radialGradient>
+    </defs>
+    <rect width="400" height="260" fill="url(#in-bg)" />
+    <path className="glow" d="M180 40 L220 40 L300 230 L100 230 Z" fill="url(#in-lamp)" />
+    <path d="M200 0 V30" stroke="#1d3a33" strokeWidth="3" /><path d="M178 42 Q200 22 222 42 Z" fill="#f2c14e" />
+    <path d="M0 260 V214 Q200 198 400 214 V260 Z" fill="#082019" />
+    {ppl.map(([x, c, sly], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.6) + 's' }}>
+      <ellipse cx={x} cy="196" rx="26" ry="32" fill={c} />
+      <g fill="#fff"><ellipse cx={x - 8} cy="190" rx="5" ry="6" /><ellipse cx={x + 8} cy="190" rx="5" ry="6" /></g>
+      <g fill="#14221e"><circle cx={x - 7 + (x < 200 ? 2 : -2)} cy="191" r="2.6" /><circle cx={x + 9 + (x < 200 ? 2 : -2)} cy="191" r="2.6" /></g>
+      {sly ? <path d={`M${x - 8} 204 Q${x + 2} 212 ${x + 10} 200`} stroke="#14221e" strokeWidth="3" fill="none" strokeLinecap="round" /> : <ellipse cx={x} cy="206" rx="4" ry="3.5" fill="#14221e" />}
+      {!sly && <text x={x} y="152" textAnchor="middle" fontSize="22" fontWeight="900" fill="#fff" opacity=".85" fontFamily="Mitr,sans-serif">?</text>}
+    </g>)}
+    <g transform="translate(200 0)">
+      <ellipse cx="0" cy="168" rx="30" ry="38" fill="#f2c14e" /><path d="M-18 132 L-12 116 L0 128 L12 116 L18 132 Z" fill="#ffd77a" stroke="#a87a10" strokeWidth="2" />
+      <g fill="#fff"><ellipse cx="-9" cy="160" rx="6" ry="7" /><ellipse cx="9" cy="160" rx="6" ry="7" /></g><g fill="#14221e"><circle cx="-9" cy="162" r="3" /><circle cx="9" cy="162" r="3" /></g>
+      <path d="M-8 178 Q0 183 8 178" stroke="#14221e" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <g className="peek" transform="rotate(-6 0 210)"><rect x="-30" y="196" width="60" height="34" rx="4" fill="#fbf4e4" /><text x="0" y="219" textAnchor="middle" fontSize="15" fontWeight="900" fill="#0f3d31" fontFamily="Mitr,sans-serif">ใช่ / ไม่ใช่</text></g>
+    </g>
+    <g transform="translate(290 70)"><path d="M0 12 Q0 0 12 0 H92 Q104 0 104 12 V28 Q104 40 92 40 H30 L16 54 L20 40 H12 Q0 40 0 28 Z" fill="#fff" /><text x="52" y="26" textAnchor="middle" fontFamily="Mitr,sans-serif" fontWeight="600" fontSize="13" fill="#0f3d31">กินได้ไหม?</text></g>
+  </S>;
+}
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

@@ -29,13 +29,14 @@ import { ClueGame, ClueLobby, makeClueRound, CLUE_MIN, CLUE_MAX } from './clue.j
 import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, CP_SCORE } from './checkpoint.jsx';
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { UcGame, UcLobby, makeUcRound, UC_MIN, UC_MAX, UC_SCORE } from './undercover.jsx';
+import { InsGame, InsLobby, makeInsRound, INS_MIN, INS_MAX, INS_SCORE } from './insider.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
 import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.38';
+const APP_VERSION = '1.39';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -119,6 +120,11 @@ const GAMES = {
     lead:'กระดาน 25 คำ มีแต่หัวหน้าทีมที่รู้ว่าคำไหนเป็นของใคร ใบ้ 1 คำ + ตัวเลข เช่น “ทะเล 2” แล้วลูกทีมช่วยกันเดาว่าหมายถึงคำไหน เปิดถูกเดาต่อ เปิดผิดเสียตา เปิดเจอคำบึ้มจบเกม ทีมไหนเปิดคำของตัวเองครบก่อนชนะ',
     pills:['🔴🔵 แบ่ง 2 ทีม','💬 ใบ้คำเดียว','💣 ระวังคำบึ้ม'],
     how:[['แบ่งทีม เลือกหัวหน้า','หัวหน้าห้องจัดทีมแดง/ฟ้า หรือกดสุ่ม แต่ละทีมมีหัวหน้า 1 คนที่เห็นแผนลับว่าคำไหนเป็นของทีมไหน (4–5 คนเลือกหัวหน้ากลางคนเดียวใบ้ให้ทั้งสองทีมได้)'],['ใบ้ 1 คำ + ตัวเลข','ตาของทีมไหน หัวหน้าพิมพ์คำใบ้ 1 คำกับจำนวนคำที่โยงถึง ห้ามใช้คำที่อยู่บนกระดาน แล้วห้ามใบ้อะไรเพิ่ม'],['ช่วยกันเปิด','ลูกทีมแตะเปิดคำ (ใครกดก็ได้) ถูกเดาต่อได้ แต่เปิดได้ไม่เกินเลขที่หัวหน้าใบ้ เปิดคำเปล่าหรือของอีกทีม = หมดตา เปิด 💣 = แพ้ทันที เปิดคำของทีมตัวเองครบก่อนชนะ']] },
+  insider: { id:'insider', type:'ins', name:'Insider', emoji:'🤫', packs:[], item:'คำ', unit:'คำ', roles:true, min:INS_MIN, max:INS_MAX, h1:['Insider','คนรู้คำแฝงตัวอยู่'], art:'🤫', float:'มันกินได้ไหม?',
+    blurb:'Master รู้คำและตอบได้แค่ ใช่/ไม่ใช่ ทุกคนช่วยกันถามจนทายคำถูก แต่มี Insider ที่แอบรู้คำแฝงตัวชักนำอยู่!',
+    lead:'ช่วยกันถาม Master ให้ทายคำลับออก…แต่คนที่ถามเก่งเกินไป อาจรู้คำมาตั้งแต่แรก',
+    pills:['👑 Master','🙂 Commons','🤫 Insider'],
+    how:[['รับบทลับ','👑 Master รู้คำ (ทุกคนรู้ว่าใครเป็น Master) • 🤫 Insider แอบรู้คำ • 🙂 Commons ไม่รู้คำ'],['ถามทีละคน','ไล่ถาม Master ทีละคน Master ตอบด้วยปากแค่ ใช่ / ไม่ใช่ / ไม่รู้ • ถามเสร็จกดข้ามไปคนต่อไป • มั่นใจแล้วกด “โหวตจบเกม” ครบทุกคนไปทาย'],['ทายคำ แล้วจับ Insider','Commons พิมพ์คำตอบ (ไม่บอกว่าใครส่ง) แล้วทุกคนรวม Master โหวตหา Insider • Commons ชนะเมื่อทายถูกและจับได้ • Insider ชนะเมื่อทายถูกแต่ไม่โดนจับ • ทายผิด = แพ้หมด']] },
 };
 // เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
 const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
@@ -132,6 +138,7 @@ const COPY = {
   cake:{stamp:'ห้ามแตะเค้ก!',floatSub:'จำเวลาที่ตื่นไว้ให้ดี',joinH:'ชวนรูมเมทเข้าบ้าน',howH:'กติกาบ้านนี้'},
   boom:{stamp:'ห้ามจั่วมั่ว!',floatSub:'มีที่หนีบจมูกหรือยัง?',joinH:'ชวนแก๊งมาลุ้นทุเรียน',howH:'กติกาแผงทุเรียน'},
   deal:{stamp:'ดีลนี้ต้องปิด!',floatSub:'แบ่งเงินให้ถูกใจทุกคน',joinH:'นัดหุ้นส่วนมาเจรจา',howH:'กติกาห้องประชุม'},
+  insider:{stamp:'อย่ารู้มากเกินไป!',floatSub:'ถามได้ ตอบแค่ ใช่ / ไม่ใช่',joinH:'รวมแก๊ง หาคนรู้มาก',howH:'กติกา Insider'},
   clue:{stamp:'ห้ามใบ้เกิน!',floatSub:'คำเดียว โยงให้ได้หลายใบ',joinH:'รวมแก๊ง แบ่งทีมแดง–ฟ้า',howH:'กติกาแก๊งใบ้คำ'},
   checkpoint:{stamp:'หยุดตรวจ!',floatSub:'หมูปิ้งล้วน ๆ ครับจ่า',joinH:'รวมแก๊งซิ่งผ่านด่าน',howH:'กติกาหน้าด่าน'},
   tam:{stamp:'ไม่ไว้หน้าใคร!',floatSub:'ซ้อนบวกได้ไม่จำกัด',joinH:'เรียกแก๊งมาล้อมครก',howH:'กติกาครกแตก'},
@@ -293,6 +300,8 @@ function App() {
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='ins'){const rd=makeInsRound(ids,room.settings?.ins||{},(room.round?.number||0)+1,Date.now()+skew,hist,room.round?.kind==='ins'?room.round.master:null);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([rd.insider]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='uc'){const rd=makeUcRound(ids,room.settings?.uc||{},(room.round?.number||0)+1,Date.now()+skew,hist);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]!=='civ')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='clue'){const rd=makeClueRound(ids,room.settings?.clue||{},(room.round?.number||0)+1,Date.now()+skew);
@@ -567,6 +576,14 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🚧 ตั้งด่านตรวจ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องตั้งด่านอยู่</div>}</>})()}
       {G.type==='checkpoint'&&room.status!=='lobby'&&room.round?.kind==='checkpoint'&&<CheckpointGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='ins'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=INS_MIN&&n<=INS_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ใครรู้มากเกินไป?</h2>
+        <p className="hint">เล่นได้ {INS_MIN}–{INS_MAX} คน • 👑 Master 1 • 🤫 Insider 1 • ที่เหลือ 🙂 Commons • เปิดห้องเสียงไว้ถามตอบกัน</p>
+        {n>INS_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {INS_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <InsLobby db={db} roomCode={roomCode} room={room} isHost={isHost} sound={sound}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>Commons ชนะ: Commons + Master คนละ +{INS_SCORE.common} • Insider ชนะ: +{INS_SCORE.insider} • ทายผิด: ไม่มีใครได้</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🤫 แจกบทบาท ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='ins'&&room.status!=='lobby'&&room.round?.kind==='ins'&&<InsGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='uc'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=UC_MIN&&n<=UC_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ใครได้คำไม่เหมือนเพื่อน?</h2>
         <p className="hint">เล่นได้ {UC_MIN}–{UC_MAX} คน • เปิดห้องเสียงไว้ใบ้กัน • เกมละประมาณ 5–15 นาที</p>
         {n>UC_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {UC_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -608,8 +625,8 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>
