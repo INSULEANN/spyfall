@@ -28,13 +28,14 @@ import { DealGame, DealLobby, makeDealRound, DEAL_MIN, DEAL_MAX, DEAL_SCORE } fr
 import { ClueGame, ClueLobby, makeClueRound, CLUE_MIN, CLUE_MAX } from './clue.jsx';
 import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, CP_SCORE } from './checkpoint.jsx';
 import { ClueTurns, CallVote } from './spyturns.jsx';
+import { UcGame, UcLobby, makeUcRound, UC_MIN, UC_MAX, UC_SCORE } from './undercover.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
 import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.36';
+const APP_VERSION = '1.38';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -63,11 +64,11 @@ const GAMES = {
     lead:'ทุกคนรู้สถานที่ ยกเว้นคนเดียว…ถามให้เนียน ตอบให้รอด อย่าโป๊ะจนเพื่อนจับได้',
     pills:['🇹🇭 สถานที่ไทย','🎭 มีบทบาท','😂 สายฮา'],
     how:[['รับบทลับ','ทุกคนได้สถานที่เดียวกันพร้อมบทบาท ยกเว้นสายลับที่ต้องเนียนเอาตัวรอด'],['ถามให้มีพิรุธ','ถาม–ตอบเป็นภาษาไทย แต่อย่าใบ้สถานที่ตรงเกินไป'],['โหวตคนโป๊ะ','จับให้ได้ว่าใครมั่ว หรือให้สายลับเดาสถานที่เพื่อพลิกเกม']] },
-  spy: { id:'spy', name:'SPY', emoji:'🤫', packs:SPY_PACKS, item:'คำ', unit:'คำ', roles:false, min:3, h1:['ใครโป๊ะ','คนนั้นสายลับ'], art:'🤫', float:'คำนี้…ใช้ทุกวันไหม?',
-    blurb:'เหมือน Spyfall แต่เป็นคำลับจากหมวด นักฟุตบอล เกม หนัง ของใช้ สัตว์ ไม่มีบทบาท',
-    lead:'ทุกคนรู้คำลับเดียวกัน ยกเว้นคนเดียว…พูดถึงคำนั้นแบบอ้อม ๆ อย่าให้สายลับจับทางได้',
-    pills:['⚽ นักฟุตบอล','🎬 หนังดัง','🐘 สัตว์'],
-    how:[['รับคำลับ','ทุกคนได้คำเดียวกัน ยกเว้นสายลับที่ไม่รู้ว่าคำคืออะไร'],['ใบ้แบบมีชั้นเชิง','ถาม–ตอบเกี่ยวกับคำนั้นแบบอ้อม ๆ ใบ้ตรงไปสายลับจะเดาได้'],['โหวตจับสายลับ','โหวตคนที่ดูมั่ว ส่วนสายลับเดาคำถูกก็พลิกชนะได้']] },
+  spy: { id:'spy', type:'uc', name:'SPY', emoji:'🤫', packs:[], item:'คำ', unit:'คำ', roles:true, min:UC_MIN, max:UC_MAX, h1:['ใครโป๊ะ','คนนั้น Undercover'], art:'🤫', float:'คำนี้…ใช้ทุกวันไหม?',
+    blurb:'นักสืบได้คำเดียวกัน Undercover ได้คำคล้าย ๆ ส่วน Mr. White ไม่ได้คำเลย — ใบ้ทีละคน แล้วโหวตออกทีละคน',
+    lead:'ทุกคนได้คำลับ แต่บางคนได้คำต่างไปนิดเดียว…และอาจไม่รู้ตัวด้วยซ้ำ ใบ้อ้อม ๆ แล้วหาให้เจอว่าใครไม่เข้าพวก',
+    pills:['🕵️ นักสืบ','🥸 Undercover','👻 Mr. White'],
+    how:[['รับคำลับ','🕵️ นักสืบได้คำเดียวกัน • 🥸 Undercover ได้คำคล้าย ๆ (ไม่รู้ตัวว่าเป็น Undercover) • 👻 Mr. White ไม่ได้คำ (หัวหน้าห้องเลือกมี/ไม่มี)'],['ใบ้ทีละคน','ทุกคนที่ยังอยู่พูดใบ้คำของตัวเองคนละ 1 อย่าง แบบอ้อม ๆ อย่าให้ฝ่ายตรงข้ามจับทาง'],['โหวตออกทีละคน','เสียงมากสุดออกแล้วเปิดบทบาท • นักสืบชนะเมื่อจับ Undercover + Mr. White ได้ครบ • Undercover ชนะเมื่อเหลือเท่านักสืบ • Mr. White โดนโหวตออกแล้วทายคำนักสืบถูก = ชนะ']] },
   headword: { id:'headword', type:'head', name:'คำบนหัว', emoji:'🙈', packs:HEAD_PACKS, item:'คำ', unit:'คำ', roles:false, min:2, h1:['คำบนหัว','ใครเดาได้ก่อนชนะ'], art:'🙈', float:'ฉันกินได้ไหม?',
     blurb:'ทุกคนเห็นคำของเพื่อน แต่ไม่เห็นคำของตัวเอง ถามใช่/ไม่ใช่ทีละตา แล้วเดาให้ถูกก่อนใคร',
     lead:'คำของคุณแปะอยู่บนหัว ทุกคนเห็นยกเว้นคุณ…ถามคำถามใช่/ไม่ใช่ทีละตา แล้วเดาให้ถูกเป็นคนแรก',
@@ -124,7 +125,7 @@ const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').to
 // ข้อความตกแต่งเฉพาะแต่ละเกม (ป้ายบนภาพ หัวข้อ)
 const COPY = {
   spyfall:{stamp:'ห้ามโป๊ะ!',floatSub:'ถามแบบมีชั้นเชิง',joinH:'รวมแก๊งให้ครบ แล้วค่อยจับโป๊ะ',howH:'เล่นยังไง ไม่ให้โป๊ะ?'},
-  spy:{stamp:'TOP SECRET',floatSub:'ใบ้อ้อม ๆ อย่าให้สายลับรู้',joinH:'เรียกเอเจนต์เข้าห้องลับ',howH:'คู่มือเอเจนต์'},
+  spy:{stamp:'TOP SECRET',floatSub:'ใบ้อ้อม ๆ หา Undercover ให้เจอ',joinH:'เรียกนักสืบเข้าห้องลับ',howH:'คู่มือนักสืบ'},
   headword:{stamp:'ห้ามแอบดู!',floatSub:'ถามได้แค่ ใช่ / ไม่ใช่',joinH:'ชวนแก๊งมาแปะคำบนหัว',howH:'เล่นยังไง?'},
   explore:{stamp:'ระวังโจร!',floatSub:'เลือกคณะให้ดี',joinH:'รวมคณะนักสำรวจ',howH:'คู่มือนักสำรวจ'},
   werewolf:{stamp:'อย่าออกจากบ้าน!',floatSub:'ใครโกหก ใครพูดจริง',joinH:'รวมชาวบ้านก่อนพระอาทิตย์ตก',howH:'กฎของหมู่บ้าน'},
@@ -292,6 +293,8 @@ function App() {
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='uc'){const rd=makeUcRound(ids,room.settings?.uc||{},(room.round?.number||0)+1,Date.now()+skew,hist);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]!=='civ')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='clue'){const rd=makeClueRound(ids,room.settings?.clue||{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='checkpoint'){const rd=makeCpRound(ids,{laps:room.settings?.cpLaps||lapsFor(ids.length)},(room.round?.number||0)+1,Date.now()+skew+(room.round?0:INTRO_LEAD));
@@ -564,6 +567,14 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🚧 ตั้งด่านตรวจ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องตั้งด่านอยู่</div>}</>})()}
       {G.type==='checkpoint'&&room.status!=='lobby'&&room.round?.kind==='checkpoint'&&<CheckpointGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='uc'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=UC_MIN&&n<=UC_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ใครได้คำไม่เหมือนเพื่อน?</h2>
+        <p className="hint">เล่นได้ {UC_MIN}–{UC_MAX} คน • เปิดห้องเสียงไว้ใบ้กัน • เกมละประมาณ 5–15 นาที</p>
+        {n>UC_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {UC_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <UcLobby db={db} roomCode={roomCode} room={room} players={players} isHost={isHost} sound={sound}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>นักสืบชนะ: นักสืบคนละ +{UC_SCORE.civ} (รวมคนที่ถูกโหวตออก) • Undercover ชนะ: คนละ +{UC_SCORE.uc} • Mr. White ชนะ: +{UC_SCORE.white}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🤫 แจกคำลับ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='uc'&&room.status!=='lobby'&&room.round?.kind==='uc'&&<UcGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='clue'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=CLUE_MIN&&n<=CLUE_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>แบ่งทีมแดง–ฟ้า แล้วมาใบ้กัน!</h2>
         <p className="hint">เล่นได้ {CLUE_MIN}–{CLUE_MAX} คน • เปิดห้องเสียงไว้ให้ลูกทีมคุยกันก่อนเปิดคำ • เกมละประมาณ 10–20 นาที</p>
         {n>CLUE_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {CLUE_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -597,8 +608,8 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>
