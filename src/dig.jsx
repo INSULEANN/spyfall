@@ -287,6 +287,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
 
   return <div className="dig-game">
     <Fx fx={r.fx} />
+    <div className="gcols dig-cols"><div className="gmain">{board}</div><div className="gside">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">🃏 กองเหลือ {r.deck.length}</span></div>
     {myRole && <div className={'uc-card dig-me' + (peekRole ? ' open' : '')} onClick={() => setPeekRole(p => !p)}>
       {peekRole ? <><RoleFace role={myRole} size={64} /><div><small>บทบาทของคุณ{r.masked?.[myId] ? ' (โดนสลับหน้ากากแล้ว!)' : ''}</small><b>{ROLE[myRole].e} {ROLE[myRole].n}</b><small>{myRole === 'dig' ? 'ขุดอุโมงค์ให้ถึงหีบสมบัติ ระวังตัวป่วน' : 'แอบขวางทางอย่างเนียน ๆ อย่าให้ใครถึงสมบัติ'}</small></div></>
@@ -298,7 +299,6 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <div><small>⛏️ ตาของ</small><b>{cur === myId ? 'คุณ!' : nameOf(cur)}</b><small>{myTurn ? (sel == null ? 'เลือกการ์ด 1 ใบด้านล่าง' : isPath(card) ? (broken.length ? 'เครื่องมือพัง วางทางไม่ได้ — ทิ้งการ์ดแทน' : places.length ? 'แตะช่องที่เรืองแสงเพื่อวาง' : 'วางตรงไหนไม่ได้เลย — ทิ้งการ์ดแทน') : A.t === 'fall' ? 'แตะทางเดินที่จะถล่ม' : A.t === 'map' ? 'แตะป้ายหลุมปลายทางที่จะส่อง' : 'เลือกผู้เล่น') : 'รอเพื่อนเล่น…'}</small></div>
       <TimerRing secs={secs} total={(r.turnMs || 60000) / 1000} size={54} label="วิ" />
     </section>
-    {board}
     <div className="dig-hand-h"><b>🃏 การ์ดในมือ</b>{broken.length > 0 && <span className="dig-warn">เครื่องมือพัง: {broken.map(t => TOOLS[t].e + ' ' + TOOLS[t].n).join(', ')} — วางทางไม่ได้</span>}</div>
     <div className="dig-hand">{hand.map((c, i) => <button key={i + c} type="button" className={'dig-card' + (sel === i ? ' sel' : '') + (isPath(c) && broken.length ? ' dim' : '')} onClick={() => { sfx(sound, 'click'); setSel(s => (s === i ? null : i)); setRot(0); }}>
       <CardView c={c} size={58} rot={sel === i && rot} /><small>{cardName(c)}</small></button>)}{!hand.length && <span className="hint">ไม่มีการ์ดในมือแล้ว</span>}</div>
@@ -333,6 +333,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <button className="secondary" onClick={() => { if (confirm(`ข้ามตาของ ${nameOf(cur)}? (ทิ้งการ์ดสุ่มให้ 1 ใบ)`)) tx(c => digSkip(c, srvNow)); }}>⏩ ข้ามตา {nameOf(cur)}</button>
       {ids.filter(id => !room.players?.[id] && !r.gone?.[id]).map(id => <button key={id} className="secondary" onClick={() => tx(c => kickDig(c, id, srvNow))}>🚪 ตัด {nameOf(id)} ออก</button>)}
     </HostBar>}
+    </div></div>
   </div>;
 }
 

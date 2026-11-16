@@ -1,5 +1,5 @@
 // เกม "ปิดดีล!" — เกมเจรจาธุรกิจ: เดินหมวกเจ้าสัวไปเจอดีล เจ้าของดีลต้องรวบรวมหุ้นส่วนให้ครบแล้วตกลงแบ่งเงินกัน
-// ระหว่างเจรจาใครก็เล่นการ์ดขัดขาได้: ข้าคุมเอง • ห้าม! • พักร้อน • คนในเครือ • ซื้อหุ้น ×3
+// ระหว่างเจรจาใครก็เล่นการ์ดขัดขาได้: ข้าคุมเอง • ห้าม! • พักร้อน • คอนเนคชั่น • ซื้อหุ้น ×3
 // เล่นการ์ดแล้วทุกคนต้องรอ 2 วิ • กดปิดดีลแล้วนับถอยหลัง 5 วิ ระหว่างนั้นสวนได้
 // (กลไกแนวเกมเจรจาที่มีอยู่ทั่วไป แต่ชื่อ ดีล ภาพ ธีมเป็นของเราเองทั้งหมด)
 import React, { useEffect, useRef, useState } from 'react';
@@ -44,7 +44,7 @@ export const CARDS = {
   boss: { n: 'ข้าคุมเอง!', e: '🎩', text: 'แย่งเป็นเจ้าของดีลที่กำลังเจรจาอยู่' },
   stop: { n: 'ห้าม!', e: '🛑', text: 'ยกเลิกการ์ดใบล่าสุด (ข้าคุมเอง / พักร้อน / ซื้อหุ้น) ห้ามซ้อนห้ามไม่ได้' },
   trip: { n: 'พักร้อน', e: '🏖️', text: 'ส่งหุ้นส่วนไปพักร้อน ที่นั่งว่างจนจบดีลนี้' },
-  clan: { n: 'คนในเครือ', e: '👥', text: 'นั่งที่หุ้นส่วนนี้ในดีลเอง ไม่ได้ใช้ = กลับเข้ามือ' },
+  clan: { n: 'คอนเนคชั่น', e: '🤝', text: 'นั่งที่หุ้นส่วนนี้ในดีลเอง ไม่ได้ใช้ = กลับเข้ามือ' },
   buy: { n: 'ซื้อหุ้น', e: '🧾', text: `ครบ ${BUY_N} ใบเล่นพร้อมกัน ยึดหุ้นส่วน 1 รายมาเป็นของคุณถาวร` },
 };
 // trip/clan: จำนวนต่อสีหุ้นส่วน • tripAny = พักร้อนสีเทา ใช้กับสีไหนก็ได้
@@ -80,14 +80,14 @@ function draw(r, id, n) {
 function capHand(r, id) { const h = hand(r, id); if (h.length > HAND_MAX) { r.discard = [...(r.discard || []), ...h.slice(0, h.length - HAND_MAX)]; r.hands[id] = h.slice(-HAND_MAX); } }
 const giveBack = (r, id, c) => { if (inGame(r, id)) { r.hands[id] = [...hand(r, id), c]; capHand(r, id); } else r.discard = [...(r.discard || []), c]; };
 export const dealOf = r => (r.nego ? DEALS[r.nego.deal] : null);
-// ที่นั่งในดีล: คนในเครือมาก่อน • ไม่งั้นเจ้าของหุ้นส่วน (ถ้าไม่ได้ไปพักร้อน และยังอยู่ในวง)
+// ที่นั่งในดีล: คอนเนคชั่นมาก่อน • ไม่งั้นเจ้าของหุ้นส่วน (ถ้าไม่ได้ไปพักร้อน และยังอยู่ในวง)
 function reseat(r) {
   const n = r.nego; const D = DEALS[n.deal]; const s = {};
   slotsOf(D).forEach(p => { const c = n.clan?.[p]; s[p] = c && inGame(r, c.by) ? c.by : n.away?.[p] ? null : inGame(r, r.ctrl[p]) ? r.ctrl[p] : null; });
   n.seats = s; n.chosen = (n.chosen || []).filter(p => s[p]).slice(0, pickOf(D));
 }
 const sigOf = n => JSON.stringify([n.boss, n.seats || {}, n.chosen || []]);
-// จบดีล: คนในเครือที่ได้ใช้ในดีล → ทิ้ง • ที่ไม่ได้ใช้ (หรือดีลล่ม) → กลับเข้ามือ
+// จบดีล: คอนเนคชั่นที่ได้ใช้ในดีล → ทิ้ง • ที่ไม่ได้ใช้ (หรือดีลล่ม) → กลับเข้ามือ
 function returnClans(r, used = []) {
   const n = r.nego; Object.entries(n?.clan || {}).forEach(([p, c]) => { if (used.includes(p) && n.seats?.[p] === c.by) r.discard = [...(r.discard || []), c.card]; else giveBack(r, c.by, c.card); }); if (n) n.clan = null;
 }
@@ -266,14 +266,14 @@ export function playDealCard(cur, me, card, arg, now) {
     last = { t, by: me, card, p: q, chosen: n.chosen || [] };
     if (c && c.by === was) {
       r.discard = [...(r.discard || []), c.card]; const cl = { ...n.clan }; delete cl[q]; n.clan = cl; last.clan = c;
-      text = `🏖️ {${me}} ส่งคนในเครือ${PARTNERS[q].n} ({${was}}) ไปพักร้อน — ทิ้งการ์ดทั้งคู่`;
+      text = `🏖️ {${me}} ส่งคอนเนคชั่น${PARTNERS[q].n} ({${was}}) ไปพักร้อน — ทิ้งการ์ดทั้งคู่`;
     } else { n.away = { ...(n.away || {}), [q]: me }; text = `🏖️ {${me}} ส่ง${PARTNERS[q].n} ${PARTNERS[q].e} ({${was}}) ไปพักร้อน!`; }
     act = `🏖️ ${PARTNERS[q].n}ไปพักร้อน!`;
   } else if (t === 'clan') {
     if (!nego || !PARTNERS[p] || !slotsOf(D).includes(p) || n.seats?.[p] === me) return;
     const old = n.clan?.[p]; if (old) giveBack(r, old.by, old.card);
     n.clan = { ...(n.clan || {}), [p]: { by: me, card } }; used = [];
-    text = `👥 {${me}} ส่งคนในเครือ${PARTNERS[p].n} ${PARTNERS[p].e} เข้านั่งในดีลเอง`; act = `👥 ${PARTNERS[p].n}ของข้าเอง!`;
+    text = `🤝 {${me}} ส่งคอนเนคชั่น${PARTNERS[p].n} ${PARTNERS[p].e} เข้านั่งในดีลเอง`; act = `🤝 ${PARTNERS[p].n}คนกันเอง!`;
   } else if (t === 'buy') {
     if (!PARTNERS[arg] || r.ctrl[arg] === me) return; if (!nego && !(r.phase === 'turn' && curOf(r) === me)) return;
     const mine = hand(r, me).filter(c => cparse(c).t === 'buy'); if (mine.length < BUY_N) return;
@@ -306,7 +306,7 @@ export function kickDeal(cur, id, now) {
   if (left.length < 2) return finish(cur, 'players');
   if (r.phase === 'nego' && (r.nego.boss === id || partsOf(r.nego).includes(id))) return failDeal(cur, now, 'มีคนหลุด');
   if (r.phase === 'nego') { const n = r.nego; const sig = sigOf(n); reseat(r); if (sigOf(n) !== sig) touch(r, now); guard(r, now); }
-  // กำลังเจรจาอยู่ → ปล่อยให้ดีลจบก่อน แล้ว nextTurn จะข้ามคนที่ออกไปเอง (ไม่งั้นการ์ดคนในเครือบนโต๊ะหาย)
+  // กำลังเจรจาอยู่ → ปล่อยให้ดีลจบก่อน แล้ว nextTurn จะข้ามคนที่ออกไปเอง (ไม่งั้นการ์ดคอนเนคชั่นบนโต๊ะหาย)
   if (r.phase === 'turn' && curOf(r) === id) return nextTurn(cur, now);
   return cur;
 }
@@ -337,22 +337,33 @@ export function PartnerIcon({ p, size, off, className = 'pd' }) {
 const Dot = ({ p, size, off }) => <PartnerIcon p={p} size={size} off={off} />;
 // การ์ด: กรอบสีตามชนิด ภาพประกอบด้านบน ชื่อ+คำอธิบายด้านล่าง
 const CARD_ART = {
-  boss: () => <g><circle cx="50" cy="40" r="32" fill="#f5c451" opacity=".28" /><circle cx="50" cy="40" r="21" fill="#ffe08a" opacity=".45" />
-    <g transform="rotate(-9 50 44)"><ellipse cx="50" cy="57" rx="31" ry="7.5" fill="#15151b" /><path d="M33 57 V21 Q50 15 67 21 V57 Z" fill="#22222b" /><path d="M33 21 Q50 15 67 21 Q50 27 33 21 Z" fill="#383845" /><rect x="33" y="44" width="34" height="7.5" fill="#c0392b" /><rect x="33" y="44" width="34" height="2" fill="#e05a4b" /><path d="M38.5 25 V41" stroke="#ffffff1f" strokeWidth="3.5" strokeLinecap="round" /></g>
-    <g fill="#fffbe0"><path d="M17 16 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" /><path d="M83 11 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5 z" /><path d="M85 50 l1.2 3 l3 1.2 l-3 1.2 l-1.2 3 l-1.2 -3 l-3 -1.2 l3 -1.2 z" /></g></g>,
-  stop: () => <g><path d="M37 7 H63 L80 24 V52 L63 69 H37 L20 52 V24 Z" fill="#e0303a" stroke="#fff" strokeWidth="3.5" strokeLinejoin="round" /><path d="M37 7 H63 L80 24 V30 Q50 18 20 30 V24 Z" fill="#fff" opacity=".14" />
-    <g fill="#fff"><rect x="38.5" y="35" width="24" height="22" rx="8" /><rect x="38.5" y="20" width="5.6" height="24" rx="2.8" /><rect x="45" y="16.5" width="5.6" height="27" rx="2.8" /><rect x="51.5" y="18" width="5.6" height="25" rx="2.8" /><rect x="58" y="22.5" width="5" height="21" rx="2.5" /><rect x="30.5" y="37" width="6" height="15" rx="3" transform="rotate(-38 33.5 44.5)" /></g></g>,
+  // 🎩 ข้าคุมเอง: หมวกเจ้าสัวลอยกลางออร่าทอง
+  boss: () => <g><g stroke="#ffd76a" strokeWidth="3" strokeLinecap="round" opacity=".55">{[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(d => <path key={d} d="M50 8 V-2" transform={`rotate(${d} 50 40)`} />)}</g>
+    <circle cx="50" cy="40" r="30" fill="#ffd76a" opacity=".3" /><circle cx="50" cy="40" r="22" fill="#fff0a8" opacity=".45" />
+    <g transform="rotate(-8 50 46)"><ellipse cx="50" cy="58" rx="30" ry="7" fill="#b8860b" /><path d="M34 58 V24 Q50 18 66 24 V58 Z" fill="#f2c14e" /><path d="M34 24 Q50 18 66 24 Q50 30 34 24 Z" fill="#ffe08a" /><rect x="34" y="46" width="32" height="7" fill="#7a1f2b" /><path d="M39 28 V43" stroke="#fff8d0" strokeWidth="3.5" strokeLinecap="round" opacity=".7" /></g>
+    <g fill="#fffbe0"><path d="M16 14 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" /><path d="M84 10 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5 z" /><path d="M86 54 l1.2 3 l3 1.2 l-3 1.2 l-1.2 3 l-1.2 -3 l-3 -1.2 l3 -1.2 z" /></g></g>,
+  // 🛑 ห้าม!: ป้ายแปดเหลี่ยมแดง เขียนว่า ห้าม
+  stop: () => <g><path d="M37 5 H63 L81 23 V53 L63 71 H37 L19 53 V23 Z" fill="#e0303a" stroke="#fff" strokeWidth="4" strokeLinejoin="round" /><path d="M37 5 H63 L81 23 V29 Q50 17 19 29 V23 Z" fill="#fff" opacity=".14" />
+    <text x="50" y="47" textAnchor="middle" fontSize="23" fontWeight="900" fill="#fff" fontFamily="Kanit,sans-serif">ห้าม!</text></g>,
+  // 🤝 คอนเนคชั่น: มือสองข้างจับกัน + สีหุ้นส่วน
   clan: p => <g><path d="M3 47 L29 31 L40 46 L14 62 Z" fill="#26365e" /><path d="M97 47 L71 31 L60 46 L86 62 Z" fill="#3a2d5e" />
     <rect x="25" y="29" width="7" height="17" rx="2" fill="#fff" transform="rotate(-31 28.5 37.5)" /><rect x="68" y="29" width="7" height="17" rx="2" fill="#fff" transform="rotate(31 71.5 37.5)" />
     <path d="M30 32 Q43 24 53 31 L61 28 Q71 27 75 34 L64 48 Q54 52 47 49 Q38 54 34 46 Z" fill="#ffd2a8" /><g stroke="#c98a5a" strokeWidth="1.8" fill="none" strokeLinecap="round"><path d="M46 34 q5 3 10 2" /><path d="M48 39.5 q5 3 10 2" /><path d="M50 44.5 q4 2 8 1" /></g>
-    <g transform="translate(36 1)"><PartnerIcon p={p} size={28} className="cd-badge" /></g>
+    {p !== 'any' && <g transform="translate(36 1)"><PartnerIcon p={p} size={28} className="cd-badge" /></g>}
     <g fill="#fff6c0"><path d="M14 14 l1.5 3.5 l3.5 1.5 l-3.5 1.5 l-1.5 3.5 l-1.5 -3.5 l-3.5 -1.5 l3.5 -1.5 z" /><path d="M86 16 l1.2 3 l3 1.2 l-3 1.2 l-1.2 3 l-1.2 -3 l-3 -1.2 l3 -1.2 z" /></g></g>,
-  trip: p => <g><circle cx="78" cy="18" r="10" fill="#ffe27a" /><path d="M0 58 Q25 50 50 58 T100 58 V76 H0 Z" fill="#f3d9a4" /><path d="M0 52 Q25 46 50 52 T100 52 V60 Q75 54 50 60 T0 60 Z" fill="#5fc4e8" opacity=".9" />
-    <path d="M30 60 L44 22" stroke="#7a5230" strokeWidth="2.6" strokeLinecap="round" /><path d="M16 28 Q44 2 70 30 Q57 22 44 26 Q31 20 16 28 Z" fill="#ff6b6b" /><path d="M44 26 Q50 12 44 7 Q57 14 57 25 Z" fill="#fff" opacity=".85" /><path d="M31 23 Q36 10 44 7 Q37 16 44 26 Z" fill="#ffd76a" />
-    <rect x="50" y="49" width="30" height="6" rx="3" fill="#fff" transform="rotate(-8 65 52)" />{p !== 'any' ? <g transform="translate(64 30)"><PartnerIcon p={p} size={24} className="cd-badge" /></g> : <text x="76" y="44" textAnchor="middle" fontSize="11" fontWeight="900" fill="#1d2340" fontFamily="Kanit,sans-serif">ทุกสี</text>}</g>,
-  buy: () => <g><g transform="rotate(-6 46 40)"><rect x="22" y="6" width="46" height="62" rx="3" fill="#fbf7ee" stroke="#c9bfa6" strokeWidth="1.5" /><rect x="22" y="6" width="46" height="9" rx="3" fill="#e8dfc8" /><g stroke="#b9ae95" strokeWidth="2" strokeLinecap="round"><path d="M29 22 H61 M29 29 H61 M29 36 H54 M29 43 H59" /></g><path d="M29 57 q6 -7 10 0 q4 7 9 -2" stroke="#1d2340" strokeWidth="1.8" fill="none" strokeLinecap="round" /></g>
-    <g transform="rotate(-16 68 52)"><circle cx="68" cy="52" r="14" fill="#fbf7ee" fillOpacity=".6" stroke="#d9434b" strokeWidth="3" /><circle cx="68" cy="52" r="10" fill="none" stroke="#d9434b" strokeWidth="1.3" /><text x="68" y="56" textAnchor="middle" fontSize="10" fontWeight="900" fill="#d9434b" fontFamily="Kanit,sans-serif">×3</text></g>
-    <g transform="rotate(38 82 22)"><rect x="78.5" y="2" width="7.5" height="33" rx="3.5" fill="#1d2340" /><rect x="78.5" y="10" width="7.5" height="3" fill="#f5c451" /><path d="M78.5 35 L82.25 46 L86 35 Z" fill="#c9a24a" /></g></g>,
+  // ✈️ พักร้อน: เครื่องบินบินขึ้นฟ้า ทิ้งควันเป็นทาง
+  trip: p => <g><circle cx="82" cy="16" r="9" fill="#ffe27a" /><g fill="#fff" opacity=".9"><ellipse cx="22" cy="20" rx="13" ry="5" /><ellipse cx="30" cy="16" rx="8" ry="5" /><ellipse cx="74" cy="58" rx="14" ry="5" /><ellipse cx="66" cy="54" rx="8" ry="5" /></g>
+    <path d="M4 66 Q22 60 34 50" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeDasharray="1 7" fill="none" />
+    <g transform="rotate(-24 52 38)"><path d="M26 38 Q26 33 32 33 H70 Q80 33 84 38 Q80 43 70 43 H32 Q26 43 26 38 Z" fill="#fbfdff" stroke="#9fb0c8" strokeWidth="1.4" />
+      <path d="M50 35 L40 16 H47 L62 35 Z" fill="#3a7bd5" /><path d="M50 41 L40 60 H47 L62 41 Z" fill="#2f66b8" /><path d="M30 35 L24 25 H29 L36 35 Z" fill="#3a7bd5" />
+      <g fill="#7fb3ff">{[44, 50, 56, 62, 68].map(x => <circle key={x} cx={x} cy="37" r="1.6" />)}</g><path d="M78 35.5 Q82 36.5 83 38 H77 Z" fill="#1d2340" /></g>
+    {p !== 'any' ? <g transform="translate(6 40)"><PartnerIcon p={p} size={24} className="cd-badge" /></g> : <text x="18" y="70" textAnchor="middle" fontSize="11" fontWeight="900" fill="#1d2340" fontFamily="Kanit,sans-serif">ทุกสี</text>}</g>,
+  // 🧾 ซื้อหุ้น: ใบซื้อหุ้น กราฟพุ่ง ตราประทับ ×3
+  buy: () => <g><g transform="rotate(-6 46 40)"><rect x="18" y="4" width="54" height="66" rx="3" fill="#fbf7ee" stroke="#c9a24a" strokeWidth="2" /><rect x="22" y="8" width="46" height="58" rx="2" fill="none" stroke="#e3d3a4" strokeWidth="1" />
+      <rect x="18" y="4" width="54" height="13" rx="3" fill="#1f3f8a" /><text x="45" y="14" textAnchor="middle" fontSize="8.5" fontWeight="900" fill="#fff" fontFamily="Kanit,sans-serif">ใบซื้อหุ้น</text>
+      <path d="M26 46 L34 40 L41 43 L50 31 L58 34 L64 24" stroke="#2fa860" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" /><path d="M60 23 L65 23 L64 28" stroke="#2fa860" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <g stroke="#b9ae95" strokeWidth="1.8" strokeLinecap="round"><path d="M26 53 H56 M26 59 H48" /></g></g>
+    <g transform="rotate(-16 70 54)"><circle cx="70" cy="54" r="14" fill="#fbf7ee" fillOpacity=".7" stroke="#d9434b" strokeWidth="3" /><circle cx="70" cy="54" r="10" fill="none" stroke="#d9434b" strokeWidth="1.3" /><text x="70" y="58" textAnchor="middle" fontSize="10" fontWeight="900" fill="#d9434b" fontFamily="Kanit,sans-serif">×3</text></g></g>,
 };
 export function DealCard({ id, t: t0, onClick, ok = true, sel, className = '' }) {
   const { t, p } = id ? cparse(id) : { t: t0, p: null }; const C = CARDS[t]; if (!C) return null;
@@ -484,14 +495,14 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
   const you = id => (id === myId ? 'คุณ' : nameOf(id));
   // กล่อง "ตอนนี้ต้องทำอะไร" ตามบทบาท
   const doBox = !n ? null : iBoss ? (step === 1 ? (missing.length
-      ? <><b>⛔ ขาด{missing.map(p => PARTNERS[p].n).join(' / ')}</b><span>ไปพักร้อน — ใช้ 🛑 ห้าม! ทันที หรือลง 👥 คนในเครือสีนั้นเติมเอง (ใครมีก็ลงได้) หรือถอนตัว</span></>
+      ? <><b>⛔ ขาด{missing.map(p => PARTNERS[p].n).join(' / ')}</b><span>ไปพักร้อน — ใช้ 🛑 ห้าม! ทันที หรือลง 👥 คอนเนคชั่นสีนั้นเติมเอง (ใครมีก็ลงได้) หรือถอนตัว</span></>
       : <><b>① เลือกหุ้นส่วนเพิ่มอีก {needPick} ราย</b><span>แตะ “เลือก” ในกลุ่ม 🧩 ตัวเลือกด้านล่าง — ใครขอส่วนแบ่งน้อย เลือกคนนั้น</span></>)
     : step === 2 ? <><b>② แบ่งส่วน แล้วรอทุกคนกดตกลง</b><span>กด − / + ข้างชื่อ ปรับได้เลย ไม่ต้องกดส่ง • ยังรอ: {waitIds.map(you).join(', ')}</span></>
     : n.closeAt ? <><b>⏳ กำลังปิดดีล… {closeSec}</b><span>ถ้าไม่มีใครสวนการ์ด ดีลปิดเองเมื่อนับครบ</span></> : <><b>③ ทุกคนตกลงแล้ว! 🎉</b><span>กดปิดดีล → นับถอยหลัง {CLOSE_MS / 1000} วิ (ระหว่างนั้นคนอื่นสวนการ์ดได้)</span></>)
     : iPart ? (n.ok?.[myId] === true ? <><b>✅ คุณตกลงรับ <em>{myAmt} ส่วน</em> แล้ว</b><span>รอเจ้าของดีลกดปิดดีล</span></>
       : <><b>เจ้าของดีลให้คุณ <em>{myAmt} ส่วน</em></b><span>ได้ {fmtM(myAmt * mult)} (ส่วนละ {fmtM(mult)}){ask[myId] != null ? ` • คุณขอไป ${ask[myId]} ส่วน — รอเจ้าของดีลตอบ` : ''}</span></>)
     : myCand ? <><b>🙋 คุณเป็นหุ้นส่วนตัวเลือก</b><span>เจ้าของดีลยังไม่เลือกคุณ — เสนอขอส่วนน้อย ๆ เพื่อให้ถูกเลือก{ask[myId] != null ? ` (ตอนนี้ขอ ${ask[myId]} ส่วน)` : ''}</span></>
-    : <><b>👀 คุณไม่ได้อยู่ในดีลนี้</b><span>แทรกได้ด้วยการ์ด: 🎩 ข้าคุมเอง • 🏖️ ส่งคนไปพักร้อน • 👥 ลงคนในเครือนั่งเอง • 🛑 ห้าม!</span></>;
+    : <><b>👀 คุณไม่ได้อยู่ในดีลนี้</b><span>แทรกได้ด้วยการ์ด: 🎩 ข้าคุมเอง • 🏖️ ส่งคนไปพักร้อน • 👥 ลงคอนเนคชั่นนั่งเอง • 🛑 ห้าม!</span></>;
   const doBtns = !n ? null : iBoss ? <>
       <button className={'primary wide ng-close' + (ready && !n.closeAt ? ' go' : '')} disabled={!ready || !!n.closeAt} onClick={() => { sfx(sound, 'confirm'); tx(c => closeDeal(c, myId, srvNow)); }}>{n.closeAt ? `⏳ ปิดดีลใน ${closeSec}…` : ready ? '🤝 ปิดดีลเลย!' : '🤝 ปิดดีล (ยังไม่ครบ)'}</button>
       <div className="ng-mini"><button className="secondary" disabled={!teamOk} onClick={() => bump(null, 'even')}>⚖️ แบ่งเท่า ๆ กัน</button><button className="secondary" onClick={() => { if (confirm('ถอนตัวจากดีลนี้? (ดีลล่ม)')) tx(c => cancelDeal(c, myId, srvNow)); }}>💨 ถอนตัว</button></div></>
@@ -542,14 +553,14 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
         return <div key={id} className={'ng-p' + (id === myId ? ' me' : '')} style={{ '--uc': colOf(id) }}><Avatar id={id} av={av} size={30} />
           <span className="ng-n"><b>{you(id)}</b><span>{seatsOf(id).map(p => <Dot key={p} p={p} size={16} />)}{st}</span></span>
           <span className="ng-amt">{iBoss && !isB && <button type="button" className="of-btn" disabled={amt <= 0} onClick={() => bump(id, -1)}>−</button>}<b>{amt}<small>ส่วน</small></b>{iBoss && !isB && <button type="button" className="of-btn" disabled={bossShare <= 0} onClick={() => bump(id, 1)}>+</button>}</span></div>; })}
-        {missing.map(p => <div key={p} className="ng-miss" style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={20} off /> 🏖️ {PARTNERS[p].n} ถูก {you(n.away?.[p])} ส่งไปพักร้อน — แก้ได้ด้วย 🛑 ห้าม! หรือ 👥 คนในเครือ{PARTNERS[p].n}</div>)}
+        {missing.map(p => <div key={p} className="ng-miss" style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={20} off /> 🏖️ {PARTNERS[p].n} ถูก {you(n.away?.[p])} ส่งไปพักร้อน — แก้ได้ด้วย 🛑 ห้าม! หรือ 👥 คอนเนคชั่น{PARTNERS[p].n}</div>)}
       </div>
 
       {optOf(D).length > 0 && <>
         <div className="ng-h">🧩 ตัวเลือก — เลือก {pickOf(D)} จาก {optOf(D).length} ราย <small>(เลือกแล้ว {chosen.length}/{pickOf(D)})</small></div>
         <div className="ng-cgrid">{optOf(D).map(p => { const who = n.seats?.[p]; const ch = chosen.includes(p); const a = who ? ask[who] : null;
           return <div key={p} className={'ng-c' + (ch ? ' on' : '') + (who ? '' : ' empty')} style={{ '--pc': PARTNERS[p].c }}><Dot p={p} size={24} off={!who} />
-            <span><b>{PARTNERS[p].n}</b><small>{who ? <>{you(who)}{n.clan?.[p]?.by === who ? ' 👥' : ''}</> : n.away?.[p] ? '🏖️ พักร้อน' : '⛔ ว่าง'}</small>{a != null && !ch && <em>🙋 ขอแค่ {a} ส่วน</em>}</span>
+            <span><b>{PARTNERS[p].n}</b><small>{who ? <>{you(who)}{n.clan?.[p]?.by === who ? ' 🤝' : ''}</> : n.away?.[p] ? '🏖️ พักร้อน' : '⛔ ว่าง'}</small>{a != null && !ch && <em>🙋 ขอแค่ {a} ส่วน</em>}</span>
             {iBoss && who ? <button type="button" className={'opt-btn' + (ch ? ' on' : '')} disabled={!ch && !needPick} onClick={() => { sfx(sound, 'select'); tx(c => chooseOpt(c, myId, p, srvNow)); }}>{ch ? '✓ เอาออก' : 'เลือก'}</button>
               : <span className="opt-st">{ch ? '✓ ในดีล' : ''}</span>}</div>; })}</div>
       </>}

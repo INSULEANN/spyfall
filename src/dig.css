@@ -1,8 +1,8 @@
 /* ⛏️🪦 ขุดสมบัติป่าช้า */
 .dig-game{display:grid;gap:10px}
 .dig-tile{display:block;width:100%;height:100%}
-.dig-board-wrap{overflow-x:auto;border-radius:14px;background:#1a120d;border:2px solid #4a3424;padding:6px;box-shadow:inset 0 0 30px #000a}
-.dig-board{display:grid;grid-template-columns:repeat(var(--bw),minmax(30px,1fr));gap:2px;min-width:340px;max-width:640px;margin:0 auto}
+.dig-board-wrap{overflow-x:auto;border-radius:14px;background:#1a120d;border:2px solid #4a3424;padding:4px;box-shadow:inset 0 0 30px #000a}
+.dig-board{display:grid;grid-template-columns:repeat(var(--bw),minmax(0,1fr));gap:2px;min-width:0;max-width:640px;margin:0 auto}
 .dig-cell{aspect-ratio:1;padding:0;border:0;border-radius:4px;background:#24180f;overflow:hidden;position:relative;cursor:default;min-height:0}
 .dig-cell:not(.on):not(.goal){background:repeating-linear-gradient(45deg,#22170f 0 6px,#26190f 6px 12px)}
 .dig-cell.can{cursor:pointer;outline:2px solid #ffd27a;outline-offset:-2px;animation:digGlow 1.1s ease-in-out infinite alternate}
@@ -73,3 +73,25 @@
 .dig-fx .maskfx{font-size:90px;animation:digSpin .9s ease-out}
 @keyframes digSpin{from{transform:rotateY(0) scale(.3)}to{transform:rotateY(720deg) scale(1)}}
 @media (prefers-reduced-motion:reduce){.dig-fx *,.dig-cell.can{animation:none!important}}
+/* จัดหน้า: จอคอม = กระดานซ้าย (gmain) / เมนูเล่นขวา (gside) รายชื่อคนในห้อง+ห้องเสียงย้ายลงล่าง (desktop.css :has(.gcols))
+   จอเล็ก = เรียงเป็นแถวเดียว: บทบาท → คนเล่น → ตาใคร → กระดาน → การ์ดในมือ */
+.dig-cols{display:flex;flex-direction:column;gap:10px}
+.dig-cols>.gmain,.dig-cols>.gside{display:contents}
+.dig-cols .gside>*{order:7}
+.dig-cols .round-top{order:1}.dig-cols .dig-me{order:2}.dig-cols .dig-seats{order:3}.dig-cols .dig-turn{order:4}.dig-cols .dig-board-wrap{order:5}.dig-cols .gside>.dig-hand-h,.dig-cols .gside>.dig-hand,.dig-cols .gside>.dig-actions{order:6}
+@media (min-width:1100px){
+  .dig-cols{display:grid;gap:22px}
+  .dig-cols>.gmain{display:block}
+  .dig-cols>.gside{display:grid;gap:10px;align-content:start}
+  .dig-cols .gside>*{order:0!important}
+  .dig-cols .dig-board{max-width:none}
+  .dig-cols .dig-board-wrap{padding:8px}
+}
+/* การ์ดในมือขนาดใหญ่: เรียงเป็นตาราง ขยายตามความกว้าง (มือถือ ~3 ใบต่อแถว, จอคอม 3–4 ใบต่อแถว) */
+.dig-hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;overflow:visible}
+.dig-card{min-width:0;padding:6px;gap:5px}
+.dig-card .dig-tile,.dig-card .dig-act{width:100%!important;height:auto!important;aspect-ratio:1;border-radius:8px}
+.dig-card .dig-act-emo{font-size:44px}
+.dig-card .dig-ov.brk{font-size:56px}.dig-card .dig-ov.fix{font-size:24px}
+.dig-card small{font-size:13px;max-width:100%}
+@media (min-width:1100px){.dig-hand{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}}
