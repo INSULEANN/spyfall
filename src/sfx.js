@@ -44,6 +44,7 @@ const arp = (notes, step, opts) => notes.forEach((f, i) => tone(f, opts?.dur || 
 export const SFX = {
   // ทั่วไป
   click: () => tone(1200, 0.05, { type: 'square', gain: 0.025 }),
+  count: () => tone(880, 0.12, { type: 'triangle', gain: 0.07 }),   // นับถอยหลังทีละวิ
   yourTurn: () => { tone(880, 0.25, { gain: 0.07 }); tone(1320, 0.35, { gain: 0.06, at: 0.12 }); },
   win: () => { arp([523, 659, 784, 1047], 0.12, { type: 'triangle', gain: 0.09 }); tone(1047, 0.9, { type: 'triangle', gain: 0.08, at: 0.5, vib: 6 }); },
   lose: () => { arp([392, 349, 311, 262], 0.22, { type: 'triangle', gain: 0.08, dur: 0.5 }); tone(196, 1.1, { type: 'sawtooth', gain: 0.03, at: 0.9 }); },

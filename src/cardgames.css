@@ -276,3 +276,14 @@
 @keyframes quake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(6px,-4px)}30%,50%,70%{transform:translate(-12px,6px) rotate(-1deg)}40%,60%{transform:translate(12px,-6px) rotate(1deg)}}
 @media (prefers-reduced-motion:reduce){.slam-fx,.nope-stamp,.bfx-spike,.bfx-smoke,.bfx-ring,.bfx-flash{display:none}.bfx-word,.gcols.quake,.rt-deck.hot::after{animation:none}}
 .bfx-word{line-height:1.2;margin-bottom:4px}
+
+/* จับผีปอป: ป๊อปอัพตอนปอปย้ายร่างมาสิง/ออกจากร่างเรา */
+.czfx{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:16px;background:#000a;cursor:pointer;animation:czfxBg .3s ease both}
+.czfx-in{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:340px;padding:20px 22px;border-radius:24px;background:var(--panel);border:2px solid #c05ae8;box-shadow:0 0 60px #c05ae866,0 20px 60px #000a;text-align:center;animation:czfxPop .55s cubic-bezier(.3,1.6,.5,1) both}
+.czfx.in .czfx-in{border-color:#e8424a;box-shadow:0 0 70px #e8424a77,0 20px 60px #000a}.czfx.out .czfx-in{border-color:#5ad07a;box-shadow:0 0 60px #5ad07a55,0 20px 60px #000a}
+.czfx-in b{font-size:22px;line-height:1.25}.czfx-in span{font-size:14px;color:var(--soft);line-height:1.4}.czfx-in small{color:var(--muted);font-size:12px}
+.czfx.in .czfx-in>:first-child{animation:czfxShake .6s .4s ease both}
+@keyframes czfxBg{0%{opacity:0}100%{opacity:1}}
+@keyframes czfxPop{0%{transform:scale(.3) rotate(-8deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes czfxShake{0%,100%{transform:none}20%{transform:rotate(-6deg)}40%{transform:rotate(5deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(2deg)}}
+@media(prefers-reduced-motion:reduce){.czfx,.czfx-in,.czfx-in>*{animation:none!important}}

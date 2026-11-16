@@ -233,6 +233,9 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
   useEffect(() => { setSel(null); setT1(null); setT2(null); }, [r.turn, myHand.length, r.phase]);
   const due = (r.phase === 'reveal' && srvNow >= r.reveal?.until) || (r.phase === 'night' && srvNow >= r.night?.until);
   useEffect(() => { if (due && !res) tx(c => curseTick(c, srvNow)); }, [due]);
+  // ป๊อปอัพเด้งเต็มจอเมื่อปอปย้ายร่างมาสิง/ออกจากร่างเรา (ไพ่ปอปย้ายร่าง) — แตะเพื่อปิด หรือหายเองใน 5 วิ
+  const [posFx, setPosFx] = useState(null);
+  useEffect(() => { if (!posFx) return; const t = setTimeout(() => setPosFx(null), 5000); return () => clearTimeout(t); }, [posFx]);
   // เสียง
   const prev = useRef(null);
   useEffect(() => { const s = { ph: r.phase, turn: r.turn, logN: (r.log || []).length, res: !!res, dark: iDark }; const p = prev.current; prev.current = s; if (!p) return;
@@ -241,7 +244,7 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
     if (p.ph === 'night' && s.ph !== 'night') { sfx(sound, (r.log || []).slice(-3).some(e => e.dead) ? 'death' : 'morning'); return; }
     if (s.ph === 'reveal' && p.ph !== 'reveal') sfx(sound, 'tension');
     if (s.logN > p.logN && (r.log || [])[s.logN - 1]?.dead && s.ph !== 'night') sfx(sound, 'death');
-    if (s.dark !== p.dark) msg(s.dark ? '👻 ปอปย้ายร่างมาสิงคุณแล้ว! ตอนนี้คุณคือผีปอป' : '🙏 ปอปออกจากร่างคุณไปแล้ว — กลับเป็นชาวบ้าน');
+    if (s.dark !== p.dark && !s.res) { setPosFx({ k: Date.now(), dark: s.dark }); sfx(sound, s.dark ? 'tension' : 'morning'); }
     if (s.turn !== p.turn && cur === me) setTimeout(() => sfx(sound, 'yourTurn'), 200);
   });
   const card = sel ? CURSE_CARDS[T(sel)] : null;
@@ -255,6 +258,11 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
   const sham = alive.find(id => isShaman(r, id));
 
   return <div className={'curse-game' + (r.phase === 'night' ? ' is-night' : '')}>
+    {posFx && <div key={posFx.k} className={'czfx ' + (posFx.dark ? 'in' : 'out')} role="alertdialog" onClick={() => setPosFx(null)}><div className="czfx-in">
+      <Fate t={posFx.dark ? 'dark' : 'pure'} size="md" />
+      <b>{posFx.dark ? '👻 ปอปย้ายร่างมาสิงคุณ!' : '🙏 ปอปออกจากร่างคุณแล้ว'}</b>
+      <span>{posFx.dark ? 'ตอนนี้คุณคือผีปอป — อย่าให้ใครจับได้ ตอนคืนเดือนดับเลือกเหยื่อร่วมกับผีปอปตนอื่น' : 'คุณกลับเป็นชาวบ้านแล้ว — ช่วยหมู่บ้านจับผีปอปให้ได้'}</span>
+      <small>แตะเพื่อปิด</small></div></div>}
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • เหลือ {alive.length} คน • คืนเดือนดับมาแล้ว {r.nightN || 0} ครั้ง</span><span className="cat-tag">{res ? '🏁 จบเกม' : r.phase === 'night' ? '🌑 กลางคืน' : r.phase === 'reveal' ? '⚖️ ไต่สวน' : '☀️ กลางวัน'}</span></div>
 
     <div className="gcols flow"><div className="gmain">

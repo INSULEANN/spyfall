@@ -17,9 +17,10 @@ export const wolfCount = n => (n <= 6 ? 1 : n <= 9 ? 2 : 3);
 export function wolfPlan(n, o = {}) {
   const k = wolfCount(n); let left = n - k - 2;
   const hunter = !!o.hunter && n >= 6 && left >= 1; if (hunter) left--;
+  const shush = !!o.shush && left >= 1; if (shush) left--;
   const cupid = !!o.cupid && left >= 1; if (cupid) left--;
   const fool = !!o.fool && left >= 1; if (fool) left--;
-  return { k, hunter, cupid, fool, villagers: Math.max(0, left) };
+  return { k, hunter, cupid, fool, shush, villagers: Math.max(0, left) };
 }
 export const W_ROLES = {
   wolf: { icon: '🐺', name: 'มนุษย์หมาป่า', side: 'wolf', desc: 'กลางคืนตกลงกับเพื่อนหมาป่าเลือกกัดชาวบ้าน 1 คน กลางวันทำตัวเนียนเป็นชาวบ้าน' },
@@ -28,6 +29,7 @@ export const W_ROLES = {
   hunter: { icon: '🏹', name: 'นายพราน', side: 'village', desc: 'ถ้าคุณตาย ไม่ว่ากลางวันหรือกลางคืน ยิงพาใครไปด้วยได้ 1 คน' },
   cupid: { icon: '💘', name: 'กามเทพ', side: 'village', desc: 'คืนแรกยิงศรรักจับคู่ 2 คน (รวมตัวเองได้) — ถ้าคู่รักคนหนึ่งตาย อีกคนตรอมใจตายตาม' },
   fool: { icon: '🤪', name: 'คนบ้า', side: 'fool', desc: 'คุณอยู่ฝ่ายตัวเอง! ชนะทันทีถ้าถูกชาวบ้านโหวตประหารตอนกลางวัน — ทำตัวให้น่าสงสัยเข้าไว้ (ถูกหมาป่ากัดตาย = แพ้)' },
+  shush: { icon: '🤫', name: 'คนจุ๊', side: 'village', desc: 'กลางคืนเลือก 1 คนให้เป็นใบ้ตลอดกลางวันพรุ่งนี้ (ไมค์ปิด พูดไม่ได้ แต่ยังโหวตได้) • ห้ามคนเดิม 2 คืนติด • ไม่มีใครรู้ว่าคุณคือคนจุ๊' },
   villager: { icon: '👨‍🌾', name: 'ชาวบ้าน', side: 'village', desc: 'ไม่มีพลังพิเศษ ใช้สมองจับหมาป่าให้ได้ตอนกลางวัน' },
 };
 export const wSide = r => W_ROLES[r]?.side || 'village';
@@ -40,6 +42,7 @@ export function makeWolfRound(ids, opts = {}, number = 1) {
   if (P.hunter) roles[deck[i++]] = 'hunter';
   if (P.cupid) roles[deck[i++]] = 'cupid';
   if (P.fool) roles[deck[i++]] = 'fool';
+  if (P.shush) roles[deck[i++]] = 'shush';
   deck.slice(i).forEach(id => roles[id] = 'villager');
   const alive = {}; ids.forEach(id => alive[id] = true);
   return { number, kind: 'wolf', roles, alive, reveal: opts.reveal !== false, phase: 'night', day: 1, order: shuffle(ids), startedAt: Date.now() };
@@ -77,58 +80,85 @@ function afterDeaths(cur, dead, next) {
 }
 function goTo(cur, next) {
   const rd = cur.round; rd.hunter = null; rd.hunterNext = null;
-  if (next === 'night') { rd.phase = 'night'; rd.day = (rd.day || 1) + 1; rd.night = null; }
+  if (next === 'night') { rd.phase = 'night'; rd.day = (rd.day || 1) + 1; rd.night = null; rd.mute = null; }
   else { rd.phase = 'day'; rd.votes = null; }
   return cur;
 }
 
-export function nightAct(cur, me, kind, target) {
+export function nightAct(cur, me, kind, target, now = Date.now()) {
   const rd = cur.round; if (rd.phase !== 'night' || !isAlive(cur, me) || !isAlive(cur, target)) return;
   const role = rd.roles[me]; const n = { ...(rd.night || {}) };
   if (kind === 'wolf') { if (role !== 'wolf' || wSide(rd.roles[target]) === 'wolf') return; n.wolf = { ...(n.wolf || {}), [me]: target }; }
   else if (kind === 'seer') { if (role !== 'seer' || target === me || n.seer) return; n.seer = target; }
   else if (kind === 'doc') { if (role !== 'doctor' || target === rd.lastDoc || n.doc) return; n.doc = target; }
+  else if (kind === 'shush') { if (role !== 'shush' || target === me || target === rd.lastShush || n.shush) return; n.shush = target; }
   else return;
-  rd.night = n; return resolveNight(cur, false);
+  rd.night = n; return queueEnd(cur, 'night', nightReady(cur), false, now);
 }
 // กามเทพ: คืนแรก เลือกคู่รัก 2 คน (เลือกตัวเองได้) เลือกแล้วเปลี่ยนไม่ได้
-export function cupidPick(cur, me, a, b) {
+export function cupidPick(cur, me, a, b, now = Date.now()) {
   const rd = cur.round; if (rd.phase !== 'night' || rd.day !== 1 || rd.lovers || rd.roles[me] !== 'cupid' || !isAlive(cur, me)) return;
   if (!a || !b || a === b || !isAlive(cur, a) || !isAlive(cur, b)) return;
   rd.lovers = [a, b]; log(rd, { t: 'cupid', day: 1, by: me, a, b });
-  return resolveNight(cur, false);
+  return queueEnd(cur, 'night', nightReady(cur), false, now);
 }
 // force = host สรุปคืนนี้โดยไม่รอ (หมาป่าเสียงไม่ตรงกัน → เอาเป้าที่ได้มากที่สุด เสมอ = ไม่มีใครถูกกัด)
+// ทุกบทบาทกลางคืนทำครบแล้วหรือยัง (หมาป่าเลือกเหยื่อตรงกัน + หมอดู/หมอยา/กามเทพเลือกแล้ว)
+function nightReady(cur) {
+  const rd = cur.round; const n = rd.night || {}; const wv = n.wolf || {};
+  const tgt = hasRole(cur, 'wolf').map(id => wv[id]); const agreed = tgt.length > 0 && tgt.every(t => t && t === tgt[0]);
+  const seerDone = !hasRole(cur, 'seer').length || !!n.seer; const docDone = !hasRole(cur, 'doctor').length || !!n.doc;
+  const cupidDone = rd.day !== 1 || !hasRole(cur, 'cupid').length || !!rd.lovers;
+  const shushDone = !hasRole(cur, 'shush').length || !!n.shush;
+  return agreed && seerDone && docDone && cupidDone && shushDone;
+}
+// ก่อนเปลี่ยนเวลา (คืน→เช้า) หรือสรุปโหวต: นับถอยหลัง END_MS ให้ทุกคนตั้งตัวทัน ระหว่างนับยังเปลี่ยนใจได้
+// ถ้าเปลี่ยนจนไม่ครบเงื่อนไข (เช่น หมาป่าเปลี่ยนเหยื่อไม่ตรงกัน) → ยกเลิกการนับ • host กด "ไม่รอ" ก็นับเหมือนกันแต่ไม่ยกเลิก
+export const END_MS = 5000;
+export function queueEnd(cur, ph, ready, force, now = Date.now()) {
+  const rd = cur.round; if (rd.phase !== ph) return;
+  if (!ready && !force) { if (rd.pending?.ph === ph && !rd.pending.force) rd.pending = null; return cur; }
+  if (rd.pending?.ph !== ph) rd.pending = { ph, at: now + END_MS, force: !!force }; else if (force) rd.pending.force = true;
+  return cur;
+}
+// หมดเวลานับ → สรุปจริง (ทุกเครื่องเรียกได้ ทำแค่ครั้งเดียวเพราะอยู่ใน transaction)
+export function finishPending(cur, now = Date.now()) {
+  const rd = cur.round; const p = rd?.pending; if (!p || now < p.at - 400) return;
+  rd.pending = null; if (p.ph !== rd.phase) return cur;
+  return p.ph === 'night' ? resolveNight(cur, p.force) : resolveDay(cur, p.force);
+}
 export function resolveNight(cur, force) {
   const rd = cur.round; if (rd.phase !== 'night') return; const n = rd.night || {};
   const wolves = hasRole(cur, 'wolf'); const wv = n.wolf || {};
   const tgt = wolves.map(id => wv[id]); const agreed = tgt.length > 0 && tgt.every(t => t && t === tgt[0]) ? tgt[0] : null;
-  const seerDone = !hasRole(cur, 'seer').length || !!n.seer; const docDone = !hasRole(cur, 'doctor').length || !!n.doc;
-  const cupidDone = rd.day !== 1 || !hasRole(cur, 'cupid').length || !!rd.lovers;
-  if (!force && !(agreed && seerDone && docDone && cupidDone)) return cur;
+  if (!force && !nightReady(cur)) return cur;
+  rd.pending = null;
   let victim = agreed;
   if (!victim) { const c = {}; tgt.filter(Boolean).forEach(t => c[t] = (c[t] || 0) + 1); const max = Math.max(0, ...Object.values(c)); const top = Object.keys(c).filter(t => c[t] === max); victim = max > 0 && top.length === 1 ? top[0] : null; }
   if (victim && !isAlive(cur, victim)) victim = null;
   rd.shot = null;
   if (n.seer) { const s = hasRole(cur, 'seer')[0]; rd.seerLog = [...(rd.seerLog || []), { day: rd.day, by: s, target: n.seer, wolf: rd.roles[n.seer] === 'wolf' }]; }
   rd.lastDoc = n.doc || null;
+  rd.lastShush = n.shush || null;
   const saved = !!victim && n.doc === victim; const dead = victim && !saved ? [victim] : [];
   dead.forEach(id => rd.alive[id] = false);
   // บันทึกละเอียดไว้เล่นย้อนตอนจบเกม (ระหว่างเกมแสดงแค่คนตาย)
-  log(rd, { t: 'night', day: rd.day, dead, bite: victim || null, doc: n.doc || null, seer: n.seer || null, seerWolf: n.seer ? rd.roles[n.seer] === 'wolf' : null, saved });
+  log(rd, { t: 'night', day: rd.day, dead, bite: victim || null, doc: n.doc || null, seer: n.seer || null, seerWolf: n.seer ? rd.roles[n.seer] === 'wolf' : null, saved, shush: n.shush || null });
   const all = heartbreak(cur, dead); const love = all.filter(id => !dead.includes(id));
   rd.dawn = { day: rd.day, dead, saved, love: love.length ? love : null };
+  rd.mute = n.shush && rd.alive[n.shush] ? n.shush : null;   // ใบ้ตลอดกลางวันนี้ (ไม่บอกว่าใครเป็นคนจุ๊)
   return afterDeaths(cur, all, 'day');
 }
-export function dayVote(cur, me, target) {
+export function dayVote(cur, me, target, now = Date.now()) {
   const rd = cur.round; if (rd.phase !== 'day' || !isAlive(cur, me)) return;
   if (target !== 'skip' && (!isAlive(cur, target) || target === me)) return;
-  rd.votes = { ...(rd.votes || {}), [me]: target }; return resolveDay(cur, false);
+  rd.votes = { ...(rd.votes || {}), [me]: target }; return queueEnd(cur, 'day', living(cur).every(id => id in rd.votes), false, now);
 }
 // เสียงมากที่สุด (ไม่เสมอ) ถูกประหาร; ถ้า "ไม่ประหาร" ชนะ หรือเสมอ = ไม่มีใครตาย
 export function resolveDay(cur, force) {
   const rd = cur.round; if (rd.phase !== 'day') return; const al = living(cur); const v = rd.votes || {};
   if (!force && !al.every(id => id in v)) return cur;
+  rd.pending = null;
   const c = {}; al.forEach(id => { if (v[id]) c[v[id]] = (c[v[id]] || 0) + 1; });
   const max = Math.max(0, ...Object.values(c)); const top = Object.keys(c).filter(t => c[t] === max);
   const out = max > 0 && top.length === 1 && top[0] !== 'skip' && isAlive(cur, top[0]) ? top[0] : null;
@@ -149,7 +179,7 @@ export function hunterShoot(cur, me, target) {
 }
 
 // ---------- หน้าจอ ----------
-const W_ART = { wolf: 'wolf', seer: 'crystal', doctor: 'potion', hunter: 'bow', villager: 'villager', cupid: 'cupid', fool: 'fool' };
+const W_ART = { wolf: 'wolf', seer: 'crystal', doctor: 'potion', hunter: 'bow', villager: 'villager', cupid: 'cupid', fool: 'fool', shush: 'ninja' };
 const SIDE_LABEL = { wolf: '🐺 ฝ่ายหมาป่า', village: '🏡 ฝ่ายชาวบ้าน', fool: '🤪 ฝ่ายตัวเอง' };
 const WIN_TXT = { village: 'ชาวบ้านชนะ! หมาป่าหมดหมู่บ้าน 🏡', wolf: 'หมาป่าชนะ! ยึดหมู่บ้านได้แล้ว 🐺', fool: 'คนบ้าชนะ! หลอกให้ทุกคนประหารสำเร็จ 🤪' };
 const tk = id => `{${id}}`;
@@ -159,7 +189,7 @@ export function wolfScenes(r, res) {
   const ofRole = k => Object.keys(roles).filter(id => roles[id] === k);
   const S = [{ kicker: '🎭 เริ่มเกม', title: 'บทบาทที่ระบบแจก', tone: 'night', lines: [
     { ico: '🐺', text: `หมาป่า: ${ofRole('wolf').map(tk).join(' ')}`, cls: 'bad' },
-    ...['seer', 'doctor', 'hunter', 'cupid', 'fool'].flatMap(k => ofRole(k).map(id => ({ ico: W_ROLES[k].icon, text: `${W_ROLES[k].name}: ${tk(id)}`, cls: k === 'fool' ? 'warn' : '' }))),
+    ...['seer', 'doctor', 'hunter', 'cupid', 'fool', 'shush'].flatMap(k => ofRole(k).map(id => ({ ico: W_ROLES[k].icon, text: `${W_ROLES[k].name}: ${tk(id)}`, cls: k === 'fool' ? 'warn' : '' }))),
   ] }];
   let sc = null; const open = (kind, kicker, title) => { sc = { kind, kicker, title, tone: kind === 'night' ? 'night' : 'day', lines: [] }; S.push(sc); };
   (r.log || []).forEach(e => {
@@ -170,6 +200,7 @@ export function wolfScenes(r, res) {
       sc.title = dead.length ? `${dead.map(tk).join(' ')} ถูกกัด` : e.saved ? 'หมอยาช่วยไว้ทัน!' : 'คืนที่เงียบสงบ';
       if (e.bite !== undefined) sc.lines.push(e.bite ? { ico: '🐺', text: `หมาป่าย่องไปหา ${tk(e.bite)}`, cls: 'bad' } : { ico: '🐺', text: 'หมาป่าตกลงกันไม่ได้ คืนนี้ไม่ได้กัดใคร', cls: 'dim' });
       if (e.doc) sc.lines.push({ ico: '💉', text: `หมอยาเฝ้าบ้าน ${tk(e.doc)}`, cls: e.doc === e.bite ? 'good' : '' });
+      if (e.shush) sc.lines.push({ ico: '🤫', text: `คนจุ๊สั่งให้ ${tk(e.shush)} เป็นใบ้ตอนกลางวัน` });
       if (e.seer) sc.lines.push({ ico: '🔮', text: `หมอดูส่อง ${tk(e.seer)} → ${e.seerWolf ? 'เจอหมาป่า!' : 'ไม่ใช่หมาป่า'}`, cls: e.seerWolf ? 'good' : '' });
       if (e.saved) sc.lines.push({ ico: '🙏', text: `${tk(e.bite)} รอดตาย เพราะหมอยาเฝ้าไว้พอดี`, cls: 'good' });
       dead.forEach(id => sc.lines.push({ ico: '💀', text: `${tk(id)} ถูกกัดตาย — เป็น ${rn(id)}`, cls: 'bad' }));
@@ -197,7 +228,7 @@ export function wolfScenes(r, res) {
   }
   return S.map(s => ({ ...s, stage: <WolfStage mode={s.kind === 'end' ? (res.winner === 'wolf' ? 'wolfWin' : res.winner === 'fool' ? 'foolWin' : 'villageWin') : s.fool ? 'foolWin' : s.hunter ? 'hunter' : s.kind === 'day' ? 'day' : 'night'} dead={s.kind === 'day' ? s.lines.filter(l => l.ico === '🔨' || l.ico === '💔' || l.ico === '🏹').length : 0} /> }));
 }
-export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, onBack }) {
+export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, onBack, srvNow = Date.now() }) {
   const r = room.round; const res = room.status === 'result' && room.result;
   const card = useRoleCard(r.number);
   const [pair, setPair] = useState([]);
@@ -207,16 +238,25 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   const liveIds = order.filter(id => alive[id]);
   const n = r.night || {}; const votes = r.votes || {};
   const wolves = Object.keys(r.roles || {}).filter(id => r.roles[id] === 'wolf');
+  const hasShush = Object.values(r.roles || {}).includes('shush');
+  const mute = r.phase === 'day' && r.mute && alive[r.mute] ? r.mute : null;
   const seeAll = !meAlive || res; // คนตายดูเกมได้ทั้งหมด (ห้ามบอกคนที่ยังเล่น!)
   // โหมดเนียน: ซ่อนบทบาทแล้ว → หมาป่าเห็นจอแบบชาวบ้าน และทุกคนไม่เห็นบทบาทตัวเอง/เพื่อนในรายชื่อ (จอเหมือนกันทุกบรรทัด)
   const vRole = card.disguise && myRole === 'wolf' ? 'villager' : myRole;
   const showRoleOf = id => seeAll || (r.reveal && !alive[id]) || (!card.disguise && (id === myId || (myRole === 'wolf' && r.roles[id] === 'wolf')));
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), cur => { if (!cur || cur.status !== 'playing' || cur.round?.kind !== 'wolf') return; return f(cur); });
-  const act = (kind, t) => { sfx(sound, 'click'); return tx(cur => nightAct(cur, myId, kind, t)); };
+  const skew = srvNow - Date.now(); const sNow = () => Date.now() + skew;   // เวลาเซิร์ฟเวอร์ (คลาด ≤ 0.5 วิ)
+  const act = (kind, t) => { sfx(sound, 'click'); return tx(cur => nightAct(cur, myId, kind, t, sNow())); };
   const lovers = r.lovers || []; const myLove = lovers.includes(myId) ? lovers.find(id => id !== myId) : null;
   const pickLove = id => { sfx(sound, 'click'); setPair(p => p.includes(id) ? p.filter(x => x !== id) : p.length >= 2 ? [p[1], id] : [...p, id]); };
-  const sendLove = () => { if (pair.length !== 2) return; sfx(sound, 'confirm'); tx(cur => cupidPick(cur, myId, pair[0], pair[1])); };
-  const vote = t => { sfx(sound, 'vote'); return tx(cur => dayVote(cur, myId, t)); };
+  const sendLove = () => { if (pair.length !== 2) return; sfx(sound, 'confirm'); tx(cur => cupidPick(cur, myId, pair[0], pair[1], sNow())); };
+  const vote = t => { sfx(sound, 'vote'); return tx(cur => dayVote(cur, myId, t, sNow())); };
+  // นับถอยหลังก่อนเปลี่ยนเวลา/สรุปโหวต: ครบเวลาแล้วเครื่องไหนก็ได้สั่งสรุป (transaction กันซ้ำ)
+  const pend = !res && r.pending && r.pending.ph === r.phase ? r.pending : null;
+  const pendLeft = pend ? Math.max(0, Math.ceil((pend.at - srvNow) / 1000)) : 0;
+  useEffect(() => { if (!pend) return; const t = setTimeout(() => tx(cur => finishPending(cur, sNow())), Math.max(0, pend.at - sNow()) + 150); return () => clearTimeout(t); }, [pend?.at, pend?.ph]);
+  const lastBeep = useRef(0);
+  useEffect(() => { if (pend && pendLeft > 0 && pendLeft !== lastBeep.current) sfx(sound, 'count'); lastBeep.current = pend ? pendLeft : 0; }, [pendLeft, !!pend]);
   // เสียงตามเหตุการณ์ในหมู่บ้าน (ทุกเครื่องได้ยินพร้อมกัน) — เทียบกับสถานะก่อนหน้า
   const prev = useRef(null);
   useEffect(() => {
@@ -251,6 +291,9 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   const stack = list => list.length ? <Voters ids={list} av={av} size={20} /> : null;
 
   return <div className="explore-game wolf-game">
+    {pend && <div className={'wcount ' + pend.ph} role="status" aria-live="assertive"><span className="wcount-ico">{pend.ph === 'night' ? '🌅' : '⚖️'}</span>
+      <div><b>{pend.ph === 'night' ? 'กำลังจะเช้า…' : 'กำลังสรุปโหวต…'}</b><small>{pend.ph === 'night' ? 'ใครยังเปลี่ยนใจได้ รีบเลย' : 'ยังเปลี่ยนโหวตได้จนกว่าจะหมดเวลา'}</small></div>
+      <span key={pendLeft} className="wcount-n">{pendLeft}</span></div>}
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span><span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
     <div className="gcols flow"><div className="gmain">
     {!res && <Steps items={['🌙 กลางคืน', '☀️ ประกาศ', '⚖️ โหวตประหาร']} at={r.phase === 'night' ? 0 : r.phase === 'hunter' ? 1 : 2} />}
@@ -271,6 +314,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
         : myRole === 'seer' ? <Phase art="crystal" tone={n.seer ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอดู`} title={n.seer ? `คืนนี้ส่อง ${nameOf(n.seer)} แล้ว` : 'ส่องลูกแก้วดู 1 คน'}>{n.seer ? 'ผลจะขึ้นในการ์ดบทบาทตอนเช้า' : 'เลือกแล้วเปลี่ยนไม่ได้ • รู้ว่าเขาเป็นหมาป่าหรือไม่'}</Phase>
         : myRole === 'doctor' ? <Phase art="potion" tone={n.doc ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — หมอยา`} title={n.doc ? `คืนนี้ปกป้อง ${nameOf(n.doc)}` : 'เลือกปกป้อง 1 คน'}>{n.doc ? 'ถ้าหมาป่ากัดคนนี้ เขาจะรอด' : <>ปกป้องตัวเองได้{r.lastDoc ? <> • คืนก่อนปกป้อง <b>{nameOf(r.lastDoc)}</b> คืนนี้ห้ามซ้ำ</> : ''}</>}</Phase>
         : myRole === 'cupid' && r.day === 1 ? <Phase art="cupid" tone={lovers.length ? 'good' : 'me'} kicker="🌙 คืนแรก — กามเทพ" title={lovers.length ? `จับคู่ ${nameOf(lovers[0])} 💘 ${nameOf(lovers[1])} แล้ว` : 'ยิงศรรักให้ 2 คน'}>{lovers.length ? 'คู่รักรู้ตัวแล้ว • ถ้าคนหนึ่งตาย อีกคนตรอมใจตายตาม' : <>เลือก 2 คน (รวมตัวเองได้) • เลือกแล้วเปลี่ยนไม่ได้ • คู่รักจะรู้ว่าคู่ของตัวเองคือใคร</>}</Phase>
+        : myRole === 'shush' ? <Phase art="ninja" tone={n.shush ? 'good' : 'me'} kicker={`🌙 คืนที่ ${r.day} — คนจุ๊`} title={n.shush ? `พรุ่งนี้ ${nameOf(n.shush)} จะเป็นใบ้` : 'เลือก 1 คนให้เป็นใบ้พรุ่งนี้'}>{n.shush ? 'ทั้งวันพรุ่งนี้เขาพูดไม่ได้ (ไมค์ปิด) แต่ยังโหวตได้ • ไม่มีใครรู้ว่าใครสั่ง' : <>เลือกแล้วเปลี่ยนไม่ได้ • ใบ้ตัวเองไม่ได้{r.lastShush ? <> • คืนก่อนใบ้ <b>{nameOf(r.lastShush)}</b> คืนนี้ห้ามซ้ำ</> : ''}</>}</Phase>
         : <Phase art="night" tone="night" kicker={`🌙 คืนที่ ${r.day}`} title="หลับตาฝันดี… 😴">คุณไม่มีอะไรต้องทำคืนนี้ ทำหน้าเฉย ๆ ไว้ อย่าให้ใครรู้ว่าคุณว่าง</Phase>}
       {meAlive && vRole === 'wolf' && (n.wolf?.[myId] ? <PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} />
         : <ActionSheet open k={'wolf' + r.day} icon="🐺" title="เลือกเหยื่อคืนนี้" sub={wolves.length > 1 ? 'หมาป่าทุกตัวต้องเลือกคนเดียวกัน • เลือกแล้วเปลี่ยนใจได้' : 'แตะรูปคนที่จะกัด • เลือกแล้วเปลี่ยนใจได้'}><PlayerGrid ids={liveIds.filter(id => r.roles[id] !== 'wolf')} av={av} nameOf={nameOf} myId={myId} selected={n.wolf?.[myId]} onPick={t => act('wolf', t)} badge={id => stack(wolves.filter(x => n.wolf?.[x] === id)) || <span className="ptile-note">กัดคนนี้</span>} /></ActionSheet>)}
@@ -279,8 +323,9 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
         <PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} selected={pair} onPick={pickLove} badge={id => pair.includes(id) ? <span className="tag love">💘 คู่ที่ {pair.indexOf(id) + 1}</span> : <span className="ptile-note">แตะเพื่อเลือก</span>} />
         <button className="primary wide" disabled={pair.length !== 2} onClick={sendLove}>💘 {pair.length === 2 ? `ยิงศร: ${nameOf(pair[0])} ❤ ${nameOf(pair[1])}` : `เลือกอีก ${2 - pair.length} คน`}</button></ActionSheet>
       <ActionSheet open={meAlive && myRole === 'doctor' && !n.doc} k={'doc' + r.day} icon="💉" title="เลือกปกป้อง 1 คน" sub={r.lastDoc ? `ปกป้องตัวเองได้ • คืนก่อนปกป้อง ${nameOf(r.lastDoc)} คืนนี้ห้ามซ้ำ` : 'ปกป้องตัวเองได้'}><PlayerGrid ids={liveIds} av={av} nameOf={nameOf} myId={myId} onPick={t => act('doc', t)} off={id => id === r.lastDoc} badge={id => id === r.lastDoc ? <span className="ptile-note">คืนก่อนแล้ว</span> : <span className="tag good">💉 ปกป้อง</span>} /></ActionSheet>
-      {seeAll && <div className="tip"><Art name="crystal" size={42} /><span>👻 มุมคนตาย — หมาป่าเล็ง: <b>{Object.entries(n.wolf || {}).map(([w, t]) => `${nameOf(w)}→${nameOf(t)}`).join(', ') || '-'}</b> • หมอดู: <b>{n.seer ? nameOf(n.seer) : '-'}</b> • หมอยา: <b>{n.doc ? nameOf(n.doc) : '-'}</b>{lovers.length === 2 && <> • คู่รัก: <b>{nameOf(lovers[0])} 💘 {nameOf(lovers[1])}</b></>}</span></div>}
-      {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ? (คนที่หลุดหรือยังไม่เลือกจะถูกข้าม)')) tx(cur => resolveNight(cur, true)); }}>จบคืนนี้เลย (ไม่รอ)</button></HostBar>}
+      <ActionSheet open={meAlive && myRole === 'shush' && !n.shush} k={'shush' + r.day} icon="🤫" title="เลือก 1 คนให้เป็นใบ้พรุ่งนี้" sub={`ทั้งวันพรุ่งนี้เขาพูดไม่ได้ (ไมค์ปิด) แต่ยังโหวตได้ • เลือกแล้วเปลี่ยนไม่ได้${r.lastShush ? ` • คืนก่อนใบ้ ${nameOf(r.lastShush)} คืนนี้ห้ามซ้ำ` : ''}`}><PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => act('shush', t)} off={id => id === r.lastShush} badge={id => id === r.lastShush ? <span className="ptile-note">คืนก่อนแล้ว</span> : <span className="tag">🤐 ใบ้</span>} /></ActionSheet>
+      {seeAll && <div className="tip"><Art name="crystal" size={42} /><span>👻 มุมคนตาย — หมาป่าเล็ง: <b>{Object.entries(n.wolf || {}).map(([w, t]) => `${nameOf(w)}→${nameOf(t)}`).join(', ') || '-'}</b> • หมอดู: <b>{n.seer ? nameOf(n.seer) : '-'}</b> • หมอยา: <b>{n.doc ? nameOf(n.doc) : '-'}</b>{hasShush && <> • คนจุ๊: <b>{n.shush ? nameOf(n.shush) : '-'}</b></>}{lovers.length === 2 && <> • คู่รัก: <b>{nameOf(lovers[0])} 💘 {nameOf(lovers[1])}</b></>}</span></div>}
+      {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ? (คนที่หลุดหรือยังไม่เลือกจะถูกข้าม)')) tx(cur => queueEnd(cur, 'night', false, true, sNow())); }}>จบคืนนี้เลย (ไม่รอ)</button></HostBar>}
     </>}
 
     {/* ---------- นายพราน ---------- */}
@@ -296,13 +341,14 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     {!res && r.phase === 'day' && <>
       <Phase art={r.dawn?.dead?.length ? 'tombstone' : 'shield'} tone={r.dawn?.dead?.length ? 'bad' : 'day'} kicker={`☀️ เช้าวันที่ ${r.day}`} title={r.dawn ? (r.dawn.dead?.length ? `${r.dawn.dead.map(nameOf).join(', ')} ถูกหมาป่ากัดตาย 🩸` : 'เมื่อคืนไม่มีใครตาย 🙏') : 'กลางวัน'}>
         {r.dawn?.dead?.length && r.reveal ? <>บทบาท: <b>{r.dawn.dead.map(roleTxt).join(', ')}</b> • </> : ''}{r.dawn?.love?.length ? <>💔 <b>{deadNames(r.dawn.love)}</b> ตรอมใจตายตามคู่รัก • </> : ''}{r.shot?.target && r.dawn ? <>นายพรานยิง <b>{deadNames([r.shot.target])}</b>{loveTxt(r.shot.love)} • </> : ''}คุยกันให้พอ แล้วโหวตประหารคนที่สงสัย</Phase>
+      {mute && <div className={'wmute' + (mute === myId ? ' me' : '')}><span className="wmute-ico">🤐</span><span>{mute === myId ? <><b>คุณถูกคนจุ๊ใบ้!</b> วันนี้พูดไม่ได้ ไมค์ปิดอัตโนมัติ — ใช้อีโมจิกับโหวตได้</> : <><b>{nameOf(mute)}</b> ถูกคนจุ๊ใบ้ — วันนี้พูดไม่ได้ (ไม่มีใครรู้ว่าใครเป็นคนจุ๊)</>}</span></div>}
       <SecH icon="⚖️">โหวตประหาร <small>{meAlive ? (votes[myId] ? `คุณโหวต ${votes[myId] === 'skip' ? 'ไม่ประหาร' : nameOf(votes[myId])}` : 'แตะรูป • เปลี่ยนใจได้') : 'คนตายโหวตไม่ได้'}</small></SecH>
       <PlayerGrid ids={liveIds.filter(id => id !== myId)} av={av} nameOf={nameOf} selected={votes[myId]} onPick={meAlive ? vote : undefined}
         badge={id => stack(Object.keys(votes).filter(v => votes[v] === id)) || <span className="ptile-note">ยังไม่มีเสียง</span>} />
       {meAlive && <button className={'skip-vote' + (votes[myId] === 'skip' ? ' sel' : '')} onClick={() => vote('skip')}><span>🤷 ไม่ประหารใครวันนี้{votes[myId] === 'skip' ? ' ✓' : ''}</span>{stack(Object.keys(votes).filter(v => votes[v] === 'skip'))}</button>}
       <WhoDone ids={liveIds} done={id => id in votes} av={av} nameOf={nameOf} label="🗳️ โหวตแล้ว" />
       <p className="hint">เสียงมากที่สุดถูกประหาร • เสมอ หรือ “ไม่ประหาร” ชนะ = ไม่มีใครตาย • สรุปเมื่อคนที่ยังมีชีวิตโหวตครบ</p>
-      {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('สรุปโหวตเลย? คนที่ยังไม่โหวตไม่นับ')) tx(cur => resolveDay(cur, true)); }}>สรุปโหวตเลย (ไม่รอ)</button></HostBar>}
+      {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('สรุปโหวตเลย? คนที่ยังไม่โหวตไม่นับ')) tx(cur => queueEnd(cur, 'day', false, true, sNow())); }}>สรุปโหวตเลย (ไม่รอ)</button></HostBar>}
     </>}
 
     {/* ---------- จบเกม ---------- */}

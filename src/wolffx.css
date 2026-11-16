@@ -85,3 +85,19 @@
 
 @media(max-width:560px){.wfx-stage{height:280px}.wfx-cap{font-size:13px}}
 @media(prefers-reduced-motion:reduce){.wfx-stage *{animation-duration:.01s!important;animation-delay:0s!important}}
+
+/* แวร์วูฟ: นับถอยหลังก่อนเปลี่ยนเวลา/สรุปโหวต — แถบลอยบนจอ ไม่บังการแตะ (ยังเปลี่ยนใจได้) */
+.wcount{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));z-index:65;transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:min(420px,calc(100% - 32px));padding:10px 14px;border-radius:18px;background:var(--panel);border:2px solid #ffcf5a;box-shadow:0 0 40px #ffcf5a55,0 12px 40px #000a;pointer-events:none;animation:wcIn .35s cubic-bezier(.3,1.5,.5,1) both}
+.wcount.day{border-color:#ff6b6b;box-shadow:0 0 40px #ff6b6b55,0 12px 40px #000a}
+.wcount>div{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}.wcount b{font-size:16px}.wcount small{font-size:12px;color:var(--soft)}
+.wcount-ico{font-size:28px;line-height:1}
+.wcount-n{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#ffcf5a;color:#241c3a;font-size:28px;font-weight:900;animation:wcPop .45s cubic-bezier(.3,1.8,.5,1) both}
+.wcount.day .wcount-n{background:#ff6b6b;color:#fff}
+@keyframes wcIn{0%{opacity:0;transform:translate(-50%,-30px)}100%{opacity:1;transform:translateX(-50%)}}
+@keyframes wcPop{0%{transform:scale(1.7);opacity:.3}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.wcount,.wcount-n{animation:none}}
+
+/* แวร์วูฟ: คนที่ถูกคนจุ๊ใบ้วันนี้ */
+.wmute{display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:10px 12px;border-radius:14px;background:var(--inset);border:1px solid #c05ae888;font-size:14px;line-height:1.35}
+.wmute.me{border:2px solid #c05ae8;box-shadow:0 0 24px #c05ae844}
+.wmute-ico{font-size:26px;line-height:1}
