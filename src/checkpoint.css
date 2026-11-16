@@ -287,3 +287,5 @@
 .cpc .cpc-v small{font-size:.72em;font-weight:800}
 .cpc.sm .cpc-v small{display:none}
 .cp-fs b small{font-size:.5em;font-weight:700;margin-left:2px}
+/* ที่นั่งแคบ: ให้เงินตกลงบรรทัดใหม่แทนการตัดชื่อเหลือ "บอ…" */
+.cp-r-top{flex-wrap:wrap;row-gap:3px}.cp-r-top b{flex:1 1 0;min-width:4.5em}

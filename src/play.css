@@ -183,7 +183,7 @@
 .seer-log .bad{background:#ff5f6d1a;color:#ffb3b3}.seer-log .good{background:#5fd38d1a;color:#a7efc0}
 [data-theme="werewolf"] .phase.me{border-color:#e0525a;box-shadow:0 0 0 2px #e0525a44,0 10px 34px #e0525a33}
 @media(max-width:760px){.room-grid.playing .game-panel{order:-1}}
-@media(min-width:761px) and (max-width:1099px){.room-grid.playing{grid-template-columns:minmax(0,1fr)}.room-grid.playing .game-panel{order:-1}} /* iPad: เกมเต็มความกว้าง รายชื่อไปไว้ล่าง */
+@media(min-width:761px) and (max-width:1023px){.room-grid.playing{grid-template-columns:minmax(0,1fr)}.room-grid.playing .game-panel{order:-1}} /* iPad: เกมเต็มความกว้าง รายชื่อไปไว้ล่าง */
 
 /* ---------- มือถือ/จอสัมผัส ---------- */
 button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
