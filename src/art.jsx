@@ -472,5 +472,27 @@ function DigScene() {
     <g transform="translate(200 236)"><rect x="-70" y="-12" width="140" height="22" rx="4" fill="#14121a" stroke="#f0b94a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#f0b94a" fontFamily="Mitr,sans-serif">ใครแอบถล่มอุโมงค์?</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene };
+// ---------- 🐍 อีนังงูพิษ: คฤหาสน์ละครหลังข่าวยามค่ำ บันไดวน โคมระย้า ภาพบนผนังภาพหนึ่งเปื้อนเลือด งูเลื้อยบนราวบันได ----------
+function SnakeScene() {
+  return <S id="snake" label="ห้องโถงคฤหาสน์ยามค่ำ โคมระย้า ภาพสามภาพบนผนัง ภาพกลางมีรอยเลือด งูเขียวเลื้อยบนราวบันได มีดปักพื้น">
+    <defs><linearGradient id="sn-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#10261e" /><stop offset="1" stopColor="#1e3a2c" /></linearGradient>
+      <radialGradient id="sn-glow" cx=".5" cy=".3" r=".6"><stop offset="0" stopColor="#ffd98a" stopOpacity=".45" /><stop offset="1" stopColor="#ffd98a" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="url(#sn-wall)" /><g stroke="#2a4a38" strokeWidth="2">{[40, 120, 200, 280, 360].map(x => <path key={x} d={`M${x} 0 V196`} />)}</g>
+    <rect width="400" height="260" fill="url(#sn-glow)" />
+    <g transform="translate(200 0)"><path d="M0 0 V26" stroke="#c9a04a" strokeWidth="2" /><path d="M-34 40 Q0 20 34 40 L26 52 H-26Z" fill="#c9a04a" stroke="#6a4a14" strokeWidth="2" /><g fill="#fff2b0">{[-28, -14, 0, 14, 28].map(x => <circle key={x} cx={x} cy="56" r="3.5" className="pulse" />)}</g></g>
+    {[[64, 70, '#3a6ea5', 0], [168, 62, '#e8d8b8', 1], [276, 70, '#8a4a6a', 0]].map(([x, y, c, blood], i) => <g key={i}>
+      <rect x={x - 6} y={y - 6} width={68} height={82} fill="#c9973a" stroke="#6a4a14" strokeWidth="3" /><rect x={x} y={y} width={56} height={70} fill={c} />
+      <circle cx={x + 28} cy={y + 26} r="12" fill="#0003" /><path d={`M${x + 10} ${y + 70} Q${x + 28} ${y + 38} ${x + 46} ${y + 70}Z`} fill="#0003" />
+      {blood ? <g fill="#c81a2a"><path d={`M${x + 34} ${y + 8} q8 10 2 22 q-2 8 0 18 q-6 -6 -4 -18 q-6 -10 2 -22Z`} /><circle cx={x + 20} cy={y + 50} r="3" /><path d={`M${x + 36} ${y + 48} v14`} stroke="#c81a2a" strokeWidth="3" strokeLinecap="round" /></g> : null}
+    </g>)}
+    <rect y="196" width="400" height="64" fill="#2a1a12" /><rect y="192" width="400" height="6" fill="#6a4a14" />
+    <path d="M300 196 L330 168 H400 V196Z M330 168 L356 144 H400 V168Z" fill="#3a2418" stroke="#6a4a14" strokeWidth="2" />
+    <path d="M296 186 L360 128" stroke="#8a5a2a" strokeWidth="6" strokeLinecap="round" />
+    <g className="bob"><path d="M300 180 Q312 168 322 172 Q334 176 342 162 Q350 150 362 146" fill="none" stroke="#1a3a10" strokeWidth="11" strokeLinecap="round" /><path d="M300 180 Q312 168 322 172 Q334 176 342 162 Q350 150 362 146" fill="none" stroke="#6fbf4a" strokeWidth="7" strokeLinecap="round" /><ellipse cx="366" cy="144" rx="9" ry="6" fill="#6fbf4a" stroke="#1a3a10" strokeWidth="2" /><circle cx="368" cy="142" r="1.8" fill="#1a1a1a" /><path d="M374 146 l8 1 m0 0 l3 -3 m-3 3 l3 3" stroke="#e8424a" strokeWidth="1.6" fill="none" strokeLinecap="round" /></g>
+    <g transform="translate(110 214) rotate(20)"><path d="M0 -26 L6 0 H-6Z" fill="#dfe6ee" stroke="#2b1d16" strokeWidth="2" /><rect x="-10" y="0" width="20" height="4" fill="#c9a04a" /><rect x="-3" y="4" width="6" height="14" fill="#6b3a1e" /></g>
+    <ellipse cx="114" cy="234" rx="18" ry="4" fill="#c81a2a" opacity=".8" />
+    <g transform="translate(200 236)"><rect x="-70" y="-12" width="140" height="22" rx="4" fill="#0e1a14" stroke="#7fd07a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#9ae07a" fontFamily="Mitr,sans-serif">ภาพไหนคือภาพจริง?</text></g>
+  </S>;
+}
+const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

@@ -295,6 +295,7 @@ function sync() {
   if (!active) { if (cur) stop(c); return; }
   if (!cur || cur.id !== want) start(c, want);
 }
+TRACKS.snake = { ...TRACKS.werewolf, name: 'คฤหาสน์ยามดึก' }; // อีนังงูพิษ ใช้ทำนองกลางคืนเดียวกับแวร์วูฟ
 export const setMusic = id => { want = TRACKS[id] ? id : 'hub'; sync(); };
 export const setMusicVolume = v => { vol = Math.max(0, Math.min(1, v)); sync(); };
 export const trackName = id => (TRACKS[id] || TRACKS.hub).name;

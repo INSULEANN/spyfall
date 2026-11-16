@@ -293,6 +293,7 @@ export const FILMS = {
 };
 export const playFilm = (on, id) => { if (!on) return; try { FILMS[id]?.(); } catch { /* ignore */ } };
 
+THEMES.snake = THEMES.werewolf; // อีนังงูพิษ ใช้ชุดเสียงกลางคืน/โหวตเดียวกับแวร์วูฟ
 let theme = 'hub';
 export const setSfxTheme = t => { theme = t || 'hub'; };
 // เรียกแบบปลอดภัย: ปิดเสียงอยู่ = ไม่เล่น • เลือกเสียงตามธีมเกมที่เปิดอยู่ก่อน

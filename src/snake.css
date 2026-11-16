@@ -1,0 +1,49 @@
+/* 🐍 อีนังงูพิษ — การ์ดภาพหลักฐาน + ข้อความสุดท้าย */
+.ev{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 6px 8px;border-radius:16px;background:linear-gradient(160deg,#fffaf0,#f1e6d4);border:2px solid #c9a46a;box-shadow:0 3px 0 #0005,0 8px 18px #0003;color:#2b1d16;font:inherit;transition:transform .15s,box-shadow .15s,opacity .2s}
+button.ev{cursor:pointer}
+button.ev:hover{transform:translateY(-3px) rotate(-1deg)}
+.ev-pic{display:block;width:100%;aspect-ratio:1}
+.ev-svg{display:block;width:100%;height:100%}
+.ev-name{font-size:13px;font-weight:700;line-height:1.15;text-align:center;color:#3a2414}
+.ev-s{width:74px;padding:4px 4px 5px;border-radius:12px}.ev-s .ev-name{font-size:11px}
+.ev-m{width:100%;max-width:128px}
+.ev-l{width:min(30%,170px)}.ev-l .ev-name{font-size:15px}
+.ev.sel{border-color:#ff5a7a;box-shadow:0 0 0 3px #ff5a7a,0 8px 18px #0004;transform:translateY(-3px)}
+.ev.real{border-color:#5ad07a;box-shadow:0 0 0 3px #5ad07a,0 0 22px #5ad07a88}
+.ev.fake{border-color:#c05ae8;box-shadow:0 0 0 3px #c05ae8}
+.ev.dim{opacity:.55}
+.ev.real.dim{opacity:1}
+.ev-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);padding:1px 8px;border-radius:99px;background:#2b1d16;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+.ev.real .ev-tag{background:#2f9a4a}.ev.fake .ev-tag,.ev.sel .ev-tag{background:#9a3ac8}
+.ev.flip{animation:evFlip .7s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes evFlip{0%{transform:perspective(600px) rotateY(90deg) scale(.7);opacity:0}100%{transform:none;opacity:1}}
+.ev-pool{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;justify-items:center;margin:8px 0 14px}
+@media(min-width:900px){.gmain .ev-pool{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.asheet .ev-pool{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+
+.sn-head{display:flex;align-items:center;gap:12px}.sn-head .steps{flex:1;min-width:0}
+.sn-victim{display:flex;align-items:center;gap:10px;justify-content:center;margin:6px 0}.sn-victim b{font-size:18px}.sn-victim small{color:var(--muted)}
+.sn-msg{margin:10px 0 14px;padding:14px;border-radius:20px;background:radial-gradient(ellipse at 50% 0,#8a1a2a55,transparent 70%),var(--inset);border:1px solid #8a1a2a88}
+.sn-msg-who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);line-height:1.25}
+.sn-msg-cards{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.sn-msg .sn-msg-cards{gap:clamp(8px,3vw,18px)}
+.sn-history{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.sn-hrow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;background:var(--inset)}
+.sn-hrow .sn-msg-who{min-width:84px}
+.sn-hrow .sn-msg-cards{margin:0;gap:6px;flex:1;justify-content:flex-start}
+.sn-history.end .sn-hrow .sn-msg-cards .ev-s{width:84px}
+.sn-lobby-cards{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:10px 0}.sn-lobby-cards small{flex-basis:100%;text-align:center;color:var(--muted)}
+
+/* อนิเมชันเหตุการณ์ */
+.snfx{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:#0008;animation:snfxBg 2.6s ease both;pointer-events:auto}
+.snfx-in{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 30px;border-radius:24px;background:var(--panel);border:2px solid var(--accent);box-shadow:0 20px 60px #000a;text-align:center;animation:snfxPop .5s cubic-bezier(.3,1.6,.5,1) both}
+.snfx-ico{font-size:64px;line-height:1;animation:snfxIco 1s ease both}
+.snfx b{font-size:22px}.snfx small{color:var(--soft)}
+.snfx.kill .snfx-in{border-color:#e8424a;box-shadow:0 0 60px #e8424a66}
+.snfx.kill::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 46%,#e8424acc 48%,#fff 50%,#e8424acc 52%,transparent 54%);animation:snSlash .5s ease-out both}
+.snfx.out .snfx-in{border-color:#c05ae8}
+@keyframes snfxBg{0%{opacity:0}10%{opacity:1}85%{opacity:1}100%{opacity:0}}
+@keyframes snfxPop{0%{transform:scale(.4);opacity:0}100%{transform:none;opacity:1}}
+@keyframes snfxIco{0%{transform:scale(2.2) rotate(-30deg);opacity:0}60%{transform:scale(.9)}100%{transform:none;opacity:1}}
+@keyframes snSlash{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0);opacity:0}}
+@media(prefers-reduced-motion:reduce){.ev.flip,.snfx,.snfx-in,.snfx-ico{animation:none}}

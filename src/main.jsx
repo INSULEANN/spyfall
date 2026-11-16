@@ -31,6 +31,7 @@ import { ClueTurns, CallVote } from './spyturns.jsx';
 import { UcGame, UcLobby, makeUcRound, UC_MIN, UC_MAX, UC_SCORE } from './undercover.jsx';
 import { InsGame, InsLobby, makeInsRound, INS_MIN, INS_MAX, INS_SCORE } from './insider.jsx';
 import { DigGame, DigLobby, makeDigRound, DIG_MIN, DIG_MAX, DIG_SCORE } from './dig.jsx';
+import { SnakeGame, SnakeLobby, makeSnakeRound, SN_MIN, SN_MAX, SN_SCORE } from './snake.jsx';
 import { PicGame, PicLobby, makePicRound, PIC_MIN, PIC_MAX, PIC_SCORE } from './pics.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
 import { CakeStage } from './cakestage.jsx';
@@ -39,7 +40,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.47';
+const APP_VERSION = '1.48';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -133,6 +134,11 @@ const GAMES = {
     lead:'ใต้ป่าช้าเก่ามีหีบสมบัติซ่อนอยู่ 1 ใน 3 หลุม นักขุดต่ออุโมงค์จากปากหลุมให้ถึง ส่วนตัวป่วนต้องเนียนขวางไว้จนการ์ดหมด',
     pills:['⛏️ ต่ออุโมงค์','😈 ตัวป่วนแฝง','🎭 สลับหน้ากาก'],
     how:[['รับบทลับ','👷 นักขุด กับ 😈 ตัวป่วน (ราว 1 ใน 3–4 คน) ไม่มีใครรู้ว่าใครเป็นอะไร • ทุกคนได้การ์ด 4–6 ใบ'],['ตาละ 1 อย่าง','วางการ์ดทาง (ขอบต้องต่อกันพอดี หมุน 180° ได้) • เล่นการ์ดพิเศษ: 🔨 ทุบ/🔧 ซ่อมเครื่องมือ 💣 ดินถล่ม 🗺️ ส่องปลายทาง 🔍 ส่องบทบาท 🎭 สลับหน้ากาก 🔄 แลกไพ่ทั้งมือ • หรือทิ้ง 1 ใบ แล้วจั่ว'],['ถึงสมบัติหรือยัง?','อุโมงค์ถึงหีบสมบัติ = นักขุดชนะ (คนขุดถึงได้โบนัส) • การ์ดหมดก่อน = ตัวป่วนชนะ • ได้ทองสะสมข้ามรอบ']] },
+  snake: { id:'snake', type:'snake', name:'อีนังงูพิษ', emoji:'🐍', packs:[], item:'ภาพ', unit:'ใบ', roles:true, min:SN_MIN, max:SN_MAX, h1:['อีนัง','งูพิษ'], art:'🐍', float:'ภาพนี้…ชี้ไปที่ใคร?',
+    blurb:'คฤหาสน์นี้มีนักลอบฆ่าแฝงตัว! ผู้ตายทิ้งภาพสุดท้ายไว้ 1 ใบ แต่นักลอบฆ่าแอบใส่ภาพปลอมปนอีก 2 ใบ ตีความให้ออกแล้วโหวตไล่',
+    lead:'ทุกคืนนักลอบฆ่าเลือกเหยื่อ ผู้ตายพูดไม่ได้ ทำได้แค่เลือกภาพ 1 ใบจาก 9 ใบเพื่อใบ้ว่าใครฆ่า…แล้วงูพิษก็ใส่ภาพปลอมปนเข้าไป ภาพไหนจริง ภาพไหนใส่ร้าย?',
+    pills:['🗡️ นักลอบฆ่า','🩸 ภาพสุดท้าย','🐍 ภาพปลอม'],
+    how:[['กลางคืน','นักลอบฆ่าตกลงกันเลือกเหยื่อ 1 คน • บอดี้การ์ดคุ้มกันได้ 1 คน • กองกลางมีภาพ 9 ใบ'],['ภาพสุดท้าย','ผู้ตายเลือกภาพ 1 ใบที่ใบ้ว่าใครฆ่า (สี นิสัย ชื่อ คำพูด) แล้วนักลอบฆ่าเลือกภาพปลอมปนอีก 2 ใบ • นักสืบกับผู้บงการเห็นว่าใบไหนจริง'],['โหวตไล่','กลางวันคุยแล้วโหวต ต้องได้เสียงเกินครึ่งถึงไล่ออก • ไล่นักลอบฆ่าหมด = คนในบ้านชนะ • นักลอบฆ่าเท่ากับฝ่ายดี = งูพิษชนะ']] },
   pics: { id:'pics', type:'pic', soon:true, name:'ภาพนี้มีพิรุธ', emoji:'🖼️', packs:[], item:'ภาพ', unit:'ภาพ', roles:true, min:PIC_MIN, max:PIC_MAX, h1:['ภาพนี้','มีพิรุธ'], art:'🖼️', float:'ภาพนี้…ใช่คำนั้นจริงเหรอ?',
     blurb:'ทุกคนลงภาพวาดให้เข้ากับคำลับ แต่มีคนหนึ่งไม่รู้คำ ต้องดูภาพเพื่อนแล้วลงให้เนียน! จากนั้นอธิบายแล้วโหวตหาคนมีพิรุธ',
     lead:'คนบอกคำตั้งคำลับ ทุกคนรู้คำ ยกเว้นคนเดียว…ลงภาพให้เข้ากับคำ แล้วจับให้ได้ว่าใครลงภาพแบบเดามั่ว',
@@ -152,6 +158,7 @@ const COPY = {
   boom:{stamp:'ห้ามจั่วมั่ว!',floatSub:'มีที่หนีบจมูกหรือยัง?',joinH:'ชวนแก๊งมาลุ้นทุเรียน',howH:'กติกาแผงทุเรียน'},
   deal:{stamp:'ดีลนี้ต้องปิด!',floatSub:'แบ่งเงินให้ถูกใจทุกคน',joinH:'นัดหุ้นส่วนมาเจรจา',howH:'กติกาห้องประชุม'},
   pics:{stamp:'ห้ามเดามั่ว!',floatSub:'ลงภาพให้เข้ากับคำ',joinH:'ชวนแก๊งมาดูภาพ',howH:'กติกาภาพนี้มีพิรุธ'},
+  snake:{stamp:'ระวังงูพิษ!',floatSub:'ภาพจริงมีแค่ใบเดียว',joinH:'เชิญแขกเข้าคฤหาสน์',howH:'กติกาคฤหาสน์งูพิษ'},
   dig:{stamp:'ห้ามขุดมั่ว!',floatSub:'ต่ออุโมงค์ไปหาหีบสมบัติ',joinH:'รวมแก๊งนักขุดป่าช้า',howH:'กติกาขุดสมบัติป่าช้า'},
   insider:{stamp:'อย่ารู้มากเกินไป!',floatSub:'ถามได้ ตอบแค่ ใช่ / ไม่ใช่',joinH:'รวมแก๊ง หาคนรู้มาก',howH:'กติกา Insider'},
   clue:{stamp:'ห้ามใบ้เกิน!',floatSub:'คำเดียว โยงให้ได้หลายใบ',joinH:'รวมแก๊ง แบ่งทีมแดง–ฟ้า',howH:'กติกาแก๊งใบ้คำ'},
@@ -318,6 +325,8 @@ function App() {
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='pic'){const pt=room.picTurn||{};const rd=makePicRound(ids,(pt.n||0)+1,Date.now()+skew,hist,pt.seat||null);   // คนบอกคำเวียนตามที่นั่ง (จำไว้ในห้อง เพราะกลับห้องรอแล้ว round ถูกล้าง)
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,picTurn:{n:rd.number,seat:rd.seat},badHist:nextHist([rd.conspirator]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='snake'){const rd=makeSnakeRound(ids,room.settings?.snake||{},(room.round?.number||0)+1,Date.now()+skew,hist);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='killer')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='dig'){const rd=makeDigRound(ids,room.settings?.dig||{},(room.round?.number||0)+1,Date.now()+skew,hist);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='sab')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='ins'){const rd=makeInsRound(ids,room.settings?.ins||{},(room.round?.number||0)+1,Date.now()+skew,hist,room.round?.kind==='ins'?room.round.master:null);
@@ -433,10 +442,11 @@ function App() {
   // แวร์วูฟ กลางคืน: ปิดไมค์คนที่ไม่ใช่หมาป่า และหมาป่าได้ยินกันเองเท่านั้น
   const wr=room?.round;const wolfNight=wr?.kind==='wolf'&&room?.status==='playing'&&wr.phase==='night';
   const iAmWolf=wolfNight&&wr.roles?.[myId]==='wolf'&&!!wr.alive?.[myId];
+  const snakeNight=wr?.kind==='snake'&&room?.status==='playing'&&['night','fake'].includes(wr.phase);const iAmSnake=snakeNight&&wr.roles?.[myId]==='killer'&&!!wr.alive?.[myId];
   // เค้กหายไปไหน กลางคืน: คุยได้เฉพาะคนที่ตื่นตีเดียวกัน
   const cakeNight=wr?.kind==='cake'&&room?.status==='playing'&&wr.phase==='night';const ch=cakeNight?hourAt(wr,srvNow):0;const myWake=cakeNight&&ch>=1&&ch<=HOURS&&wr.dice?.[myId]===ch;
   const curseNight=wr?.kind==='curse'&&room?.status==='playing'&&wr.phase==='night';const darkOf=id=>!!wr?.alive?.[id]&&(wr?.fate?.[id]||[]).some(c=>c.t==='dark'&&!c.open);const iAmDark=curseNight&&darkOf(myId);
-  const voiceGate=cakeNight?{canTalk:myWake,hear:myWake?Object.keys(wr.dice||{}).filter(id=>id!==myId&&wr.dice[id]===ch):[],label:myWake?`⏰ ตี ${ch} — คุยได้เฉพาะคนที่ตื่นตอนนี้`:'🌙 กลางคืน — ไมค์ปิด คุณหลับอยู่'}:wolfNight?{canTalk:iAmWolf,hear:iAmWolf?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='wolf'&&wr.alive?.[id]):[],label:iAmWolf?'🌙 กลางคืน — ได้ยินกันเฉพาะหมาป่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิดอัตโนมัติ ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:curseNight?{canTalk:iAmDark,hear:iAmDark?Object.keys(wr.fate||{}).filter(id=>id!==myId&&darkOf(id)):[],label:iAmDark?'🌑 คืนเดือนดับ — ได้ยินกันเฉพาะผีปอป (คนอื่นไม่ได้ยินคุณ)':'🌑 คืนเดือนดับ — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:null;
+  const voiceGate=cakeNight?{canTalk:myWake,hear:myWake?Object.keys(wr.dice||{}).filter(id=>id!==myId&&wr.dice[id]===ch):[],label:myWake?`⏰ ตี ${ch} — คุยได้เฉพาะคนที่ตื่นตอนนี้`:'🌙 กลางคืน — ไมค์ปิด คุณหลับอยู่'}:wolfNight?{canTalk:iAmWolf,hear:iAmWolf?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='wolf'&&wr.alive?.[id]):[],label:iAmWolf?'🌙 กลางคืน — ได้ยินกันเฉพาะหมาป่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิดอัตโนมัติ ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:snakeNight?{canTalk:iAmSnake,hear:iAmSnake?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='killer'&&wr.alive?.[id]):[],label:iAmSnake?'🌙 กลางคืน — ได้ยินกันเฉพาะนักลอบฆ่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:curseNight?{canTalk:iAmDark,hear:iAmDark?Object.keys(wr.fate||{}).filter(id=>id!==myId&&darkOf(id)):[],label:iAmDark?'🌑 คืนเดือนดับ — ได้ยินกันเฉพาะผีปอป (คนอื่นไม่ได้ยินคุณ)':'🌑 คืนเดือนดับ — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:null;
   const nameOf=id=>players.find(p=>p.id===id)?.name||'ผู้เล่นที่ออกไปแล้ว';
   const readyCount=players.filter(p=>room?.ready?.[p.id]).length;
   const allReady=room?.status==='voting'&&players.length>0&&readyCount===players.length;
@@ -464,7 +474,7 @@ function App() {
     {avOpen&&<CharEditor color={room?av.idxOf(myId):myAv} look={myLook} takenBy={room?Object.fromEntries(players.filter(p=>p.id!==myId).map(p=>[av.idxOf(p.id),p.name])):{}} onSave={saveChar} onClose={()=>setAvOpen(false)}/>}
     {screen==='room'&&room&&<>
       <div className="rx-layer" aria-hidden="true">{floats.map(f=><div key={f.id} className="rx" style={{left:f.x+'%'}}><b>{f.e}</b><span><Avatar id={f.by} av={av} size={22}/>{nameOf(f.by)}</span></div>)}</div>
-      {cakeNight||wolfNight||curseNight?<div className="rx-bar off">🤫 กลางคืน — ปิดอีโมจิไว้ (กันรู้ว่าใครตื่นอยู่)</div>
+      {cakeNight||wolfNight||curseNight||snakeNight?<div className="rx-bar off">🤫 กลางคืน — ปิดอีโมจิไว้ (กันรู้ว่าใครตื่นอยู่)</div>
         :<div className="rx-bar" role="toolbar" aria-label="ส่งอีโมจิ">{['😂','😱','🤨','🤔','👀','😡','👏','💀','🔥','🙏'].map(e=><button key={e} type="button" onClick={()=>react(e)} aria-label={'ส่ง '+e}>{e}</button>)}</div>}
     </>}
     {verdict&&<div className={'verdict '+(verdict.right?'right':'wrong')} onClick={()=>setVerdict(null)} key={verdict.key}><div className="verdict-box"><div className="verdict-emoji">{verdict.right?'🧠':'🤡'}</div><div className="verdict-text">{verdict.right?'ฉลาดจริงๆเลยไอโง่':'มึงนี่โง่จริงๆเลยนะ'}</div><small>{verdict.right?'โหวตถูกตัวสายลับ':'โหวตผิดคน'} • แตะเพื่อปิด</small></div></div>}
@@ -612,6 +622,14 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🤫 แจกบทบาท ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
       {G.type==='ins'&&room.status!=='lobby'&&room.round?.kind==='ins'&&<InsGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='snake'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=SN_MIN&&n<=SN_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ใครคืองูพิษในคฤหาสน์?</h2>
+        <p className="hint">เล่นได้ {SN_MIN}–{SN_MAX} คน • ระบบเป็นผู้ดำเนินเกม ทุกคนดูจอตัวเอง แล้วคุยกันทางเสียง • กลางคืนนักลอบฆ่าคุยกันได้</p>
+        {n>SN_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {SN_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <SnakeLobby db={db} roomCode={roomCode} room={room} players={players} isHost={isHost}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>คนในบ้านชนะ: ฝ่ายดีคนละ +{SN_SCORE.good} (รวมคนที่ตายไปแล้ว)</span><span>งูพิษชนะ: นักลอบฆ่า ผู้บงการ ลูกสมุน คนละ +{SN_SCORE.evil}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🐍 ปิดไฟ เริ่มคืนแรก ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='snake'&&room.status!=='lobby'&&room.round?.kind==='snake'&&<SnakeGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='dig'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=DIG_MIN&&n<=DIG_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ใครแอบขวางอุโมงค์?</h2>
         <p className="hint">เล่นได้ {DIG_MIN}–{DIG_MAX} คน • เปิดห้องเสียงไว้กล่าวหากัน • รอบละประมาณ 10–20 นาที</p>
         {n>DIG_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {DIG_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -661,8 +679,8 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>

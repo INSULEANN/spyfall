@@ -160,6 +160,17 @@
 }
 [data-theme="dig"] .hero h1 em{color:#ffd27a;text-shadow:0 0 22px #f0b94a66}
 
+/* 🐍 อีนังงูพิษ — คฤหาสน์ละครหลังข่าว ผนังเขียวหยกมืด ทองเก่า แสงโคมระย้า ปลายพิษเขียวสด */
+[data-theme="snake"]{
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:16px;
+  --bg:#0b1410;--panel:#13221b;--inset:#0f1b15;--chip:#20362a;--glow:#2a3a14;
+  --text:#f4f1e6;--soft:#dcd8c4;--muted:#9eaa94;--dim:#66745e;
+  --accent:#9ae07a;--accent-hi:#c4f0a0;--accent-2:#e8b84a;--on-accent:#0c1a08;
+  --hero-1:#0b1410;--hero-2:#1e3a2c;--hero-3:#5a1a2a;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M8 40 Q20 24 32 40 T56 40' fill='none' stroke='%239ae07a' stroke-opacity='.05' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+[data-theme="snake"] .hero h1 em{color:#c4f0a0;text-shadow:0 0 22px #9ae07a66}
+
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}
 body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}
