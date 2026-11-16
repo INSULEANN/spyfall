@@ -1,6 +1,6 @@
 // เกม "ขุดสมบัติป่าช้า" ⛏️🪦 — เกมขุดอุโมงค์ บทบาทลับ (ต้นฉบับของเว็บนี้)
 //   👷 นักขุด   ต่ออุโมงค์จากปากหลุมไปให้ถึงหีบสมบัติ (1 ใน 3 ป้ายหลุมปลายทาง)
-//   😈 ตัวป่วน  แอบขวาง — ถ้าการ์ดหมดกองและหมดมือก่อนถึงสมบัติ ตัวป่วนชนะ
+//   😈 ตัวป่วน  แอบขวาง — ถ้านักขุดขุดไปเจอหินเปล่า หรือการ์ดหมดกองและหมดมือก่อนถึงสมบัติ ตัวป่วนชนะ
 // ตาของคุณทำ 1 อย่าง: วางการ์ดทางเดิน / เล่นการ์ดพิเศษ / ทิ้ง 1 ใบ แล้วจั่ว
 // กระดาน: board["x_y"] = { m: ขอบที่เปิด (N1 E2 S4 W8), d: 1 = ทางตัน (ตรงกลางมีหินกั้น), s: 1 = ปากหลุม }
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -134,10 +134,10 @@ function advance(cur, now) {
 function take(r, me, idx, card) { const h = [...handOf(r, me)]; if (h[idx] !== card) return false; h.splice(idx, 1); r.hands = { ...r.hands, [me]: h }; return true; }
 function draw(r, id) { if (!r.deck.length) return; r.hands = { ...r.hands, [id]: [...handOf(r, id), r.deck[0]] }; r.deck = r.deck.slice(1); }
 function remember(r, me, key, val) { r.seen = { ...r.seen, [me]: { ...(r.seen[me] || {}), [key]: val } }; }
-function check(r) { // ปลายทางที่อุโมงค์ชน → พลิก
-  const { touched } = reach(r); let gold = false;
-  touched.forEach(g => { const G = r.goals[g]; if (G.open) return; G.open = 1; if (G.t === 'gold') gold = true; say(r, G.t === 'gold' ? '💰 ขุดทะลุถึงหีบสมบัติ!!' : `⛰️ พลิกปลายทางที่ ${g + 1} — หินเปล่า!`); r.fx = { k: G.t === 'gold' ? 'gold' : 'rock', g, at: Date.now() }; });
-  return gold;
+function check(r) { // ปลายทางที่อุโมงค์ชน → พลิก • คืน 'gold' (นักขุดชนะ) / 'rock' (ขุดเจอหิน = นักขุดแพ้ทันที) / null
+  const { touched } = reach(r); let gold = false, rock = false;
+  touched.forEach(g => { const G = r.goals[g]; if (G.open) return; G.open = 1; if (G.t === 'gold') gold = true; else rock = true; say(r, G.t === 'gold' ? '💰 ขุดทะลุถึงหีบสมบัติ!!' : `⛰️ พลิกปลายทางที่ ${g + 1} — หินเปล่า! นักขุดพลาด`); r.fx = { k: G.t === 'gold' ? 'gold' : 'rock', g, at: Date.now() }; });
+  return gold ? 'gold' : rock ? 'rock' : null;
 }
 
 // ---------- การกระทำ (เรียกใน transaction) ----------
@@ -150,7 +150,9 @@ export function digPlay(cur, me, a, now) {
     if (!canPlace(r, a.x, a.y, m, p.d)) return;
     take(r, me, idx, card); r.board = { ...r.board, [K(a.x, a.y)]: { m, ...(p.d ? { d: 1 } : {}), by: me } };
     say(r, `${p.d ? '🧱 วางทางตัน' : '⛏️ ขุดทางต่อ'} — {${me}}`);
-    if (check(r)) { draw(r, me); return finish(cur, 'dig', now, me); }
+    const hit = check(r);
+    if (hit === 'gold') { draw(r, me); return finish(cur, 'dig', now, me); }
+    if (hit === 'rock') { r.rockBy = me; return finish(cur, 'sab', now); }   // ขุดไปเจอหินเปล่า = แพ้ทันที
   } else {
     const A = ACT[card]; if (!A) return; const t = a.target;
     const isP = id => r.roles[id] && !r.gone?.[id] && r.order.includes(id);
@@ -248,6 +250,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
   const placeAt = (x, y) => places.find(p => p.x === x && p.y === y);
   const rotAt = pl => (pl.rots.includes(rot) ? rot : pl.rot);   // มุมที่เลือกวางตรงนี้ไม่ได้ → ใช้มุมที่วางได้แทน (เห็นในเงาบนกระดาน)
   const peek = r.peek?.[myId]; const seen = r.seen?.[myId] || {};
+  useEffect(() => { if (!peek || srvNow - peek.at > 5000) return; const t = setTimeout(() => sfx(sound, peek.v === 'gold' ? 'approved' : 'reveal'), 900); return () => clearTimeout(t); }, [peek?.at]);
   const ids = r.order;
   const act = a => { sfx(sound, 'click'); tx(c => digPlay(c, myId, { idx: sel, card, ...a }, srvNow)); setSel(null); };
 
@@ -281,7 +284,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <section className={'dig-result ' + W}>
         <div className="dig-result-art"><ArtSvg k={W === 'dig' ? 'dig_gold' : 'dig_role_s'} className="dig-act-img" /></div>
         <h2>{W === 'dig' ? '👷 นักขุดชนะ! เจอหีบสมบัติ' : '😈 ตัวป่วนชนะ! ขุดไม่ถึงสมบัติ'}</h2>
-        <p>{W === 'dig' ? (r.finisher ? `${nameOf(r.finisher)} ขุดทะลุถึงสมบัติ (+${DIG_SCORE.finisher} โบนัส)` : '') : 'การ์ดหมดก่อนถึงหีบสมบัติ'} {myRole && (myWin ? '• คุณอยู่ฝ่ายชนะ 🎉' : '• คุณอยู่ฝ่ายแพ้')}</p>
+        <p>{W === 'dig' ? (r.finisher ? `${nameOf(r.finisher)} ขุดทะลุถึงสมบัติ (+${DIG_SCORE.finisher} โบนัส)` : '') : r.rockBy ? `${nameOf(r.rockBy)} ขุดไปเจอหินเปล่า ⛰️ — นักขุดแพ้ทันที` : 'การ์ดหมดก่อนถึงหีบสมบัติ'} {myRole && (myWin ? '• คุณอยู่ฝ่ายชนะ 🎉' : '• คุณอยู่ฝ่ายแพ้')}</p>
       </section>
       {board}
       <SecH icon="🎭">บทบาทตอนจบ</SecH>
@@ -329,8 +332,14 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
     </ActionSheet>
     {/* ป๊อปอัป: ผลการแอบดู (เห็นคนเดียว) */}
     <ActionSheet open={!!peek && peek.at > peekSeen && srvNow - peek.at < 60000} k={'pk' + peek?.at} icon={peek?.k === 'map' ? '🗺️' : '🔍'} title={peek?.k === 'map' ? `ปลายทางที่ ${(peek?.g ?? 0) + 1} คือ…` : `บทบาทของ ${peek ? nameOf(peek.id) : ''}`} sub="เห็นคนเดียว จะบอกเพื่อนจริงหรือหลอกก็ได้">
-      {peek && <div className="dig-peek">{peek.k === 'map' ? <span className={'dig-goal open ' + peek.v}><ArtSvg k={peek.v === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span> : <RoleFace role={peek.v} size={110} />}
-        <b>{peek.k === 'map' ? (peek.v === 'gold' ? '💰 หีบสมบัติ!' : '⛰️ หินเปล่า') : `${ROLE[peek.v].e} ${ROLE[peek.v].n}`}</b></div>}
+      {peek && <div key={peek.at} className={'dig-peek anim ' + peek.k + ' ' + peek.v}>
+        {/* แผนที่คลี่ออก → ป้ายพลิกจากหลังเป็นหน้า → ข้อความเด้ง */}
+        {peek.k === 'map' && <span className="dig-scroll" aria-hidden="true"><i /><i /></span>}
+        <span className="dig-flip"><span className="dig-flip-in">
+          <span className="dig-flip-f back">{peek.k === 'map' ? <GoalBack i={peek.g} /> : <span className="dig-flip-q">?</span>}</span>
+          <span className="dig-flip-f front">{peek.k === 'map' ? <span className={'dig-goal open ' + peek.v}><ArtSvg k={peek.v === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span> : <RoleFace role={peek.v} size={110} />}</span>
+        </span>{peek.v === 'gold' && Array.from({ length: 10 }, (_, i) => <i key={i} className="dig-spark" style={{ '--a': i * 36 + 'deg' }} />)}</span>
+        <b className="dig-peek-t">{peek.k === 'map' ? (peek.v === 'gold' ? '💰 หีบสมบัติ!' : '⛰️ หินเปล่า') : `${ROLE[peek.v].e} ${ROLE[peek.v].n}`}</b></div>}
       <button className="primary wide" onClick={() => setPeekSeen(peek.at)}>รับทราบ 🤫</button>
     </ActionSheet>
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>
