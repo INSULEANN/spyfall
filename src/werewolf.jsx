@@ -11,6 +11,13 @@ import { Replay } from './replay.jsx';
 import { shuffle, pickBad } from './rand.js';
 
 export const WOLF_MIN = 5;
+// เวลาจำกัดต่อช่วง (วินาที, 0 = ไม่จำกัด) — หัวหน้าห้องเลือกในห้องรอ
+export const WOLF_NIGHT_SECS = [30, 45, 60, 90, 120, 0];
+export const WOLF_DAY_SECS = [60, 120, 180, 300, 420, 0];
+export const secTxt = s => !s ? 'ไม่จำกัด' : s < 60 ? `${s} วิ` : s % 60 ? `${Math.floor(s / 60)} นาที ${s % 60} วิ` : `${s / 60} นาที`;
+// นาฬิกาเซิร์ฟเวอร์ (หน้าเกมตั้ง skew ให้) — ใช้ตั้งเวลาหมดของแต่ละช่วงให้ทุกเครื่องตรงกัน
+let SKEW = 0; export const setWolfSkew = k => { SKEW = k || 0; }; const wNow = () => Date.now() + SKEW;
+const phaseUntil = (rd, ph) => { const sec = ph === 'night' ? rd.nightSec : rd.daySec; return sec > 0 ? wNow() + sec * 1000 : null; };
 export const WOLF_SCORE = { village: 1, wolf: 2, fool: 3, love: 1 }; // แต้มต่อคนของฝ่ายที่ชนะ • love = โบนัสคู่รักที่รอดทั้งคู่
 export const wolfCount = n => (n <= 6 ? 1 : n <= 9 ? 2 : 3);
 // จำนวนบทบาทในวง (บทเสริมใช้ที่นั่งของชาวบ้านธรรมดา ถ้าไม่พอก็ไม่มี)
@@ -45,7 +52,8 @@ export function makeWolfRound(ids, opts = {}, number = 1) {
   if (P.shush) roles[deck[i++]] = 'shush';
   deck.slice(i).forEach(id => roles[id] = 'villager');
   const alive = {}; ids.forEach(id => alive[id] = true);
-  return { number, kind: 'wolf', roles, alive, reveal: opts.reveal !== false, phase: 'night', day: 1, order: shuffle(ids), startedAt: Date.now() };
+  const nightSec = +opts.nightSec || 0, daySec = +opts.daySec || 0;
+  return { number, kind: 'wolf', roles, alive, reveal: opts.reveal !== false, phase: 'night', day: 1, order: shuffle(ids), startedAt: Date.now(), nightSec, daySec, until: nightSec ? wNow() + nightSec * 1000 : null };
 }
 
 // ---------- ตรรกะเกม (ทำงานบนข้อมูลห้องทั้งก้อนภายใน transaction) ----------
@@ -82,7 +90,14 @@ function goTo(cur, next) {
   const rd = cur.round; rd.hunter = null; rd.hunterNext = null;
   if (next === 'night') { rd.phase = 'night'; rd.day = (rd.day || 1) + 1; rd.night = null; rd.mute = null; }
   else { rd.phase = 'day'; rd.votes = null; }
+  rd.until = phaseUntil(rd, rd.phase); rd.pending = null;
   return cur;
+}
+// หมดเวลาของช่วง → สรุปเลยโดยไม่รอ (คนที่ยังไม่เลือก/ไม่โหวตถูกข้าม) • ถ้ากำลังนับถอยหลังอยู่แล้ว ปล่อยให้นับจบเอง
+export function wolfTimeUp(cur, now = wNow()) {
+  const rd = cur.round; if (!rd?.until || now < rd.until - 400 || rd.pending) return;
+  if (rd.phase === 'night') return resolveNight(cur, true);
+  if (rd.phase === 'day') return resolveDay(cur, true);
 }
 
 export function nightAct(cur, me, kind, target, now = Date.now()) {
@@ -245,7 +260,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   const vRole = card.disguise && myRole === 'wolf' ? 'villager' : myRole;
   const showRoleOf = id => seeAll || (r.reveal && !alive[id]) || (!card.disguise && (id === myId || (myRole === 'wolf' && r.roles[id] === 'wolf')));
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), cur => { if (!cur || cur.status !== 'playing' || cur.round?.kind !== 'wolf') return; return f(cur); });
-  const skew = srvNow - Date.now(); const sNow = () => Date.now() + skew;   // เวลาเซิร์ฟเวอร์ (คลาด ≤ 0.5 วิ)
+  const skew = srvNow - Date.now(); const sNow = () => Date.now() + skew; setWolfSkew(skew);   // เวลาเซิร์ฟเวอร์ (คลาด ≤ 0.5 วิ)
   const act = (kind, t) => { sfx(sound, 'click'); return tx(cur => nightAct(cur, myId, kind, t, sNow())); };
   const lovers = r.lovers || []; const myLove = lovers.includes(myId) ? lovers.find(id => id !== myId) : null;
   const pickLove = id => { sfx(sound, 'click'); setPair(p => p.includes(id) ? p.filter(x => x !== id) : p.length >= 2 ? [p[1], id] : [...p, id]); };
@@ -255,6 +270,10 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
   const pend = !res && r.pending && r.pending.ph === r.phase ? r.pending : null;
   const pendLeft = pend ? Math.max(0, Math.ceil((pend.at - srvNow) / 1000)) : 0;
   useEffect(() => { if (!pend) return; const t = setTimeout(() => tx(cur => finishPending(cur, sNow())), Math.max(0, pend.at - sNow()) + 150); return () => clearTimeout(t); }, [pend?.at, pend?.ph]);
+  // เวลาจำกัดของช่วงนี้ (ตั้งในห้องรอ) — หมดแล้วสรุปเลย
+  const until = !res && (r.phase === 'night' || r.phase === 'day') && r.until ? r.until : null;
+  const tLeft = until ? Math.max(0, Math.ceil((until - srvNow) / 1000)) : 0;
+  useEffect(() => { if (!until) return; const t = setTimeout(() => tx(cur => wolfTimeUp(cur, sNow())), Math.max(0, until - sNow()) + 200); return () => clearTimeout(t); }, [until]);
   const lastBeep = useRef(0);
   useEffect(() => { if (pend && pendLeft > 0 && pendLeft !== lastBeep.current) sfx(sound, 'count'); lastBeep.current = pend ? pendLeft : 0; }, [pendLeft, !!pend]);
   // เสียงตามเหตุการณ์ในหมู่บ้าน (ทุกเครื่องได้ยินพร้อมกัน) — เทียบกับสถานะก่อนหน้า
@@ -294,7 +313,7 @@ export function WolfGame({ db, room, roomCode, myId, players, isHost, scores, so
     {pend && <div className={'wcount ' + pend.ph} role="status" aria-live="assertive"><span className="wcount-ico">{pend.ph === 'night' ? '🌅' : '⚖️'}</span>
       <div><b>{pend.ph === 'night' ? 'กำลังจะเช้า…' : 'กำลังสรุปโหวต…'}</b><small>{pend.ph === 'night' ? 'ใครยังเปลี่ยนใจได้ รีบเลย' : 'ยังเปลี่ยนโหวตได้จนกว่าจะหมดเวลา'}</small></div>
       <span key={pendLeft} className="wcount-n">{pendLeft}</span></div>}
-    <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span><span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
+    <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • วันที่ {r.day}</span>{until && !pend && <span className={'wtimer' + (tLeft <= 10 ? ' low' : '')} title="เหลือเวลาช่วงนี้ หมดแล้วสรุปทันที">⏱️ {Math.floor(tLeft / 60)}:{String(tLeft % 60).padStart(2, '0')}</span>}<span className="cat-tag">{r.phase === 'night' ? '🌙 กลางคืน' : r.phase === 'hunter' ? '🏹 นายพราน' : res ? '🏁 จบเกม' : '☀️ กลางวัน'}</span></div>
     <div className="gcols flow"><div className="gmain">
     {!res && <Steps items={['🌙 กลางคืน', '☀️ ประกาศ', '⚖️ โหวตประหาร']} at={r.phase === 'night' ? 0 : r.phase === 'hunter' ? 1 : 2} />}
     <WolfFx items={fxItems} av={av} nameOf={nameOf} />

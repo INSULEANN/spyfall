@@ -19,7 +19,7 @@ import { SPY_PACKS } from './spyWords.js';
 import { HEAD_PACKS } from './headWords.js';
 import VoicePanel from './voice.jsx';
 import { ExploreGame, makeExploreRound, teamSizes, traitorCount, needFails, EXPLORE_MIN, EXPLORE_SCORE, MAX_REJECT } from './explore.jsx';
-import { WolfGame, makeWolfRound, wolfPlan, WOLF_MIN, WOLF_SCORE } from './werewolf.jsx';
+import { WolfGame, makeWolfRound, wolfPlan, WOLF_MIN, WOLF_SCORE, WOLF_NIGHT_SECS, WOLF_DAY_SECS, secTxt, setWolfSkew } from './werewolf.jsx';
 import { CakeGame, makeCakeRound, hourAt, accCount, CAKE_MIN, CAKE_SCORE, HOURS } from './cake.jsx';
 import { BoomGame, BoomLobby, makeBoomRound, BOOM_MIN, BOOM_MAX, BOOM_SCORE } from './boom.jsx';
 import { CurseGame, CurseLobby, makeCurseRound, CURSE_MIN, CURSE_MAX, CURSE_SCORE } from './curse.jsx';
@@ -222,7 +222,7 @@ function App() {
   const [game,setGameState]=useState(()=>{const h=location.hash.slice(1);return GAMES[h]&&!GAMES[h].soon?h:null});
   const [showCat,setShowCat]=useState(true);
   const [exOpts,setExOpts]=useState({mole:false});
-  const [wfOpts,setWfOpts]=useState({hunter:true,reveal:true,cupid:true,fool:true,shush:true});
+  const [wfOpts,setWfOpts]=useState({hunter:true,reveal:true,cupid:true,fool:true,shush:true,nightSec:60,daySec:180});
   const [csOpts,setCsOpts]=useState({ritual:true});
   function setGame(g){setGameState(g);try{history.replaceState(null,'',g?'#'+g:location.pathname+location.search)}catch{}}
   useEffect(()=>{const f=()=>{const h=location.hash.slice(1);setGameState(GAMES[h]&&!GAMES[h].soon?h:null)};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f)},[]);
@@ -356,7 +356,7 @@ function App() {
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([rd.thief]),votes:null,ready:null,spyGuess:null,result:null});
       return}
     if(G.type==='wolf'){
-      const rd=makeWolfRound(ids,{...wfOpts,hist},(room.round?.number||0)+1);
+      setWolfSkew(skew);const rd=makeWolfRound(ids,{...wfOpts,hist},(room.round?.number||0)+1);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='wolf')),votes:null,ready:null,spyGuess:null,result:null});
       sfx(sound,'start');return}
     if(G.type==='explore'){
@@ -456,7 +456,9 @@ function App() {
   const cakeNight=wr?.kind==='cake'&&room?.status==='playing'&&wr.phase==='night';const ch=cakeNight?hourAt(wr,srvNow):0;const myWake=cakeNight&&ch>=1&&ch<=HOURS&&wr.dice?.[myId]===ch;
   const curseNight=wr?.kind==='curse'&&room?.status==='playing'&&wr.phase==='night';const darkOf=id=>!!wr?.alive?.[id]&&(wr?.fate?.[id]||[]).some(c=>c.t==='dark'&&!c.open);const iAmDark=curseNight&&darkOf(myId);
   const wolfMuted=wr?.kind==='wolf'&&room?.status==='playing'&&wr.phase==='day'&&wr.mute===myId&&!!wr.alive?.[myId];
-  const voiceGate=wolfMuted?{canTalk:false,hear:players.map(p=>p.id).filter(id=>id!==myId),label:'🤐 คุณถูกคนจุ๊ใบ้ — วันนี้ไมค์ปิด แต่ยังได้ยินทุกคน'}:cakeNight?{canTalk:myWake,hear:myWake?Object.keys(wr.dice||{}).filter(id=>id!==myId&&wr.dice[id]===ch):[],label:myWake?`⏰ ตี ${ch} — คุยได้เฉพาะคนที่ตื่นตอนนี้`:'🌙 กลางคืน — ไมค์ปิด คุณหลับอยู่'}:wolfNight?{canTalk:iAmWolf,hear:iAmWolf?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='wolf'&&wr.alive?.[id]):[],label:iAmWolf?'🌙 กลางคืน — ได้ยินกันเฉพาะหมาป่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิดอัตโนมัติ ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:snakeNight?{canTalk:iAmSnake,hear:iAmSnake?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='killer'&&wr.alive?.[id]):[],label:iAmSnake?'🌙 กลางคืน — ได้ยินกันเฉพาะนักลอบฆ่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:curseNight?{canTalk:iAmDark,hear:iAmDark?Object.keys(wr.fate||{}).filter(id=>id!==myId&&darkOf(id)):[],label:iAmDark?'🌑 คืนเดือนดับ — ได้ยินกันเฉพาะผีปอป (คนอื่นไม่ได้ยินคุณ)':'🌑 คืนเดือนดับ — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:null;
+  // เกมจับคนร้าย: คนที่ตาย/ถูกโหวตออกแล้วพูดไม่ได้ (ไมค์ปิด) แต่ยังได้ยินทุกคน — กันใบ้คนที่ยังเล่นอยู่
+  const deadMuted=!!wr&&['wolf','curse','snake','uc'].includes(wr.kind)&&room?.status==='playing'&&!!wr.alive&&!!room?.players?.[myId]&&!wr.alive[myId];
+  const voiceGate=deadMuted?{canTalk:false,hear:players.map(p=>p.id).filter(id=>id!==myId),label:'💀 คุณตายแล้ว — ไมค์ปิด ฟังได้อย่างเดียว ห้ามใบ้นะ'}:wolfMuted?{canTalk:false,hear:players.map(p=>p.id).filter(id=>id!==myId),label:'🤐 คุณถูกคนจุ๊ใบ้ — วันนี้ไมค์ปิด แต่ยังได้ยินทุกคน'}:cakeNight?{canTalk:myWake,hear:myWake?Object.keys(wr.dice||{}).filter(id=>id!==myId&&wr.dice[id]===ch):[],label:myWake?`⏰ ตี ${ch} — คุยได้เฉพาะคนที่ตื่นตอนนี้`:'🌙 กลางคืน — ไมค์ปิด คุณหลับอยู่'}:wolfNight?{canTalk:iAmWolf,hear:iAmWolf?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='wolf'&&wr.alive?.[id]):[],label:iAmWolf?'🌙 กลางคืน — ได้ยินกันเฉพาะหมาป่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิดอัตโนมัติ ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:snakeNight?{canTalk:iAmSnake,hear:iAmSnake?Object.keys(wr.roles||{}).filter(id=>id!==myId&&wr.roles[id]==='killer'&&wr.alive?.[id]):[],label:iAmSnake?'🌙 กลางคืน — ได้ยินกันเฉพาะนักลอบฆ่า (คนอื่นไม่ได้ยินคุณ)':'🌙 กลางคืน — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:curseNight?{canTalk:iAmDark,hear:iAmDark?Object.keys(wr.fate||{}).filter(id=>id!==myId&&darkOf(id)):[],label:iAmDark?'🌑 คืนเดือนดับ — ได้ยินกันเฉพาะผีปอป (คนอื่นไม่ได้ยินคุณ)':'🌑 คืนเดือนดับ — ไมค์ปิด ทุกคนหลับ… จะได้ยินกันอีกทีตอนเช้า'}:null;
   const nameOf=id=>players.find(p=>p.id===id)?.name||'ผู้เล่นที่ออกไปแล้ว';
   const readyCount=players.filter(p=>room?.ready?.[p.id]).length;
   const allReady=room?.status==='voting'&&players.length>0&&readyCount===players.length;
@@ -587,6 +589,9 @@ function App() {
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={!!wfOpts.cupid} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,cupid:e.target.checked}))}/> 💘 มีกามเทพ — คืนแรกจับคู่รัก 2 คน ถ้าคนหนึ่งตาย อีกคนตายตาม</label>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={!!wfOpts.fool} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,fool:e.target.checked}))}/> 🤪 มีคนบ้า — ฝ่ายตัวเอง ชนะทันทีถ้าถูกโหวตประหาร</label>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={!!wfOpts.shush} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,shush:e.target.checked}))}/> 🤫 มีคนจุ๊ — ฝ่ายชาวบ้าน กลางคืนเลือกให้ 1 คนเป็นใบ้ตลอดกลางวันพรุ่งนี้</label>
+          <div className="wtime-set"><label>🌙 กลางคืน <select value={wfOpts.nightSec} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,nightSec:+e.target.value}))}>{WOLF_NIGHT_SECS.map(s=><option key={s} value={s}>{secTxt(s)}</option>)}</select></label>
+            <label>☀️ กลางวัน <select value={wfOpts.daySec} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,daySec:+e.target.value}))}>{WOLF_DAY_SECS.map(s=><option key={s} value={s}>{secTxt(s)}</option>)}</select></label>
+            <small>หมดเวลา = สรุปทันที (กลางคืน: คนที่ยังไม่เลือกถูกข้าม • กลางวัน: คนที่ยังไม่โหวตไม่นับ)</small></div>
           <label className="cat-toggle"><input type="checkbox" className="tick" checked={wfOpts.reveal} disabled={!isHost} onChange={e=>setWfOpts(o=>({...o,reveal:e.target.checked}))}/> ⚰️ เปิดบทบาทคนที่ตาย</label></div>
         <div className="score-rules"><b>🏅 คะแนน</b><span>ชาวบ้านชนะ: ฝ่ายชาวบ้านคนละ +{WOLF_SCORE.village} (รวมคนที่ตายไปแล้ว)</span><span>หมาป่าชนะ: หมาป่าคนละ +{WOLF_SCORE.wolf}</span><span>คนบ้าถูกประหาร: คนบ้าคนเดียว +{WOLF_SCORE.fool} • คู่รักรอดทั้งคู่: โบนัสคนละ +{WOLF_SCORE.love}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
