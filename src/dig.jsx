@@ -10,7 +10,7 @@ import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle, rint, pickBad } from './rand.js';
 import { Avatar, PlayerGrid, Leaderboard, HostBar, SecH, TimerRing, ActionSheet } from './ui.jsx';
-import { CardImg } from './cards.jsx';
+import { ArtSvg } from './cards.jsx';
 import './dig.css';
 
 export const DIG_MIN = 3, DIG_MAX = 10;
@@ -204,12 +204,12 @@ export function Tile({ m, d, s, size = 40 }) {
 }
 const GoalBack = ({ i }) => <svg viewBox="0 0 100 100" className="dig-tile" aria-hidden="true"><rect width="100" height="100" fill="#2b2230" /><path d="M24 92 V40 Q24 14 50 14 Q76 14 76 40 V92 Z" fill="#8e8a94" stroke="#4a4552" strokeWidth="4" /><path d="M30 92 V42 Q30 22 50 22" stroke="#b3afba" strokeWidth="3" fill="none" /><text x="50" y="66" textAnchor="middle" fontSize="30" fontWeight="900" fill="#3a3540" fontFamily="sans-serif">{i + 1}</text><rect x="14" y="88" width="72" height="8" fill="#3a5a2a" /></svg>;
 const ActFace = ({ c, size = 64 }) => { const A = ACT[c]; return <span className={'dig-act' + (A.x ? ' ' + A.x : '')} style={{ width: size, height: size }}>
-  <CardImg k={A.img} className="dig-act-img" fallback={<span className="dig-act-emo">{A.e}</span>} />{A.x === 'brk' && <i className="dig-ov brk">✖</i>}{A.x === 'fix' && <i className="dig-ov fix">🔧</i>}</span>; };
+  <ArtSvg k={A.img} className="dig-act-img" />{A.x === 'brk' && <i className="dig-ov brk">✖</i>}{A.x === 'fix' && <i className="dig-ov fix">🔧</i>}</span>; };
 export function CardView({ c, size = 64, rot }) {
   if (isPath(c)) { const p = pathOf(c); return <Tile m={rot ? flip(p.m) : p.m} d={p.d} size={size} />; }
   return <ActFace c={c} size={size} />;
 }
-const RoleFace = ({ role, size = 72 }) => <span className={'dig-role ' + role} style={{ width: size, height: size }}><CardImg k={ROLE[role].img} className="dig-act-img" fallback={<span className="dig-act-emo">{ROLE[role].e}</span>} /></span>;
+const RoleFace = ({ role, size = 72 }) => <span className={'dig-role ' + role} style={{ width: size, height: size }}><ArtSvg k={ROLE[role].img} className="dig-act-img" /></span>;
 
 // อนิเมชันสั้น ๆ: ดินถล่ม / เปิดหีบ / หิน / สลับหน้ากาก
 function Fx({ fx }) {
@@ -219,8 +219,8 @@ function Fx({ fx }) {
   if (typeof document === 'undefined') return null;
   return createPortal(<div className={'dig-fx ' + show.k} onClick={() => setShow(null)} aria-hidden="true">
     {show.k === 'fall' && <>{Array.from({ length: 14 }, (_, i) => <i key={i} className="rock" style={{ '--x': (8 + (i * 37) % 84) + '%', '--dl': (i % 5) * 0.07 + 's', '--s': 0.6 + (i % 3) * 0.3 }} />)}<b>💣 ดินถล่ม!</b></>}
-    {show.k === 'gold' && <><span className="chest"><CardImg k="dig_gold" className="dig-fx-img" fallback={<span>💰</span>} /></span>{Array.from({ length: 18 }, (_, i) => <i key={i} className="coin" style={{ '--a': (i * 20) + 'deg', '--dl': (i % 6) * 0.06 + 's' }} />)}<b>💰 เจอสมบัติ!</b></>}
-    {show.k === 'rock' && <><span className="chest"><CardImg k="dig_rock" className="dig-fx-img" fallback={<span>⛰️</span>} /></span><b>⛰️ หินเปล่า…</b></>}
+    {show.k === 'gold' && <><span className="chest"><ArtSvg k="dig_gold" className="dig-fx-img" /></span>{Array.from({ length: 18 }, (_, i) => <i key={i} className="coin" style={{ '--a': (i * 20) + 'deg', '--dl': (i % 6) * 0.06 + 's' }} />)}<b>💰 เจอสมบัติ!</b></>}
+    {show.k === 'rock' && <><span className="chest"><ArtSvg k="dig_rock" className="dig-fx-img" /></span><b>⛰️ หินเปล่า…</b></>}
     {show.k === 'mask' && <b className="maskfx">🎭</b>}
     {show.k === 'brk' && <b className="maskfx">🔨💥</b>}
   </div>, document.body);
@@ -256,7 +256,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       const click = pl ? () => act({ x, y, rot: pl.both ? rot : pl.rot }) : canFall ? () => act({ x, y }) : canMap ? () => act({ goal: g }) : null;
       return <button key={k} type="button" className={'dig-cell' + (t ? ' on' : '') + (g >= 0 ? ' goal' : '') + (pl ? ' can' : '') + (canFall ? ' fall' : '') + (canMap ? ' map' : '') + (t?.by && t.by === r.lastBy ? '' : '')} disabled={!click} onClick={click || undefined}>
         {t ? <Tile m={t.m} d={t.d} s={t.s} size="100%" /> : g >= 0 ? (r.goals[g].open || res
-          ? <span className={'dig-goal ' + r.goals[g].t + (r.goals[g].open ? ' open' : ' ghost')}><CardImg k={r.goals[g].t === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" fallback={<span>{r.goals[g].t === 'gold' ? '💰' : '⛰️'}</span>} /></span>
+          ? <span className={'dig-goal ' + r.goals[g].t + (r.goals[g].open ? ' open' : ' ghost')}><ArtSvg k={r.goals[g].t === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span>
           : <span className="dig-goal back"><GoalBack i={g} />{seen['g' + g] && <em className={'dig-seen ' + seen['g' + g]}>{seen['g' + g] === 'gold' ? '💰' : '⛰️'}</em>}</span>)
           : pl ? <span className="dig-ghost"><Tile m={(pl.both ? rot : pl.rot) ? flip(pathOf(card).m) : pathOf(card).m} d={pathOf(card).d} size="100%" /></span> : null}
       </button>;
@@ -273,7 +273,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
     return <div className="dig-game">
       <Fx fx={r.fx} />
       <section className={'dig-result ' + W}>
-        <div className="dig-result-art"><CardImg k={W === 'dig' ? 'dig_gold' : 'dig_role_s'} className="dig-act-img" fallback={<span>{W === 'dig' ? '💰' : '😈'}</span>} /></div>
+        <div className="dig-result-art"><ArtSvg k={W === 'dig' ? 'dig_gold' : 'dig_role_s'} className="dig-act-img" /></div>
         <h2>{W === 'dig' ? '👷 นักขุดชนะ! เจอหีบสมบัติ' : '😈 ตัวป่วนชนะ! ขุดไม่ถึงสมบัติ'}</h2>
         <p>{W === 'dig' ? (r.finisher ? `${nameOf(r.finisher)} ขุดทะลุถึงสมบัติ (+${DIG_SCORE.finisher} โบนัส)` : '') : 'การ์ดหมดก่อนถึงหีบสมบัติ'} {myRole && (myWin ? '• คุณอยู่ฝ่ายชนะ 🎉' : '• คุณอยู่ฝ่ายแพ้')}</p>
       </section>
@@ -323,7 +323,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
     </ActionSheet>
     {/* ป๊อปอัป: ผลการแอบดู (เห็นคนเดียว) */}
     <ActionSheet open={!!peek && peek.at > peekSeen && srvNow - peek.at < 60000} k={'pk' + peek?.at} icon={peek?.k === 'map' ? '🗺️' : '🔍'} title={peek?.k === 'map' ? `ปลายทางที่ ${(peek?.g ?? 0) + 1} คือ…` : `บทบาทของ ${peek ? nameOf(peek.id) : ''}`} sub="เห็นคนเดียว จะบอกเพื่อนจริงหรือหลอกก็ได้">
-      {peek && <div className="dig-peek">{peek.k === 'map' ? <span className={'dig-goal open ' + peek.v}><CardImg k={peek.v === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" fallback={<span>{peek.v === 'gold' ? '💰' : '⛰️'}</span>} /></span> : <RoleFace role={peek.v} size={110} />}
+      {peek && <div className="dig-peek">{peek.k === 'map' ? <span className={'dig-goal open ' + peek.v}><ArtSvg k={peek.v === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span> : <RoleFace role={peek.v} size={110} />}
         <b>{peek.k === 'map' ? (peek.v === 'gold' ? '💰 หีบสมบัติ!' : '⛰️ หินเปล่า') : `${ROLE[peek.v].e} ${ROLE[peek.v].n}`}</b></div>}
       <button className="primary wide" onClick={() => setPeekSeen(peek.at)}>รับทราบ 🤫</button>
     </ActionSheet>

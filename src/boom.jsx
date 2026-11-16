@@ -226,7 +226,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
 function HandFan({ ids, selected = [], onTap }) {
   const ref = useRef(null); const [w, setW] = useState(360);
   useEffect(() => { const el = ref.current; if (!el) return; const f = () => setW(el.clientWidth || 360); f(); if (typeof ResizeObserver === 'undefined') return; const ro = new ResizeObserver(f); ro.observe(el); return () => ro.disconnect(); }, []);
-  const n = ids.length; const cw = w >= 640 ? 104 : Math.round(Math.max(70, Math.min(96, w * 0.25)));
+  const n = ids.length; const cw = w >= 640 ? 118 : Math.round(Math.max(76, Math.min(108, w * 0.28)));
   const pad = 16; const step = n > 1 ? Math.max(cw * 0.42, Math.min(cw + 8, (w - pad * 2 - cw) / (n - 1))) : 0; const total = cw + step * Math.max(0, n - 1); const x0 = Math.max(pad, (w - total) / 2);
   return <div className="fan" ref={ref} style={{ '--fcw': cw + 'px', height: Math.round(cw * 1.4) + 50 }}>
     <div className="fan-in" style={{ width: Math.max(w, total + pad * 2) }}>
