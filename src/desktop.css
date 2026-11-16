@@ -13,7 +13,7 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   /* ระหว่างเล่น: เกมกว้างเต็ม รายชื่อเป็นแถบขวา (ติดจอ) */
   .room-grid.playing{grid-template-columns:minmax(0,1fr) 290px;gap:18px}
   .room-grid.playing .game-panel{order:-1;padding:20px 22px}
-  .room-grid.playing .players-panel{order:2;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding:14px;scrollbar-width:thin}
+  .room-grid.playing .players-panel{order:2;position:sticky;top:12px;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;padding:14px;scrollbar-width:thin}
   .room-grid.playing .players-panel .panel-title h2{font-size:17px}
   .room-grid.playing .player-row{padding:8px 0;gap:9px}
   .room-grid.playing .player-row .av{width:32px!important;height:32px!important;font-size:18px!important}
@@ -69,7 +69,7 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;border-radi
   .gmain>.stage:first-child,.gmain>.cake-stage:first-child{margin-top:0}
   /* สปาย: รายการสถานที่/คำ เป็นคอลัมน์กลาง */
   .room-grid.playing.has-board{grid-template-columns:minmax(0,1fr) 330px 280px}
-  .room-grid.playing.has-board>.board{order:1;margin:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding:16px}
+  .room-grid.playing.has-board>.board{order:1;margin:0;position:sticky;top:12px;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;padding:16px}
   .room-grid.playing.has-board .board-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}
   .room-grid.playing.has-board .board h2{font-size:17px}
 }

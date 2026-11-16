@@ -183,6 +183,7 @@
 .seer-log .bad{background:#ff5f6d1a;color:#ffb3b3}.seer-log .good{background:#5fd38d1a;color:#a7efc0}
 [data-theme="werewolf"] .phase.me{border-color:#e0525a;box-shadow:0 0 0 2px #e0525a44,0 10px 34px #e0525a33}
 @media(max-width:760px){.room-grid.playing .game-panel{order:-1}}
+@media(min-width:761px) and (max-width:1099px){.room-grid.playing{grid-template-columns:minmax(0,1fr)}.room-grid.playing .game-panel{order:-1}} /* iPad: เกมเต็มความกว้าง รายชื่อไปไว้ล่าง */
 
 /* ---------- มือถือ/จอสัมผัส ---------- */
 button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -205,7 +206,7 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .av-empty{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;border:2px dashed color-mix(in srgb,var(--accent) 55%,transparent);font-size:28px;line-height:1}
 .me-row{display:flex;align-items:flex-end;gap:12px}.me-name{flex:1;min-width:0}.me-name label small{color:var(--dim);font-size:11px}
 .avpick-bg{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:#05040acc;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);animation:vfade .2s}
-.avpick{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:18px;border-radius:22px;background:var(--panel);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 30px 80px #000c;animation:vpop .35s cubic-bezier(.2,1.5,.4,1)}
+.avpick{width:min(560px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:18px;border-radius:22px;background:var(--panel);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 30px 80px #000c;animation:vpop .35s cubic-bezier(.2,1.5,.4,1)}
 .avpick-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
 .avpick-head b{display:block;font-family:var(--display);font-weight:var(--display-weight);font-size:20px}.avpick-head small{color:var(--muted);font-size:12px}
 .avpick-head .icon-btn{margin:0;width:38px;height:38px;font-size:15px}

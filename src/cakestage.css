@@ -43,7 +43,7 @@
 .acc-thief{color:#fff;text-decoration:underline}
 @keyframes accPulse{50%{box-shadow:0 0 0 6px #ff5f6d22,0 10px 30px #ff3a4a66}}
 .acc-fx{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:radial-gradient(circle,#7a0f2acc,#12020af2 70%);animation:accIn .3s ease-out;cursor:pointer}
-.acc-box{display:grid;justify-items:center;gap:10px;width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:22px 18px;border-radius:24px;background:linear-gradient(160deg,#3a0a18,#1a0610);border:2px solid #ff5f6d;text-align:center;color:#fff;box-shadow:0 20px 60px #000c;animation:accPop .5s cubic-bezier(.3,1.5,.5,1)}
+.acc-box{display:grid;justify-items:center;gap:10px;width:min(440px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:22px 18px;border-radius:24px;background:linear-gradient(160deg,#3a0a18,#1a0610);border:2px solid #ff5f6d;text-align:center;color:#fff;box-shadow:0 20px 60px #000c;animation:accPop .5s cubic-bezier(.3,1.5,.5,1)}
 .acc-kick{font-weight:800;color:#ffb3b8;letter-spacing:.3px}
 .acc-box h2{margin:0;font-size:clamp(28px,7vw,40px);line-height:1.15;color:#ff8a94;text-shadow:0 3px 0 #000a}
 .acc-box p{margin:0;font-size:15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
