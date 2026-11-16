@@ -21,6 +21,10 @@ export const sabCount = n => (n <= 5 ? 1 : n <= 8 ? 2 : 3);
 export const handSize = n => (n <= 5 ? 6 : n <= 7 ? 5 : 4);
 const DIRS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0]]; // [บิต, dx, dy]
 export const flip = m => ((m << 2) | (m >> 2)) & 15;           // หมุน 180°: เหนือ↔ใต้ ออก↔ตก
+// หมุนตามเข็มนาฬิกาทีละ 90° k ครั้ง (บิต เหนือ→ออก→ใต้→ตก)
+export const rotM = (m, k = 0) => { k = ((k % 4) + 4) % 4; for (let i = 0; i < k; i++) m = ((m << 1) | (m >> 3)) & 15; return m; };
+// มุมที่ให้ผลต่างกันจริง (ทางตรง = 2 แบบ, ทางแยกสี่ = 1 แบบ)
+export const rotsOf = m => [0, 1, 2, 3].filter(k => [0, 1, 2, 3].slice(0, k).every(j => rotM(m, j) !== rotM(m, k)));
 const K = (x, y) => x + '_' + y;
 const TOOLS = { p: { n: 'จอบ', e: '⛏️', img: 'dig_pick' }, l: { n: 'ตะเกียง', e: '🏮', img: 'dig_lamp' }, c: { n: 'รถเข็น', e: '🛒', img: 'dig_cart' } };
 export const ROLE = { dig: { n: 'นักขุด', e: '👷', img: 'dig_role_d' }, sab: { n: 'ตัวป่วน', e: '😈', img: 'dig_role_s' } };
@@ -101,7 +105,8 @@ export function canPlace(r, x, y, m, d, rc) {
 }
 export function placesFor(r, card) {
   const { m, d } = pathOf(card); const rc = reach(r); const out = [];
-  for (let y = 0; y < BH; y++) for (let x = 0; x < BW; x++) { const a = canPlace(r, x, y, m, d, rc), b = flip(m) !== m && canPlace(r, x, y, flip(m), d, rc); if (a || b) out.push({ x, y, rot: a ? 0 : 1, both: a && b }); }
+  const ks = rotsOf(m);
+  for (let y = 0; y < BH; y++) for (let x = 0; x < BW; x++) { const rots = ks.filter(k => canPlace(r, x, y, rotM(m, k), d, rc)); if (rots.length) out.push({ x, y, rot: rots[0], rots }); }
   return out;
 }
 export const fallable = r => Object.keys(r.board || {}).filter(k => !r.board[k].s);
@@ -141,7 +146,7 @@ export function digPlay(cur, me, a, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'play' || current(r) !== me) return;
   const { idx, card } = a; if (handOf(r, me)[idx] !== card) return;
   if (isPath(card)) {
-    if (brokenOf(r, me).length) return; const p = pathOf(card); const m = a.rot ? flip(p.m) : p.m;
+    if (brokenOf(r, me).length) return; const p = pathOf(card); const m = rotM(p.m, +a.rot || 0);
     if (!canPlace(r, a.x, a.y, m, p.d)) return;
     take(r, me, idx, card); r.board = { ...r.board, [K(a.x, a.y)]: { m, ...(p.d ? { d: 1 } : {}), by: me } };
     say(r, `${p.d ? '🧱 วางทางตัน' : '⛏️ ขุดทางต่อ'} — {${me}}`);
@@ -206,7 +211,7 @@ const GoalBack = ({ i }) => <svg viewBox="0 0 100 100" className="dig-tile" aria
 const ActFace = ({ c, size = 64 }) => { const A = ACT[c]; return <span className={'dig-act' + (A.x ? ' ' + A.x : '')} style={{ width: size, height: size }}>
   <ArtSvg k={A.img} className="dig-act-img" />{A.x === 'brk' && <i className="dig-ov brk">✖</i>}{A.x === 'fix' && <i className="dig-ov fix">🔧</i>}</span>; };
 export function CardView({ c, size = 64, rot }) {
-  if (isPath(c)) { const p = pathOf(c); return <Tile m={rot ? flip(p.m) : p.m} d={p.d} size={size} />; }
+  if (isPath(c)) { const p = pathOf(c); return <Tile m={rotM(p.m, +rot || 0)} d={p.d} size={size} />; }
   return <ActFace c={c} size={size} />;
 }
 const RoleFace = ({ role, size = 72 }) => <span className={'dig-role ' + role} style={{ width: size, height: size }}><ArtSvg k={ROLE[role].img} className="dig-act-img" /></span>;
@@ -241,6 +246,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
   useEffect(() => { const k = r.fx?.k; if (!r.fx || srvNow - r.fx.at > 4000) return; sfx(sound, k === 'gold' ? 'win' : k === 'fall' || k === 'brk' ? 'sabotage' : 'reveal'); }, [r.fx?.at]);
   const places = useMemo(() => (myTurn && card && isPath(card) && !broken.length ? placesFor(r, card) : []), [myTurn, card, JSON.stringify(r.board), broken.length]);
   const placeAt = (x, y) => places.find(p => p.x === x && p.y === y);
+  const rotAt = pl => (pl.rots.includes(rot) ? rot : pl.rot);   // มุมที่เลือกวางตรงนี้ไม่ได้ → ใช้มุมที่วางได้แทน (เห็นในเงาบนกระดาน)
   const peek = r.peek?.[myId]; const seen = r.seen?.[myId] || {};
   const ids = r.order;
   const act = a => { sfx(sound, 'click'); tx(c => digPlay(c, myId, { idx: sel, card, ...a }, srvNow)); setSel(null); };
@@ -253,12 +259,12 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
     {Array.from({ length: BH }, (_, y) => Array.from({ length: BW }, (_, x) => {
       const k = K(x, y); const t = r.board[k]; const g = goalAt(x, y); const pl = placeAt(x, y);
       const canFall = myTurn && A?.t === 'fall' && t && !t.s; const canMap = myTurn && A?.t === 'map' && g >= 0 && !r.goals[g].open;
-      const click = pl ? () => act({ x, y, rot: pl.both ? rot : pl.rot }) : canFall ? () => act({ x, y }) : canMap ? () => act({ goal: g }) : null;
+      const click = pl ? () => act({ x, y, rot: rotAt(pl) }) : canFall ? () => act({ x, y }) : canMap ? () => act({ goal: g }) : null;
       return <button key={k} type="button" className={'dig-cell' + (t ? ' on' : '') + (g >= 0 ? ' goal' : '') + (pl ? ' can' : '') + (canFall ? ' fall' : '') + (canMap ? ' map' : '') + (t?.by && t.by === r.lastBy ? '' : '')} disabled={!click} onClick={click || undefined}>
         {t ? <Tile m={t.m} d={t.d} s={t.s} size="100%" /> : g >= 0 ? (r.goals[g].open || res
           ? <span className={'dig-goal ' + r.goals[g].t + (r.goals[g].open ? ' open' : ' ghost')}><ArtSvg k={r.goals[g].t === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span>
           : <span className="dig-goal back"><GoalBack i={g} />{seen['g' + g] && <em className={'dig-seen ' + seen['g' + g]}>{seen['g' + g] === 'gold' ? '💰' : '⛰️'}</em>}</span>)
-          : pl ? <span className="dig-ghost"><Tile m={(pl.both ? rot : pl.rot) ? flip(pathOf(card).m) : pathOf(card).m} d={pathOf(card).d} size="100%" /></span> : null}
+          : pl ? <span className="dig-ghost"><Tile m={rotM(pathOf(card).m, rotAt(pl))} d={pathOf(card).d} size="100%" /></span> : null}
       </button>;
     }))}
   </div></div>;
@@ -299,12 +305,12 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <div><small>⛏️ ตาของ</small><b>{cur === myId ? 'คุณ!' : nameOf(cur)}</b><small>{myTurn ? (sel == null ? 'เลือกการ์ด 1 ใบด้านล่าง' : isPath(card) ? (broken.length ? 'เครื่องมือพัง วางทางไม่ได้ — ทิ้งการ์ดแทน' : places.length ? 'แตะช่องที่เรืองแสงเพื่อวาง' : 'วางตรงไหนไม่ได้เลย — ทิ้งการ์ดแทน') : A.t === 'fall' ? 'แตะทางเดินที่จะถล่ม' : A.t === 'map' ? 'แตะป้ายหลุมปลายทางที่จะส่อง' : 'เลือกผู้เล่น') : 'รอเพื่อนเล่น…'}</small></div>
       <TimerRing secs={secs} total={(r.turnMs || 60000) / 1000} size={54} label="วิ" />
     </section>
-    <div className="dig-hand-h"><b>🃏 การ์ดในมือ</b>{broken.length > 0 && <span className="dig-warn">เครื่องมือพัง: {broken.map(t => TOOLS[t].e + ' ' + TOOLS[t].n).join(', ')} — วางทางไม่ได้</span>}</div>
+    <div className="dig-hand-h"><b>🃏 การ์ดในมือ</b><small className="dig-draw-note">{r.deck.length ? `เล่น/ทิ้งแล้วจั่วอัตโนมัติ 1 ใบ • กองเหลือ ${r.deck.length}` : 'กองหมดแล้ว — ไม่ได้จั่วเพิ่ม'}</small>{broken.length > 0 && <span className="dig-warn">เครื่องมือพัง: {broken.map(t => TOOLS[t].e + ' ' + TOOLS[t].n).join(', ')} — วางทางไม่ได้</span>}</div>
     <div className="dig-hand">{hand.map((c, i) => <button key={i + c} type="button" className={'dig-card' + (sel === i ? ' sel' : '') + (isPath(c) && broken.length ? ' dim' : '')} onClick={() => { sfx(sound, 'click'); setSel(s => (s === i ? null : i)); setRot(0); }}>
       <CardView c={c} size={58} rot={sel === i && rot} /><small>{cardName(c)}</small></button>)}{!hand.length && <span className="hint">ไม่มีการ์ดในมือแล้ว</span>}</div>
     {myTurn && card && <div className="dig-actions">
       {A && <div className="dig-desc">{A.e} <b>{A.n}</b> — {A.d}</div>}
-      {isPath(card) && flip(pathOf(card).m) !== pathOf(card).m && <button className="secondary" onClick={() => setRot(x => 1 - x)}>🔄 หมุน 180°</button>}
+      {isPath(card) && rotsOf(pathOf(card).m).length > 1 && <button className="secondary" onClick={() => { sfx(sound, 'click'); setRot(x => { const ks = rotsOf(pathOf(card).m); return ks[(ks.indexOf(x) + 1) % ks.length]; }); }}>🔄 หมุน 90° <small>({rot * 90}°)</small></button>}
       {needTarget && <button className="primary" disabled={!targets.length} onClick={() => setTurnPop('t' + sel)}>{targets.length ? '👉 เลือกผู้เล่น' : 'ไม่มีใครเลือกได้'}</button>}
       <button className="secondary" onClick={() => { sfx(sound, 'click'); tx(c => digDiscard(c, myId, sel, card, srvNow)); setSel(null); }}>🗑️ ทิ้งใบนี้ (ผ่าน)</button>
     </div>}

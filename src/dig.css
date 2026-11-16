@@ -75,7 +75,7 @@
 @media (prefers-reduced-motion:reduce){.dig-fx *,.dig-cell.can{animation:none!important}}
 /* จัดหน้า: จอคอม = กระดานซ้าย (gmain) / เมนูเล่นขวา (gside) รายชื่อคนในห้อง+ห้องเสียงย้ายลงล่าง (desktop.css :has(.gcols))
    จอเล็ก = เรียงเป็นแถวเดียว: บทบาท → คนเล่น → ตาใคร → กระดาน → การ์ดในมือ */
-.dig-cols{display:flex;flex-direction:column;gap:10px}
+.dig-cols{display:flex;flex-direction:column;gap:10px;min-width:0;max-width:100%}.dig-game>*{min-width:0}   /* min-width:0 = แถวที่นั่งเลื่อนข้างในตัวเอง ไม่ดันจอมือถือให้ล้น */
 .dig-cols>.gmain,.dig-cols>.gside{display:contents}
 .dig-cols .gside>*{order:7}
 .dig-cols .round-top{order:1}.dig-cols .dig-me{order:2}.dig-cols .dig-seats{order:3}.dig-cols .dig-turn{order:4}.dig-cols .dig-board-wrap{order:5}.dig-cols .gside>.dig-hand-h,.dig-cols .gside>.dig-hand,.dig-cols .gside>.dig-actions{order:6}
@@ -95,3 +95,5 @@
 .dig-card .dig-ov.brk{font-size:56px}.dig-card .dig-ov.fix{font-size:24px}
 .dig-card small{font-size:13px;max-width:100%}
 @media (min-width:1100px){.dig-hand{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}}
+
+.dig-draw-note{color:var(--muted);font-size:12px;font-weight:400}
