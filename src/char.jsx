@@ -22,7 +22,8 @@ export const HAIR_COLORS = [
 
 // ---------- ทรงผม: back = วาดหลังตัว (ผมยาว) • front = วาดทับหัว ----------
 const P = (d, c, k) => <path key={k} d={d} fill={c} stroke={OL} strokeWidth={SW} strokeLinejoin="round" />;
-const mirror = d => <g transform="translate(100 0) scale(-1 1)">{d}</g>;
+// กลับซ้าย-ขวาด้วยการคำนวณพิกัด path เอง (x → 100 − x) แทน <g transform="scale(-1 1)"> เพราะ Safari/iPad บางรุ่นทิ้ง scale ทำให้แขน/ผมฝั่งขวาลอยแยกจากตัว
+const flip = d => { let cmd = '', i = 0; return d.replace(/([A-Za-z])|(-?\d*\.?\d+)/g, (m, c, n) => { if (c) { cmd = c; i = 0; return c; } const isX = cmd === 'H' || (cmd !== 'V' && i % 2 === 0); i++; return isX ? String(+(100 - n).toFixed(2)) : n; }); };
 const sideLocks = c => <>{P('M21 42 C18 56 17 68 18 80 L27 78 C26 66 26 54 27 44 Z', c, 'l')}{P('M79 42 C82 56 83 68 82 80 L73 78 C74 66 74 54 73 44 Z', c, 'r')}</>;
 const BANGS = 'M20 46 C18 24 32 13 50 13 C68 13 82 24 80 46 C76 36 70 31 63 30 L59 37 L55 30 L45 30 L41 37 L37 30 C30 31 24 36 20 46 Z';
 const SWEPT = 'M20 46 C18 24 32 12 52 12 C70 12 82 24 80 42 C74 37 66 35 56 37 C46 39 36 35 30 31 C26 35 22 40 20 46 Z';
@@ -43,10 +44,10 @@ export const HAIRS = [
   { n: 'แสกกลาง', sh: 1, g: 'm', front: c => P('M20 46 C18 24 32 13 50 13 C68 13 82 24 80 46 C77 38 72 32 64 30 C58 30 53 26 50 21 C47 26 42 30 36 30 C28 32 23 38 20 46 Z', c) },
   { n: 'ยาวตรง', sh: 1, g: 'f', back: c => P('M17 42 C17 20 32 11 50 11 C68 11 83 20 83 42 L85 98 L15 98 Z', c), front: c => <>{P(BANGS, c, 'f')}{sideLocks(c)}</> },
   { n: 'หางม้า', sh: 1, g: 'f', back: c => P('M72 20 C93 18 98 44 91 68 C89 75 84 77 82 72 C88 54 86 37 72 30 Z', c), front: c => <>{P(SWEPT, c, 'f')}<circle cx="77" cy="25" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></> },
-  { n: 'แกละ', sh: 1, g: 'f', back: c => <>{P('M25 28 C6 32 3 62 9 82 C13 87 18 83 16 76 C12 60 16 45 27 40 Z', c, 'l')}{mirror(P('M25 28 C6 32 3 62 9 82 C13 87 18 83 16 76 C12 60 16 45 27 40 Z', c, 'r'))}</>, front: c => <>{P(BANGS, c, 'f')}<circle cx="24" cy="31" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /><circle cx="76" cy="31" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></> },
+  { n: 'แกละ', sh: 1, g: 'f', back: c => <>{P('M25 28 C6 32 3 62 9 82 C13 87 18 83 16 76 C12 60 16 45 27 40 Z', c, 'l')}{P(flip('M25 28 C6 32 3 62 9 82 C13 87 18 83 16 76 C12 60 16 45 27 40 Z'), c, 'r')}</>, front: c => <>{P(BANGS, c, 'f')}<circle cx="24" cy="31" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /><circle cx="76" cy="31" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></> },
   { n: 'บ็อบ', sh: 1, g: 'f', back: c => P('M15 44 C15 20 32 10 50 10 C68 10 85 20 85 44 L86 72 C79 75 72 73 70 69 L30 69 C28 73 21 75 14 72 Z', c), front: c => P('M20 40 C21 22 35 13 50 13 C65 13 79 22 80 40 L80 37 L20 37 Z', c) },
   { n: 'มวยกลางหัว', sh: 1, g: 'f', back: c => <circle cx="50" cy="10" r="10" fill={c} stroke={OL} strokeWidth={SW} />, front: c => <>{P(CROWN, c, 'f')}{P('M42 15 Q50 19 58 15', 'none', 'k')}</> },
-  { n: 'เปียคู่', sh: 1, g: 'f', front: c => <>{P('M20 46 C18 24 32 13 50 13 C68 13 82 24 80 46 C77 38 72 32 64 30 C58 30 53 26 50 21 C47 26 42 30 36 30 C28 32 23 38 20 46 Z', c, 'f')}{[0, 1].map(s => <g key={s} transform={s ? 'translate(100 0) scale(-1 1)' : ''}>{[60, 70, 80, 90].map(y => <ellipse key={y} cx="22" cy={y} rx="6" ry="6.5" fill={c} stroke={OL} strokeWidth={SW} />)}<circle cx="22" cy="98" r="3" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></g>)}</> },
+  { n: 'เปียคู่', sh: 1, g: 'f', front: c => <>{P('M20 46 C18 24 32 13 50 13 C68 13 82 24 80 46 C77 38 72 32 64 30 C58 30 53 26 50 21 C47 26 42 30 36 30 C28 32 23 38 20 46 Z', c, 'f')}{[0, 1].map(s => <g key={s}>{[60, 70, 80, 90].map(y => <ellipse key={y} cx={s ? 78 : 22} cy={y} rx="6" ry="6.5" fill={c} stroke={OL} strokeWidth={SW} />)}<circle cx={s ? 78 : 22} cy="98" r="3" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></g>)}</> },
   { n: 'พิกซี่', sh: 1, g: 'f', front: c => P(SWEPT, c) },
   { n: 'ยาวลอน', sh: 1, g: 'f', back: c => P('M17 42 C15 20 32 10 50 10 C68 10 85 20 83 42 C89 53 81 61 87 73 C91 85 83 94 85 100 L15 100 C17 94 9 85 13 73 C19 61 11 53 17 42 Z', c), front: c => P(SWEPT, c) },
   { n: 'ฮิเมะ', sh: 1, g: 'f', back: c => P('M17 42 C17 20 32 11 50 11 C68 11 83 20 83 42 L84 98 L16 98 Z', c), front: c => <>{P('M20 40 C21 22 35 13 50 13 C65 13 79 22 80 40 L80 37 L20 37 Z', c, 'f')}{P('M20 38 L20 66 L29 66 L29 38 Z', c, 'l')}{P('M80 38 L80 66 L71 66 L71 38 Z', c, 'r')}</> },
@@ -69,7 +70,7 @@ export const HAIRS = [
   // ---- ชุดเพิ่ม (หญิง) ----
   { n: 'หางม้าสูง', g: 'f', back: c => P('M58 12 C80 2 96 22 92 50 C90 62 86 72 80 74 C84 58 86 36 66 22 Z', c), front: c => <>{P(CROWN, c, 'f')}<circle cx="62" cy="15" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></> },
   { n: 'ยาวติดโบว์', g: 'f', back: c => P('M17 42 C17 20 32 11 50 11 C68 11 83 20 83 42 L85 98 L15 98 Z', c), front: c => <>{P(BANGS, c, 'f')}{sideLocks(c)}{P('M50 13 L37 6 L36 18 Z M50 13 L63 6 L64 18 Z', '#ff5d86', 'b')}<circle cx="50" cy="13" r="3.4" fill="#ff5d86" stroke={OL} strokeWidth="1.8" /></> },
-  { n: 'ทวินเทลยาว', g: 'f', back: c => <>{P('M25 26 C2 30 0 70 8 104 C11 110 17 108 16 101 C11 76 14 48 27 39 Z', c, 'l')}{mirror(P('M25 26 C2 30 0 70 8 104 C11 110 17 108 16 101 C11 76 14 48 27 39 Z', c, 'r'))}</>, front: c => <>{P(BANGS, c, 'f')}<circle cx="24" cy="30" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /><circle cx="76" cy="30" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></> },
+  { n: 'ทวินเทลยาว', g: 'f', back: c => <>{P('M25 26 C2 30 0 70 8 104 C11 110 17 108 16 101 C11 76 14 48 27 39 Z', c, 'l')}{P(flip('M25 26 C2 30 0 70 8 104 C11 110 17 108 16 101 C11 76 14 48 27 39 Z'), c, 'r')}</>, front: c => <>{P(BANGS, c, 'f')}<circle cx="24" cy="30" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /><circle cx="76" cy="30" r="3.5" fill="#ff6b8a" stroke={OL} strokeWidth="1.6" /></> },
   { n: 'บ็อบปัดข้าง', g: 'f', back: c => P('M15 44 C15 20 32 10 50 10 C68 10 85 20 85 44 L86 72 C79 75 72 73 70 69 L30 69 C28 73 21 75 14 72 Z', c), front: c => P(SWEPT, c) },
   { n: 'ลอนสั้นฟู', g: 'f', back: c => <>{[[17, 50], [19, 64], [27, 72], [73, 72], [81, 64], [83, 50]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="8.5" fill={c} stroke={OL} strokeWidth={SW} />)}</>, front: c => P(BANGS, c) },
   { n: 'มวยข้าง', g: 'f', back: c => <circle cx="79" cy="24" r="10" fill={c} stroke={OL} strokeWidth={SW} />, front: c => <>{P(SWEPT, c, 'f')}<path d="M72 18 L84 14" stroke={OL} strokeWidth="2" strokeLinecap="round" /></> },
@@ -168,6 +169,7 @@ export const lookFromId = id => { let h = 7; for (const ch of String(id)) h = (h
 const EGG = 'M50 8 C73 8 87 36 87 67 C87 95 71 112 50 112 C29 112 13 95 13 67 C13 36 27 8 50 8 Z';
 const ARM = 'M19 70 C10 73 5.5 86 8 94 C9.6 99.5 16 99 18 94 Z';
 const LEG = 'M36 103 C35.4 111 34.8 118 35.3 124 C35.8 130.5 48.7 130.5 49.2 124 C49.6 118 49.4 111 49 105 Z';
+const ARM_R = flip(ARM), LEG_R = flip(LEG);
 // ผม/หน้าวาดไว้สำหรับหัวกลม (กลางที่ 50,44) → เลื่อน/ขยายให้พอดีปลายไข่
 const HAIR_FIT = 'translate(50 0) scale(1.07 1) translate(-50 -5)';
 function CharImpl({ look, color = 0, full = false, size, x, y }) {
@@ -175,8 +177,8 @@ function CharImpl({ look, color = 0, full = false, size, x, y }) {
   const part = (d, k) => <path key={k} d={d} fill={body} stroke={OL} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />;
   return <svg viewBox={full ? '0 -8 100 140' : '6 -4 88 88'} width={size} height={full ? size * 1.4 : size} className="char" aria-hidden="true" x={x} y={y}>
     <g transform={HAIR_FIT}>{H.back?.(hc)}</g>
-    {part(ARM, 'al')}{mirror(part(ARM, 'ar'))}
-    {part(LEG, 'll')}{mirror(part(LEG, 'lr'))}
+    {part(ARM, 'al')}{part(ARM_R, 'ar')}
+    {part(LEG, 'll')}{part(LEG_R, 'lr')}
     {part(EGG, 'egg')}
     <g transform="translate(0 6)">
       <ellipse cx="30" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" /><ellipse cx="70" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" />

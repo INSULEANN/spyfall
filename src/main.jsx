@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, get, update, onValue, remove, runTransaction, onDisconnect, serverTimestamp, query, orderByChild, endAt, startAt, limitToFirst, push, onChildAdded } from 'firebase/database';
+import { getDatabase, goOffline, goOnline, ref, set, get, update, onValue, remove, runTransaction, onDisconnect, serverTimestamp, query, orderByChild, endAt, startAt, limitToFirst, push, onChildAdded } from 'firebase/database';
 import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut } from 'lucide-react';
 import './style.css';
 import './themes.css';
@@ -54,6 +54,15 @@ const firebaseConfig = {
 const configured = Object.values(firebaseConfig).every(v => v && !String(v).includes('ใส่ค่า') && !String(v).includes('your-project'));
 let db;
 if (configured) { try { db = getDatabase(initializeApp(firebaseConfig)); } catch (e) { console.error(e); } }
+// มือถือ (โดยเฉพาะ iPhone/Safari): พับจอ/สลับแอป/ล็อกจอ แล้วกลับมา ท่อเชื่อม Firebase มักตายเงียบ ๆ แต่ยังคิดว่าต่ออยู่ → ข้อมูลเกมไม่อัปเดต
+// กลับมาที่หน้าเว็บเมื่อไร (ซ่อนไปเกิน 3 วิ / กู้หน้าจาก back-forward cache / เน็ตกลับมา) → ตัดแล้วต่อใหม่ทันที listener ทั้งหมดดึงข้อมูลล่าสุดเอง
+if (db && typeof document !== 'undefined') {
+  let hiddenAt = 0, last = 0;
+  const kick = () => { const t = Date.now(); if (t - last < 1500) return; last = t; try { goOffline(db); goOnline(db); } catch {} };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 3000) { hiddenAt = 0; kick(); } });
+  window.addEventListener('pageshow', e => { if (e.persisted) kick(); });
+  window.addEventListener('online', kick);
+}
 
 const DEFAULT_PACKS = [
   { name: "ของกินไทย", places: ["ร้านหมูกระทะ", "ร้านส้มตำ", "ตลาดนัดจตุจักร", "ร้านชานมไข่มุก", "ร้านข้าวมันไก่", "ร้านก๋วยเตี๋ยวเรือ", "บุฟเฟต์ทะเล", "ร้านสะดวกซื้อ 24 ชั่วโมง", "คาเฟ่แมว", "ร้านลูกชิ้นทอด", "ร้านข้าวต้มโต้รุ่ง", "ร้านหมูจุ่ม", "ร้านชาบู", "ร้านปิ้งย่างเกาหลี", "ร้านซูชิสายพาน", "ร้านข้าวขาหมู", "ร้านผัดไทย", "ร้านกะเพราไข่ดาว", "ร้านอาหารตามสั่ง", "ร้านโจ๊กตอนเช้า", "ร้านปาท่องโก๋น้ำเต้าหู้", "ร้านไก่ทอดหาดใหญ่", "ร้านขนมจีน", "ร้านเย็นตาโฟ", "ร้านบะหมี่เกี๊ยว", "ร้านข้าวเหนียวมะม่วง", "ร้านโรตีสายไหม", "ร้านไอติมกะทิ", "ร้านบิงซู", "ร้านกาแฟโบราณ", "ร้านชาไทยแก้วใหญ่", "ร้านน้ำปั่นผลไม้", "ร้านหมูปิ้งหน้าโรงเรียน", "รถพุ่มพวง", "ฟู้ดคอร์ทในห้าง", "ร้านอาหารอีสานริมทาง", "ร้านสุกี้", "ร้านหอยทอด", "ร้านกุ้งเผา", "ร้านปลาเผาเกลือ", "ร้านลาบเป็ด", "ร้านเนื้อย่างเสือร้องไห้", "ร้านขนมครก", "ร้านเครปญี่ปุ่น", "ร้านหม่าล่า", "ร้านเบเกอรี่", "ร้านพิซซ่าเดลิเวอรี่", "ตลาดนัดกลางคืน", "ร้านอาหารใต้รสจัด", "ร้านเต้าฮวยฟรุตสลัด"] },
