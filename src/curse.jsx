@@ -12,7 +12,7 @@ import { Replay } from './replay.jsx';
 
 export const CURSE_MIN = 4, CURSE_MAX = 12;
 export const CURSE_SCORE = { town: 1, dark: 2 };
-const SUS_MAX = 7, REVEAL_MS = 30000, NIGHT_MS = 50000;
+const SUS_MAX = 7, REVEAL_MS = 30000, NIGHT_MS = 50000, CAT_MS = 45000;
 export const CURSE_CARDS = {
   gossip: { n: 'ซุบซิบ', cat: 'red', pts: 1, text: 'ใส่ความสงสัย 1 แต้ม' },
   evidence: { n: 'กลิ่นคาวติดตัว', cat: 'red', pts: 3, text: 'ใส่ความสงสัย 3 แต้ม' },
@@ -51,7 +51,7 @@ export function makeCurseRound(ids, opts = {}, number = 1) {
   // คืนเดือนดับอยู่ครึ่งล่าง ปอปย้ายร่างอยู่ช่วงกลาง
   const half = Math.floor(deck.length / 2); deck.splice(half + rint(deck.length - half + 1), 0, 'night-0');
   if (opts.ritual !== false) { const a = Math.floor(deck.length / 3); deck.splice(a + rint(a + 1), 0, 'ritual-0'); }
-  return { number, kind: 'curse', order: shuffle(ids), turn: 0, alive, fate, sus, blues: null, bound: null, hands, deck, discard: [], phase: 'play', played: false, skip: null, nightN: 0, log: [], start: { dark, shaman: shaman || null }, startedAt: Date.now() };
+  return { number, kind: 'curse', order: shuffle(ids), turn: 0, alive, fate, sus, blues: null, bound: null, hands, deck, discard: [], phase: 'play', played: false, skip: null, nightN: 0, log: [], start: { dark, shaman: shaman || null }, cat: null, catFree: { until: Date.now() + CAT_MS }, startedAt: Date.now() };
 }
 
 // ---------- ตรรกะ ----------
@@ -66,6 +66,13 @@ function say(r, text, extra) { r.log = [...(r.log || []), { text, t: Date.now(),
 // chron = เหตุการณ์สำคัญทั้งเกม ไว้เล่นย้อนตอนจบ (รวมข้อมูลลับ — แสดงเฉพาะตอนจบเกม)
 function chron(r, text, cls = '') { r.hist = [...(r.hist || []), { k: r.phase === 'night' ? 'night' : 'day', ch: r.nightN || 0, text, cls }]; }
 function note(r, text, cls = '', extra) { say(r, text, extra); chron(r, text, cls); }
+// 🐈‍⬛ แมวดำ: ผีปอปวางไว้หน้าใครก็ได้ (ทุกคนเห็นว่าอยู่หน้าใคร แต่ไม่รู้ใครวาง) • จั่วได้ปอปย้ายร่าง = คนที่มีแมวต้องเปิดไพ่ดวงตัวเอง 1 ใบ
+// คนที่มีแมวตาย / โดนล้างอาถรรพ์ → แมวหนีไป ผีปอปวางใหม่ได้ • ทุกคืนเดือนดับผีปอปย้ายแมวได้
+function freeCat(r, now = Date.now()) { r.cat = null; r.catFree = { until: now + CAT_MS }; }
+export function placeCat(cur, me, target, now) {
+  const r = cur.round; if (r.phase === 'done' || !r.catFree || !isDark(r, me) || !r.alive?.[target] || target === me) return;
+  r.cat = target; r.catFree = null; say(r, `🐈‍⬛ แมวดำย่องมานั่งหน้า {${target}}…`); chron(r, `🐈‍⬛ ผีปอป {${me}} วางแมวดำไว้หน้า {${target}}`, 'warn'); return cur;
+}
 function take(r, id, card) { const h = hand(r, id); const i = h.indexOf(card); if (i < 0) return false; h.splice(i, 1); r.hands[id] = h; return true; }
 function nextTurn(r) {
   const n = r.order.length; r.played = false;
@@ -86,7 +93,7 @@ function finish(cur, win) {
 }
 function kill(cur, id, why, chain) {
   const r = cur.round; if (!r.alive[id]) return;
-  r.alive[id] = false; r.fate[id] = fateOf(r, id).map(c => ({ ...c, open: true })); r.discard = [...(r.discard || []), ...hand(r, id), ...blues(r, id)]; r.hands[id] = []; if (r.blues) r.blues[id] = null; r.sus[id] = 0;
+  r.alive[id] = false; if (r.cat === id) { freeCat(r); say(r, '🐈‍⬛ แมวดำวิ่งหนีไป…'); } r.fate[id] = fateOf(r, id).map(c => ({ ...c, open: true })); r.discard = [...(r.discard || []), ...hand(r, id), ...blues(r, id)]; r.hands[id] = []; if (r.blues) r.blues[id] = null; r.sus[id] = 0;
   note(r, why, hasDark(r, id) ? 'good' : 'bad', { dead: id });
   if (!chain && r.bound && r.bound.includes(id)) { const other = r.bound.find(x => x !== id); r.bound = null; kill(cur, other, `💔 {${other}} ผูกเสี่ยวไว้กับ {${id}} — ตายตามไป`, true); }
 }
@@ -113,7 +120,7 @@ export function playCurse(cur, me, card, t1, t2, now) {
     case 'alibi': r.sus[t1] = Math.max(0, (r.sus[t1] || 0) - 3); say(r, `📜 {${me}} แก้ตัวให้ {${t1}} (-3)`); break;
     case 'stocks': r.skip = { ...(r.skip || {}), [t1]: true }; say(r, `🔒 {${me}} จับ {${t1}} ขังคอก ข้ามตาถัดไป`); break;
     case 'arson': r.discard = [...r.discard, ...hand(r, t1)]; r.hands[t1] = []; say(r, `🔥 {${me}} เผายุ้ง {${t1}} ไพ่ทั้งมือไหม้หมด`); break;
-    case 'cleanse': r.discard = [...r.discard, ...blues(r, t1)]; if (r.blues) r.blues[t1] = null; if (r.bound?.includes(t1)) r.bound = null; say(r, `💧 {${me}} ล้างอาถรรพ์ {${t1}}`); break;
+    case 'cleanse': r.discard = [...r.discard, ...blues(r, t1)]; if (r.blues) r.blues[t1] = null; if (r.bound?.includes(t1)) r.bound = null; say(r, `💧 {${me}} ล้างอาถรรพ์ {${t1}}`); if (r.cat === t1) { freeCat(r, now); say(r, `🐈‍⬛ แมวดำหน้า {${t1}} ถูกไล่หนีไปแล้ว`); } break;
     case 'steal': { for (let i = 0; i < 2; i++) { const h = hand(r, t1); if (!h.length) break; const x = h[rint(h.length)]; take(r, t1, x); r.hands[me] = [...hand(r, me), x]; } say(r, `👜 {${me}} ลักไพ่จาก {${t1}}`); break; }
     case 'scapegoat': { const p = r.sus[t1] || 0; r.sus[t1] = 0; say(r, `🐐 {${me}} โยนความผิด ${p} แต้มจาก {${t1}} ไปให้ {${t2}}`); if (p) addSus(cur, me, t2, p, now); break; }
   }
@@ -121,14 +128,17 @@ export function playCurse(cur, me, card, t1, t2, now) {
 }
 // เปิดไพ่ดวงของคนที่ถูกสงสัยครบ 7
 export function revealFate(cur, me, idx) {
-  const r = cur.round; if (r.phase !== 'reveal' || r.reveal?.by !== me) return; const tg = r.reveal.target; const f = fateOf(r, tg);
+  const r = cur.round; if (r.phase !== 'reveal' || r.reveal?.by !== me) return; const tg = r.reveal.target; const f = fateOf(r, tg); const wasCat = !!r.reveal.cat, drawer = cur0(r);
+  // แมวดำ: จบตาคนที่จั่วได้ปอปย้ายร่าง หลังเปิดไพ่แล้ว (ถ้าคนจั่วตายไปแล้ว afterDeaths ข้ามตาให้แล้ว)
+  const endCat = c => { if (wasCat && r.pendingEnd) { r.pendingEnd = null; if (r.phase === 'play' && r.alive[drawer] && cur0(r) === drawer) nextTurn(r); } return c; };
   const closed = f.map((c, i) => (c.open ? -1 : i)).filter(i => i >= 0); if (!closed.includes(idx)) idx = closed[0];
   f[idx] = { ...f[idx], open: true }; r.fate[tg] = f; r.phase = 'play'; r.reveal = null;
   const t = f[idx].t;
-  if (t === 'dark') { kill(cur, tg, `👻 เปิดไพ่ดวงของ {${tg}} ได้ “ปอปสิง”! จับผีปอปได้หนึ่งตน`); return afterDeaths(cur); }
-  r.sus[tg] = 0; note(r, `🌸 เปิดไพ่ดวงของ {${tg}} ได้ “${FATE[t].n}” — ความสงสัยล้างเป็น 0`, 'good');
-  if (f.every(c => c.open)) { kill(cur, tg, `⚰️ ไพ่ดวงของ {${tg}} ถูกเปิดหมด — สิ้นใจด้วยความอับอาย`); return afterDeaths(cur); }
-  return cur;
+  if (t === 'dark') { kill(cur, tg, `👻 เปิดไพ่ดวงของ {${tg}} ได้ “ปอปสิง”! จับผีปอปได้หนึ่งตน`); return endCat(afterDeaths(cur)); }
+  if (wasCat) note(r, `🐈‍⬛ {${tg}} เปิดไพ่ดวงตามเสียงแมวดำ ได้ “${FATE[t].n}”`, 'good');
+  else { r.sus[tg] = 0; note(r, `🌸 เปิดไพ่ดวงของ {${tg}} ได้ “${FATE[t].n}” — ความสงสัยล้างเป็น 0`, 'good'); }
+  if (f.every(c => c.open)) { kill(cur, tg, `⚰️ ไพ่ดวงของ {${tg}} ถูกเปิดหมด — สิ้นใจด้วยความอับอาย`); return endCat(afterDeaths(cur)); }
+  return endCat(cur);
 }
 function reshuffle(r) { if ((r.deck || []).length) return; r.deck = shuffle((r.discard || []).filter(c => CURSE_CARDS[T(c)]?.cat !== 'black')); r.discard = []; }
 export function drawTwo(cur, me, now) {
@@ -146,7 +156,9 @@ export function drawTwo(cur, me, now) {
       r.ritualN = (r.ritualN || 0) + 1; say(r, '👻 ปอปย้ายร่าง! ทุกคนส่งไพ่ดวงสุ่ม 1 ใบให้คนถัดไป — ปอปอาจย้ายไปสิงคนอื่น…');
       { const after = r.order.filter(id => isDark(r, id)); const gain = after.filter(id => !before.includes(id)), lost = before.filter(id => !after.includes(id)); const L = a => a.map(id => `{${id}}`).join(' ');
         chron(r, gain.length ? `👻 ปอปย้ายร่าง! ผีปอปย้ายไปสิง ${L(gain)}${lost.length ? ` (ออกจากร่าง ${L(lost)})` : ''}` : '👻 ปอปย้ายร่าง! แต่ผีปอปยังสิงร่างเดิม', 'warn'); }
-      const w = winner(cur); if (w) return finish(cur, w); continue;
+      const w = winner(cur); if (w) return finish(cur, w);
+      const ch = r.cat; if (ch && r.alive[ch] && fateOf(r, ch).some(c => !c.open)) { r.phase = 'reveal'; r.reveal = { by: ch, target: ch, until: now + REVEAL_MS, cat: true }; r.pendingEnd = true; note(r, `🐈‍⬛ แมวดำร้องเหมียว! {${ch}} ต้องเปิดไพ่ดวงตัวเอง 1 ใบ`, 'warn'); return cur; }
+      continue;
     }
     r.hands[me] = [...hand(r, me), card];
   }
@@ -160,6 +172,7 @@ export function nightAct(cur, me, kind, arg, now = Date.now()) {
   else if (kind === 'guard') { if (!isShaman(r, me) || arg === me || !r.alive[arg] || n.guard) return; n.guard = arg; }
   else if (kind === 'swear') { const f = fateOf(r, me); if (!f[arg] || f[arg].open || n.sworn?.[me] != null) return; n.sworn = { ...(n.sworn || {}), [me]: arg }; }
   else if (kind === 'sleep') { n.slept = { ...(n.slept || {}), [me]: true }; }
+  else if (kind === 'cat') { if (!isDark(r, me) || !r.alive[arg] || arg === me) return; n.cat = arg; return cur; }
   else return;
   return resolveNight(cur, false, now);
 }
@@ -186,6 +199,7 @@ export function resolveNight(cur, force, now) {
   } else note(r, '🌅 รุ่งเช้า… คืนนี้ไม่มีใครถูกทำร้าย', 'dim');
   // เช้าแล้ว: สับกองทิ้งกลับเข้ากองจั่ว แล้วซ่อนคืนเดือนดับไว้ครึ่งล่าง (คืนถัดไปจะมาช้าลง)
   const deck = shuffle([...(r.deck || []), ...(r.discard || []).filter(c => CURSE_CARDS[T(c)]?.cat !== 'black')]); r.discard = []; const half = Math.floor(deck.length / 2); deck.splice(half + rint(deck.length - half + 1), 0, n.card || 'night-0'); r.deck = deck;
+  if (n.cat && r.alive[n.cat] && n.cat !== r.cat) { r.cat = n.cat; r.catFree = null; say(r, `🐈‍⬛ เช้านี้แมวดำย้ายไปนั่งหน้า {${n.cat}}…`); chron(r, `🐈‍⬛ ผีปอปย้ายแมวดำไปหน้า {${n.cat}}`, 'warn'); }
   r.phase = 'play'; r.night = null;
   const w = winner(cur); if (w) return finish(cur, w);
   if (r.pendingEnd) { r.pendingEnd = null; nextTurn(r); }
@@ -195,9 +209,10 @@ export function curseTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'curse') return;
   if (r.phase === 'reveal' && now >= r.reveal.until) { const f = fateOf(r, r.reveal.target); const closed = f.map((c, i) => (c.open ? -1 : i)).filter(i => i >= 0); return revealFate(cur, r.reveal.by, closed[rint(closed.length)]); }
   if (r.phase === 'night' && now >= r.night.until) return resolveNight(cur, true, now);
+  if (r.catFree && now >= r.catFree.until && r.phase !== 'done') { const d = r.order.filter(id => r.alive[id] && isDark(r, id)); const pool = r.order.filter(id => r.alive[id] && !isDark(r, id)); if (d.length && pool.length) return placeCat(cur, d[0], pool[rint(pool.length)], now); r.catFree = null; return cur; }
 }
 // หัวหน้าห้อง: คนที่หลุดออกจากห้องไปแล้ว → นับว่าตาย เปิดไพ่ดวงทั้งหมด (กันเกมค้าง)
-export function kickCurse(cur, id) { const r = cur.round; if (!r.alive?.[id] || cur.players?.[id] || r.phase === 'done') return; kill(cur, id, `🚪 {${id}} หลุดออกจากหมู่บ้าน — เปิดไพ่ดวงทั้งหมด`, true); if (r.phase === 'reveal' && (r.reveal?.target === id || r.reveal?.by === id)) { r.phase = 'play'; r.reveal = null; } return afterDeaths(cur); }
+export function kickCurse(cur, id) { const r = cur.round; if (!r.alive?.[id] || cur.players?.[id] || r.phase === 'done') return; kill(cur, id, `🚪 {${id}} หลุดออกจากหมู่บ้าน — เปิดไพ่ดวงทั้งหมด`, true); if (r.phase === 'reveal' && (r.reveal?.target === id || r.reveal?.by === id)) { const wc = r.reveal.cat; r.phase = 'play'; r.reveal = null; if (wc && r.pendingEnd) { r.pendingEnd = null; if (r.alive[cur0(r)]) nextTurn(r); } } return afterDeaths(cur); }
 export function skipCurseTurn(cur) { const r = cur.round; if (r.phase !== 'play') return; say(r, `⏭️ หัวหน้าห้องข้ามตา {${cur0(r)}}`); nextTurn(r); return cur; }
 
 // ---------- เล่นย้อนเหตุการณ์ ----------
@@ -231,7 +246,7 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), c => { if (!c || c.status !== 'playing' || c.round?.kind !== 'curse') return; const R = c.round; R.hands = R.hands || {}; R.alive = R.alive || {}; R.sus = R.sus || {}; R.fate = R.fate || {}; return f(c); });
   const nm = s => String(s).replace(/\{([^}]+)\}/g, (_, id) => nameOf(id));
   useEffect(() => { setSel(null); setT1(null); setT2(null); }, [r.turn, myHand.length, r.phase]);
-  const due = (r.phase === 'reveal' && srvNow >= r.reveal?.until) || (r.phase === 'night' && srvNow >= r.night?.until);
+  const due = (r.phase === 'reveal' && srvNow >= r.reveal?.until) || (r.phase === 'night' && srvNow >= r.night?.until) || (!!r.catFree && srvNow >= r.catFree.until);
   useEffect(() => { if (due && !res) tx(c => curseTick(c, srvNow)); }, [due]);
   // ป๊อปอัพเด้งเต็มจอเมื่อปอปย้ายร่างมาสิง/ออกจากร่างเรา (ไพ่ปอปย้ายร่าง) — แตะเพื่อปิด หรือหายเองใน 5 วิ
   const [posFx, setPosFx] = useState(null);
@@ -253,7 +268,7 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
   const sus = id => r.sus?.[id] || 0;
   const tile = id => <div className="cz-tile-x"><div className="susbar"><i style={{ width: Math.min(100, sus(id) / SUS_MAX * 100) + '%' }} className={sus(id) >= 5 ? 'hot' : ''} /><span>{sus(id)}/{SUS_MAX}</span></div>
     <div className="fate-mini">{fateOf(r, id).map((c, i) => <span key={i} className={'fm' + (c.open ? ' open ' + c.t : '')} title={c.open ? FATE[c.t].n : 'ยังไม่เปิด'}>{c.open ? (c.t === 'dark' ? '👻' : c.t === 'shaman' ? '📿' : '🌸') : ''}</span>)}</div>
-    {(blues(r, id).length > 0 || r.bound?.includes(id) || r.skip?.[id]) && <div className="blue-mini">{blues(r, id).map(b => <span key={b}>{T(b) === 'amulet' ? '🧿' : '🙏'}</span>)}{r.bound?.includes(id) && <span>💞</span>}{r.skip?.[id] && <span>🔒</span>}</div>}</div>;
+    {(blues(r, id).length > 0 || r.bound?.includes(id) || r.skip?.[id] || r.cat === id) && <div className="blue-mini">{r.cat === id && <span title="แมวดำอยู่หน้าคนนี้">🐈‍⬛</span>}{blues(r, id).map(b => <span key={b}>{T(b) === 'amulet' ? '🧿' : '🙏'}</span>)}{r.bound?.includes(id) && <span>💞</span>}{r.skip?.[id] && <span>🔒</span>}</div>}</div>;
   const nightN = r.night || {};
   const sham = alive.find(id => isShaman(r, id));
 
@@ -271,7 +286,7 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
     {/* ไต่สวน: ครบ 7 แต้ม ต้องเปิดไพ่ดวง */}
     {r.phase === 'reveal' && !res && (r.reveal.by === me ? <div className="reveal-box"><Phase art="evidence" tone="me" kicker="⚖️ ไต่สวน" title={`เลือกเปิดไพ่ดวงของ ${nameOf(r.reveal.target)} 1 ใบ`}>คุณไม่รู้ว่าใบไหนเป็นอะไร เลือกตามดวง • {Math.ceil(Math.max(0, r.reveal.until - srvNow) / 1000)} วิ</Phase>
       <ActionSheet open k={'rv' + r.reveal.target} icon="⚖️" title={`เลือกเปิดไพ่ดวงของ ${nameOf(r.reveal.target)} 1 ใบ`} sub="ไม่รู้ว่าใบไหนเป็นอะไร เลือกตามดวง" secs={Math.ceil(Math.max(0, r.reveal.until - srvNow) / 1000)} total={REVEAL_MS / 1000}><div className="hand-row">{fateOf(r, r.reveal.target).map((c, i) => c.open ? <Fate key={i} t={c.t} size="md" dim tag="เปิดแล้ว" /> : <CardFace key={i} back backKind="curse" size="md" onClick={() => { sfx(sound, 'reveal'); tx(x => revealFate(x, me, i)); }} />)}</div></ActionSheet></div>
-      : <Phase art="evidence" tone="bad" kicker="⚖️ ไต่สวน" title={`${nameOf(r.reveal.target)} ถูกสงสัยครบ ${SUS_MAX} แต้ม!`}>{nameOf(r.reveal.by)} กำลังเลือกเปิดไพ่ดวง 1 ใบ…</Phase>)}
+      : <Phase art="evidence" tone="bad" kicker="⚖️ ไต่สวน" title={r.reveal.cat ? `🐈‍⬛ แมวดำร้อง! ${nameOf(r.reveal.target)} ต้องเปิดไพ่ดวงตัวเอง 1 ใบ` : `${nameOf(r.reveal.target)} ถูกสงสัยครบ ${SUS_MAX} แต้ม!`}>{nameOf(r.reveal.by)} กำลังเลือกเปิดไพ่ดวง 1 ใบ…</Phase>)}
 
     {/* กลางคืน */}
     {r.phase === 'night' && !res && <div className="night-box">
@@ -287,9 +302,16 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
                   <ActionSheet open={!iShaman || !!nightN.guard} k={'swear' + r.day} icon="🙏" title="จะสาบานตนไหม?" sub="เปิดไพ่ดวงตัวเอง 1 ใบตอนเช้า = รอดแน่นอนคืนนี้ (ทุกคนจะเห็นไพ่ใบนั้น) • หรือนอนเสี่ยงดวง" secs={Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} total={NIGHT_MS / 1000}><div className="hand-row">{myFate.map((c, i) => c.open ? null : <Fate key={i} t={c.t} size="sm" onClick={() => { sfx(sound, 'select'); tx(x => nightAct(x, me, 'swear', i, srvNow)); }} tag="สาบานด้วยใบนี้" />)}</div>
                   <button className="secondary wide" onClick={() => tx(x => nightAct(x, me, 'sleep', null, srvNow))}>😴 นอนต่อ เสี่ยงดวง</button></ActionSheet></>}
           </>}
+      {iDark && r.alive?.[me] && <div className="cat-move"><SecH icon="🐈‍⬛">ย้ายแมวดำ <small>ไม่บังคับ • ตอนนี้อยู่หน้า {r.cat ? nameOf(r.cat) : 'ยังไม่มีใคร'} • ย้ายตอนเช้า</small></SecH>
+        <PlayerGrid ids={alive.filter(id => id !== me)} av={av} nameOf={nameOf} small selected={nightN.cat || null} onPick={id => { sfx(sound, 'select'); tx(c => nightAct(c, me, 'cat', id, srvNow)); }} badge={id => (r.cat === id ? <span className="tag">🐈‍⬛ ตอนนี้</span> : null)} /></div>}
       <div className="whodone"><span>🌑 คืนนี้: ผีปอป{alive.some(id => isDark(r, id)) && alive.filter(id => isDark(r, id)).every(id => nightN.kills?.[id]) ? 'เลือกแล้ว' : 'ยังเลือกอยู่'} • หมอธรรม{!sham ? 'ไม่อยู่แล้ว' : nightN.guard ? 'เลือกแล้ว' : 'ยังเลือกอยู่'} • อีก {Math.ceil(Math.max(0, nightN.until - srvNow) / 1000)} วิ</span></div>
       {isHost && <HostBar><button className="secondary" onClick={() => { if (confirm('จบคืนนี้เลยโดยไม่รอ?')) tx(c => resolveNight(c, true, srvNow)); }}>🌅 ให้เช้าเลย (ไม่รอ)</button></HostBar>}
     </div>}
+
+    {/* แมวดำ: ผีปอปวางไว้หน้าใครสักคน */}
+    {!res && r.catFree && iDark && r.alive?.[me] && r.phase !== 'night' && <ActionSheet open k={'cat' + r.catFree.until} icon="🐈‍⬛" title="วางแมวดำไว้หน้าใคร?" sub="ทุกคนจะเห็นว่าแมวอยู่หน้าใคร แต่ไม่รู้ว่าใครวาง • จั่วได้ปอปย้ายร่างเมื่อไหร่ คนนั้นต้องเปิดไพ่ดวงตัวเอง 1 ใบ" secs={Math.ceil(Math.max(0, r.catFree.until - srvNow) / 1000)} total={CAT_MS / 1000}>
+      <PlayerGrid ids={alive.filter(id => id !== me)} av={av} nameOf={nameOf} small onPick={id => { sfx(sound, 'select'); tx(c => placeCat(c, me, id, srvNow)); }} note={id => `⚖️ ${sus(id)}/${SUS_MAX}`} />
+    </ActionSheet>}
 
     {/* กลางวัน */}
     {r.phase === 'play' && !res && <>
@@ -329,7 +351,7 @@ export function CurseGame({ db, room, roomCode, myId, players, isHost, scores, s
         : <div className="hand-row">{myFate.map((c, i) => c.open ? <Fate key={i} t={c.t} size="sm" tag="เปิดแล้ว" dim /> : <CardFace key={i} back backKind="curse" size="sm" />)}</div>}
     </div>}
 
-    <SecH icon="🏘️">ชาวนาดง <small>⚖️ ความสงสัย • ไพ่ดวง (เปิดแล้ว/คว่ำ) • 🧿 ตะกรุด 🙏 บวช 💞 ผูกเสี่ยว 🔒 ติดคอก</small></SecH>
+    <SecH icon="🏘️">ชาวนาดง <small>⚖️ ความสงสัย • ไพ่ดวง (เปิดแล้ว/คว่ำ) • 🧿 ตะกรุด 🙏 บวช 💞 ผูกเสี่ยว 🔒 ติดคอก 🐈‍⬛ แมวดำ</small></SecH>
     <PlayerGrid ids={r.order.filter(id => room.players?.[id] || !r.alive?.[id])} av={av} nameOf={nameOf} myId={me} small dead={id => !r.alive?.[id]} badge={id => <>{id === cur && r.phase === 'play' && !res && <span className="tag">☀️ ตานี้</span>}{tile(id)}</>} note={id => r.alive?.[id] ? `🃏 ${hand(r, id).length} ใบ` : '⚰️ ตายแล้ว'} />
     <SecH icon="📜">บันทึกหมู่บ้าน</SecH>
     <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 14).map((e, i) => <li key={i} className={e.dead ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
@@ -343,6 +365,7 @@ export function CurseLobby({ n }) {
   const k = Math.max(CURSE_MIN, Math.min(CURSE_MAX, n)); const f = fatePerPlayer(k), d = darkCount(k);
   return <>
     <div className="score-rules"><b>🎭 หมู่บ้าน {k} คน</b><span>🔮 ไพ่ดวงคนละ {f} ใบ (คว่ำไว้) • 👻 ปอปสิง {d} ใบ = ผีปอป {d} คน (รู้จักกันเอง)</span><span>📿 หมอธรรม 1 คน (ฝั่งชาวบ้าน) คุ้มกันได้ทุกคืนเดือนดับ</span></div>
+    <div className="card-gallery"><div className="cg-item"><CardFace art="blackcat" name="แมวดำ" cat="black" size="sm" /><div><b>🐈‍⬛ แมวดำ</b><small>ผีปอปแอบวางไว้หน้าชาวบ้าน 1 คน (ทุกคนเห็นว่าอยู่หน้าใคร แต่ไม่รู้ใครวาง) • จั่วได้ปอปย้ายร่าง = คนนั้นต้องเปิดไพ่ดวงตัวเอง 1 ใบ • ผีปอปย้ายได้ทุกคืนเดือนดับ • ล้างอาถรรพ์ไล่แมวได้</small></div></div></div>
     <div className="card-gallery fate">{['dark', 'pure', 'shaman'].map(t => <div key={t} className="cg-item"><CardFace art={t} name={FATE[t].n} cat={'fate-' + t} size="sm" /><div><b>{FATE[t].n}</b><small>{FATE[t].text}</small></div></div>)}</div>
     {['red', 'green', 'blue', 'black'].map(cat => <div key={cat}><h4 className="cg-h">{CAT_NAME[cat]}</h4><div className="card-gallery">{Object.entries(CURSE_CARDS).filter(([, c]) => c.cat === cat).map(([t, c]) => <div key={t} className="cg-item"><CardFace art={t} name={c.n} cat={c.cat} tag={c.pts ? '+' + c.pts : null} size="sm" /><div><b>{c.n}</b><small>{c.text}</small></div></div>)}</div></div>)}
   </>;

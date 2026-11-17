@@ -366,6 +366,19 @@ const CURSE = {
     <path d={heart(50, 30, 11)} fill={BLOOD} {...OC} /><path d="M44 26q2 -3 5 -2" stroke="#ff8a98" strokeWidth="2" fill="none" strokeLinecap="round" />
     <Sparks pts={[[24, 24, 4], [78, 22, 5]]} fill="#ffe0e6" />
   </g>,
+  // 🐈‍⬛ แมวดำ: นั่งบนเสื่อใต้แสงจันทร์ ตาเรืองเขียว หางม้วน
+  blackcat: () => <g><Night scene={false} bg="#142228" />
+    <ellipse cx="50" cy="86" rx="34" ry="7" fill="#6b4a2a" {...OC} /><path d="M20 86h60M24 89h52" stroke="#8a6438" strokeWidth="1.2" />
+    <path d="M70 84Q90 80 86 64Q84 56 78 60Q84 66 78 74Q72 80 62 80Z" fill="#07090b" {...OC} />
+    <path d="M30 84Q26 62 36 50Q30 42 32 30L40 38Q50 34 60 38L68 30Q70 42 64 50Q74 62 70 84Z" fill="#0b0e11" {...OC} />
+    <path d="M34 33L38 38M66 33L62 38" stroke="#3a1f2a" strokeWidth="2" />
+    <circle cx="43" cy="47" r="6" fill={GH} opacity=".25" /><circle cx="57" cy="47" r="6" fill={GH} opacity=".25" />
+    <ellipse cx="43" cy="47" rx="4" ry="3.2" fill={GH} /><ellipse cx="57" cy="47" rx="4" ry="3.2" fill={GH} />
+    <ellipse cx="43" cy="47" rx=".9" ry="2.8" fill={OI} /><ellipse cx="57" cy="47" rx=".9" ry="2.8" fill={OI} />
+    <path d="M48 53L52 53L50 55.5Z" fill="#c76a7a" /><path d="M50 55.5Q47 58 45 57M50 55.5Q53 58 55 57" stroke="#2c3a40" strokeWidth="1" fill="none" />
+    <g stroke="#3a4a50" strokeWidth=".8"><path d="M44 55L34 53M44 56.5L34 58M56 55L66 53M56 56.5L66 58" /></g>
+    <path d="M38 62Q50 68 62 62" stroke="#1d2a30" strokeWidth="1.4" fill="none" /><circle cx="50" cy="66" r="2.2" fill={BLOOD} {...OC} strokeWidth="1" />
+  </g>,
   night: () => <g><rect x="2" y="2" width="96" height="96" rx="18" fill="#0a1216" />
     <g fill="#e8f5d0" opacity=".6">{[[14, 14], [28, 26], [86, 46], [10, 44], [58, 8], [40, 14], [90, 30]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? .9 : 1.3} />)}</g>
     <circle cx="72" cy="22" r="11" fill="#0a1216" stroke={GH} strokeWidth="1.5" opacity=".6" />

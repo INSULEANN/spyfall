@@ -1,0 +1,1 @@
+export const ref=()=>{},runTransaction=()=>{},onValue=()=>{},set=()=>{},get=()=>{},update=()=>{},onDisconnect=()=>({}),remove=()=>{},push=()=>{},serverTimestamp=()=>0,getDatabase=()=>{},query=()=>{},orderByChild=()=>{},onChildAdded=()=>{};export default {};
