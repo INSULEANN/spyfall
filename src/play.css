@@ -375,3 +375,11 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .chip-btn{padding:6px 12px;border-radius:999px;border:1px solid #ffffff30;background:var(--chip);color:var(--text);font:inherit;font-size:14px;cursor:pointer}
 .pic-mini{display:flex;gap:3px;margin-top:4px}.pic-mini img{width:30px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #c9973a}
 .pic-credit{text-align:center;font-size:11px;opacity:.7}
+
+.uc-sugg{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:2px 0 8px}
+.uc-sugg button{padding:7px 12px;border-radius:16px;font-size:15px;font-weight:700;background:var(--inset);border:1px solid rgba(255,255,255,.15);color:inherit;cursor:pointer}
+.uc-sugg button.x{opacity:.45;text-decoration:line-through}
+.uc-all{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 12px;max-height:46vh;overflow:auto}
+.uc-all button{padding:5px 9px;border-radius:12px;font-size:13.5px;background:var(--inset);border:1px solid rgba(255,255,255,.1);color:inherit;cursor:pointer}
+.uc-all button.x{opacity:.35;text-decoration:line-through}
+.uc-link{background:none;border:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer;padding:0 0 0 8px}

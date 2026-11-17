@@ -124,7 +124,10 @@ export function kickUc(cur, id, now) {
 export function UcGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, msg, onBack, srvNow }) {
   const r = ucNorm({ ...room.round }); const res = room.status === 'result' && room.result;
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), c => { if (!c?.round || c.round.kind !== 'uc') return; ucNorm(c.round); return f(c); }).then(x => x.committed).catch(() => false);
-  const [peek, setPeek] = useState(false); const [guess, setGuess] = useState('');
+  const [peek, setPeek] = useState(false); const [guess, setGuess] = useState(''); const [xed, setXed] = useState({}); const [showAll, setShowAll] = useState(true);
+  useEffect(() => { setXed({}); }, [r.number, r.startedAt]);
+  const allWords = (() => { const P = UC_PACKS.find(p => p.name === r.cat); return P ? [...new Set(P.groups.flat())].sort((x, y) => x.localeCompare(y, 'th')) : []; })();
+  const q = norm(guess); const sugg = q ? allWords.filter(w => norm(w).includes(q)).sort((x, y) => (norm(y).startsWith(q) - norm(x).startsWith(q)) || (!!xed[x] - !!xed[y])).slice(0, 3) : [];
   const myRole = r.roles[myId]; const meIn = myRole != null; const meAlive = !!r.alive[myId];
   const myWord = myRole === 'civ' ? r.words.civ : myRole === 'uc' ? r.words.uc : null;
   const al = aliveIds(r); const sp = speakers(r); const curSp = speakerOf(r); const lapLeft = sp.length - r.spoke;
@@ -195,10 +198,16 @@ export function UcGame({ db, room, roomCode, myId, players, isHost, scores, soun
       <Phase art="think" tone={r.white.id === myId ? 'me' : 'bad'} kicker={r.white.final ? '👻 นัดสุดท้าย' : '🗳️ ถูกโหวตออก'} title={`${nameOf(r.white.id)} คือ Mr. White!`} aside={<TimerRing secs={secs(r.white.until - srvNow)} total={WHITE_MS / 1000} label="วิ" />}>{r.white.id === myId ? 'ทายคำของนักสืบให้ถูก แล้วคุณชนะทันที!' : 'Mr. White กำลังทายคำของนักสืบ… ถ้าถูก Mr. White ชนะทันที'}</Phase>
       <ActionSheet open={r.white.id === myId} k={'w' + r.lap} icon="👻" title="ทายคำของนักสืบ" sub="ทายถูก = ชนะทันที • มีโอกาสครั้งเดียว" secs={secs(r.white.until - srvNow)} total={WHITE_MS / 1000}>
         <input className="uc-guess" autoFocus value={guess} maxLength={40} placeholder="พิมพ์คำที่คิดว่าเป็นคำของนักสืบ" onChange={e => setGuess(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && guess.trim()) tx(c => ucWhiteGuess(c, myId, guess, srvNow)); }} />
+        {sugg.length > 0 && <div className="uc-sugg">{sugg.map(w => <button key={w} type="button" className={xed[w] ? 'x' : ''} onClick={() => { sfx(sound, 'select'); setGuess(w); }}>{w}</button>)}</div>}
         <button className="primary wide" disabled={!guess.trim()} onClick={() => { sfx(sound, 'confirm'); tx(c => ucWhiteGuess(c, myId, guess, srvNow)); }}>🎯 ทายคำนี้</button>
       </ActionSheet>
     </>}
 
+    {/* Mr. White: คำทั้งหมดในหมวด แตะเพื่อตัดทิ้ง */}
+    {myRole === 'white' && allWords.length > 0 && <>
+      <SecH icon="📋">คำทั้งหมดในหมวด <small>แตะเพื่อตัดทิ้ง • เหลือ {allWords.filter(w => !xed[w]).length}/{allWords.length} <button type="button" className="uc-link" onClick={() => setShowAll(x => !x)}>{showAll ? 'ซ่อน' : 'แสดง'}</button>{Object.keys(xed).length > 0 && <button type="button" className="uc-link" onClick={() => setXed({})}>ล้าง</button>}</small></SecH>
+      {showAll && <div className="uc-all">{allWords.map(w => <button key={w} type="button" className={xed[w] ? 'x' : ''} onClick={() => setXed(o => { const n = { ...o }; if (n[w]) delete n[w]; else n[w] = 1; return n; })}>{w}</button>)}</div>}
+    </>}
     {/* ผู้เล่น */}
     <SecH icon="👥">ผู้เล่น <small>เหลือ {al.length} คน • ออกแล้ว {outIds.length}</small></SecH>
     <div className="uc-roles">{r.order.map(id => <div key={id} className={'uc-rc' + (r.alive[id] ? '' : ' out ' + r.roles[id])}><Avatar id={id} av={av} size={36} dead={!r.alive[id]} /><b>{id === myId ? 'คุณ' : nameOf(id)}</b>{r.alive[id] ? <small>ยังอยู่</small> : roleChip(id)}</div>)}</div>
