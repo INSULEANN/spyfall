@@ -42,9 +42,9 @@ export const fmtM = x => (+x || 0).toFixed(2) + ' M';
 export const MONEY = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5];
 export const CARDS = {
   boss: { n: 'ข้าคุมเอง!', e: '🎩', text: 'แย่งเป็นเจ้าของดีลที่กำลังเจรจาอยู่' },
-  stop: { n: 'ห้าม!', e: '🛑', text: 'ยกเลิกการ์ดใบล่าสุด (ข้าคุมเอง / พักร้อน / ซื้อหุ้น) ห้ามซ้อนห้ามไม่ได้' },
+  stop: { n: 'ห้าม!', e: '🛑', text: 'ยกเลิกการ์ดใบล่าสุด (ข้าคุมเอง / พักร้อน) ห้ามซื้อหุ้นไม่ได้ ห้ามซ้อนห้ามไม่ได้' },
   trip: { n: 'พักร้อน', e: '🏖️', text: 'ส่งหุ้นส่วนไปพักร้อน ที่นั่งว่างจนจบดีลนี้' },
-  clan: { n: 'คอนเนคชั่น', e: '🤝', text: 'นั่งที่หุ้นส่วนนี้ในดีลเอง ไม่ได้ใช้ = กลับเข้ามือ' },
+  clan: { n: 'คอนเนคชั่น', e: '🤝', text: 'นั่งที่หุ้นส่วนนี้ในดีลเอง ใช้แล้วทิ้ง' },
   buy: { n: 'ซื้อหุ้น', e: '🧾', text: `ครบ ${BUY_N} ใบเล่นพร้อมกัน ยึดหุ้นส่วน 1 รายมาเป็นของคุณถาวร` },
 };
 // trip/clan: จำนวนต่อสีหุ้นส่วน • tripAny = พักร้อนสีเทา ใช้กับสีไหนก็ได้
@@ -89,7 +89,7 @@ function reseat(r) {
 const sigOf = n => JSON.stringify([n.boss, n.seats || {}, n.chosen || []]);
 // จบดีล: คอนเนคชั่นที่ได้ใช้ในดีล → ทิ้ง • ที่ไม่ได้ใช้ (หรือดีลล่ม) → กลับเข้ามือ
 function returnClans(r, used = []) {
-  const n = r.nego; Object.entries(n?.clan || {}).forEach(([p, c]) => { if (used.includes(p) && n.seats?.[p] === c.by) r.discard = [...(r.discard || []), c.card]; else giveBack(r, c.by, c.card); }); if (n) n.clan = null;
+  const n = r.nego; if (n) n.clan = null;   // การ์ดคอนเนคชั่นทิ้งตั้งแต่ตอนเล่นแล้ว
 }
 // นับถอยหลังปิดดีลอยู่ แต่เงื่อนไขไม่ครบแล้ว → ยกเลิก
 function guard(r, now) {
@@ -101,10 +101,10 @@ function undo(r, L) {
   const n = r.nego;
   if (L.t === 'boss' && n && inGame(r, L.prev)) n.boss = L.prev;
   else if (L.t === 'trip' && n) {
-    if (L.clan) { const ds = r.discard || []; if (!n.clan?.[L.p] && ds.includes(L.clan.card)) { r.discard = ds.filter(c => c !== L.clan.card); n.clan = { ...(n.clan || {}), [L.p]: L.clan }; } }
+    if (L.clan) { if (!n.clan?.[L.p]) n.clan = { ...(n.clan || {}), [L.p]: L.clan }; }
     else if (n.away?.[L.p]) { const a = { ...n.away }; delete a[L.p]; n.away = a; }
     n.chosen = [...new Set([...(n.chosen || []), ...(L.chosen || [])])];
-  } else if (L.t === 'buy' && inGame(r, L.old) && r.ctrl[L.p] === L.by) r.ctrl[L.p] = L.old;
+  }
 }
 // คนที่อยู่ในดีล: เจ้าของดีล + คนนั่งที่หุ้นส่วนจำเป็น + หุ้นส่วนตัวเลือกที่เจ้าของดีลเลือกแล้ว (ไม่ซ้ำ)
 export const partsOf = n => { const D = DEALS[n.deal]; return [...new Set([n.boss, ...D.need.map(p => n.seats?.[p]), ...(n.chosen || []).map(p => n.seats?.[p])].filter(Boolean))]; };
@@ -246,7 +246,7 @@ function failDeal(cur, now, why) {
   return nextTurn(cur, now);
 }
 export function cancelDeal(cur, me, now) { const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'nego' || r.nego.boss !== me) return; return failDeal(cur, now, 'เจ้าของดีลถอนตัว'); }
-// เล่นการ์ด (ทุกคนต้องรอ 2 วิหลังการ์ดใบก่อน): boss/trip/clan ใช้ระหว่างเจรจา • stop ยกเลิกใบล่าสุด • buy ×3 ใช้ระหว่างเจรจา หรือตอนถึงตาตัวเอง
+// เล่นการ์ด (ทุกคนต้องรอ 2 วิหลังการ์ดใบก่อน): boss/trip/clan ใช้ระหว่างเจรจา (clan ใช้แล้วทิ้ง) • stop ยกเลิก boss/trip ใบล่าสุด • buy ×3 ใช้ได้ทุกเมื่อ ห้ามไม่ได้
 export function playDealCard(cur, me, card, arg, now) {
   const r = cur.round; if (cur.status !== 'playing' || !inGame(r, me) || !hand(r, me).includes(card)) return;
   if (now < (r.cardAt || 0) + CARD_CD) return;
@@ -265,27 +265,26 @@ export function playDealCard(cur, me, card, arg, now) {
     const was = n.seats?.[q]; if (!was) return; const c = n.clan?.[q];
     last = { t, by: me, card, p: q, chosen: n.chosen || [] };
     if (c && c.by === was) {
-      r.discard = [...(r.discard || []), c.card]; const cl = { ...n.clan }; delete cl[q]; n.clan = cl; last.clan = c;
+      const cl = { ...n.clan }; delete cl[q]; n.clan = cl; last.clan = c;
       text = `🏖️ {${me}} ส่งคอนเนคชั่น${PARTNERS[q].n} ({${was}}) ไปพักร้อน — ทิ้งการ์ดทั้งคู่`;
     } else { n.away = { ...(n.away || {}), [q]: me }; text = `🏖️ {${me}} ส่ง${PARTNERS[q].n} ${PARTNERS[q].e} ({${was}}) ไปพักร้อน!`; }
     act = `🏖️ ${PARTNERS[q].n}ไปพักร้อน!`;
   } else if (t === 'clan') {
     if (!nego || !PARTNERS[p] || !slotsOf(D).includes(p) || n.seats?.[p] === me) return;
-    const old = n.clan?.[p]; if (old) giveBack(r, old.by, old.card);
-    n.clan = { ...(n.clan || {}), [p]: { by: me, card } }; used = [];
+    n.clan = { ...(n.clan || {}), [p]: { by: me, card } };
     text = `🤝 {${me}} ส่งคอนเนคชั่น${PARTNERS[p].n} ${PARTNERS[p].e} เข้านั่งในดีลเอง`; act = `🤝 ${PARTNERS[p].n}คนกันเอง!`;
   } else if (t === 'buy') {
-    if (!PARTNERS[arg] || r.ctrl[arg] === me) return; if (!nego && !(r.phase === 'turn' && curOf(r) === me)) return;
+    if (!PARTNERS[arg] || r.ctrl[arg] === me) return;
     const mine = hand(r, me).filter(c => cparse(c).t === 'buy'); if (mine.length < BUY_N) return;
     used = [...mine.filter(c => c !== card).slice(0, BUY_N - 1), card];
-    const old = r.ctrl[arg]; r.ctrl[arg] = me; last = { t, by: me, card, p: arg, old };
+    const old = r.ctrl[arg]; r.ctrl[arg] = me;   // ซื้อหุ้น: ห้ามไม่ได้ (last = null)
     text = `🧾 {${me}} ซื้อหุ้น ×${BUY_N} ยึด${PARTNERS[arg].n} ${PARTNERS[arg].e} ต่อจาก {${old}}`; act = `🧾 ซื้อ${PARTNERS[arg].n}!`;
   } else return;
   r.hands[me] = hand(r, me).filter(c => c !== card && !used.includes(c)); r.discard = [...(r.discard || []), ...used];
   r.last = last; r.cardAt = now; r.fx = { n: (r.fx?.n || 0) + 1, card, by: me, text, ...(nope ? { nope } : {}) };
   say(r, text, { by: me, act });
   if (nego) { reseat(r); if (sigOf(n) !== sig) touch(r, now); else n.until = Math.min(n.start + NEGO_CAP, Math.max(n.until, now + 10000)); if (n.closeAt) n.until = Math.max(n.until, n.closeAt + 5000); guard(r, now); }
-  else r.at = Math.max(r.at || 0, now);
+  else if (curOf(r) === me) r.at = Math.max(r.at || 0, now);
   return cur;
 }
 // หมดเวลา: ไม่เลือกในตา → จั่วให้ • นับถอยหลังปิดดีลครบ → ปิดจริง • เจรจาไม่จบ → ดีลล่ม
@@ -369,7 +368,7 @@ export function DealCard({ id, t: t0, onClick, ok = true, sel, className = '' })
   const { t, p } = id ? cparse(id) : { t: t0, p: null }; const C = CARDS[t]; if (!C) return null;
   const title = id ? cardTitle(id) : C.n; const cls = 'dc dcard t-' + t + (ok ? ' ok' : ' dim') + (sel ? ' sel' : '') + (className ? ' ' + className : '');
   const style = PARTNERS[p] ? { '--pc': PARTNERS[p].c } : undefined;
-  const inner = <><span className="dc-art"><CardImg k={t} fallback={<svg viewBox="0 0 100 76" aria-hidden="true">{CARD_ART[t](p || 'any')}</svg>} /></span><b>{title}</b><small>{t === 'clan' && PARTNERS[p] ? 'นั่งที่' + PARTNERS[p].n + 'ในดีลนี้เอง ไม่ได้ใช้ = กลับเข้ามือ' : t === 'trip' && PARTNERS[p] ? 'ส่ง' + PARTNERS[p].n + 'ไปพักร้อน ที่นั่งว่างจนจบดีล' : t === 'trip' ? 'ส่งหุ้นส่วนสีไหนก็ได้ไปพักร้อน' : C.text}</small></>;
+  const inner = <><span className="dc-art"><CardImg k={t} fallback={<svg viewBox="0 0 100 76" aria-hidden="true">{CARD_ART[t](p || 'any')}</svg>} /></span><b>{title}</b><small>{t === 'clan' && PARTNERS[p] ? 'นั่งที่' + PARTNERS[p].n + 'ในดีลนี้เอง ใช้แล้วทิ้ง' : t === 'trip' && PARTNERS[p] ? 'ส่ง' + PARTNERS[p].n + 'ไปพักร้อน ที่นั่งว่างจนจบดีล' : t === 'trip' ? 'ส่งหุ้นส่วนสีไหนก็ได้ไปพักร้อน' : C.text}</small></>;
   return onClick ? <button type="button" className={cls} style={style} onClick={onClick}>{inner}</button> : <div className={cls} style={style}>{inner}</div>;
 }
 // สีประจำคนในดีล (แถบแบ่งส่วน)
@@ -482,14 +481,14 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
   const buyN = myHand.filter(c => cparse(c).t === 'buy').length; const L = r.last;
   const tripOK = q => !!n && slotsOf(D).includes(q) && !!n.seats?.[q] && n.seats[q] !== myId;
   const fits = c => { const { t, p } = cparse(c); if (res || !meIn) return false;
-    if (t === 'stop') return !!L && L.by !== myId; if (t === 'buy') return buyN >= BUY_N && (r.phase === 'nego' || myTurn);
+    if (t === 'stop') return !!L && L.by !== myId; if (t === 'buy') return buyN >= BUY_N;
     if (r.phase !== 'nego') return false; if (t === 'boss') return !iBoss; if (t === 'trip') return p === 'any' ? slotsOf(D).some(tripOK) : tripOK(p);
     if (t === 'clan') return slotsOf(D).includes(p) && n.seats?.[p] !== myId; return false; };
   const usable = c => !cdMs && fits(c);
   const play = (c, arg) => { sfx(sound, 'card'); setPickCard(null); tx(x => playDealCard(x, myId, c, arg, srvNow)); };
   const tapCard = c => { const { t, p } = cparse(c);
     if (cdMs && fits(c)) { msg(`⏳ รออีก ${(cdMs / 1000).toFixed(1)} วิ ถึงเล่นการ์ดได้`); return; }
-    if (!usable(c)) { msg(t === 'buy' ? (buyN < BUY_N ? `ซื้อหุ้นต้องมีครบ ${BUY_N} ใบ (ตอนนี้มี ${buyN})` : 'ซื้อหุ้นใช้ได้ตอนถึงตาคุณ หรือระหว่างเจรจา') : t === 'stop' ? 'ยังไม่มีการ์ดให้ห้าม — ใช้ได้ทันทีหลังมีคนเล่น ข้าคุมเอง / พักร้อน / ซื้อหุ้น' : t === 'trip' && r.phase === 'nego' ? 'หุ้นส่วนสีนี้ไม่ได้นั่งอยู่ในดีลนี้' : t === 'clan' && r.phase === 'nego' ? 'หุ้นส่วนสีนี้ไม่อยู่ในดีลนี้ หรือคุณนั่งอยู่แล้ว' : 'การ์ดนี้ใช้ได้ระหว่างเจรจาดีล'); return; }
+    if (!usable(c)) { msg(t === 'buy' ? (buyN < BUY_N ? `ซื้อหุ้นต้องมีครบ ${BUY_N} ใบ (ตอนนี้มี ${buyN})` : 'ยังซื้อหุ้นไม่ได้ตอนนี้') : t === 'stop' ? 'ยังไม่มีการ์ดให้ห้าม — ใช้ได้ทันทีหลังมีคนเล่น ข้าคุมเอง / พักร้อน' : t === 'trip' && r.phase === 'nego' ? 'หุ้นส่วนสีนี้ไม่ได้นั่งอยู่ในดีลนี้' : t === 'clan' && r.phase === 'nego' ? 'หุ้นส่วนสีนี้ไม่อยู่ในดีลนี้ หรือคุณนั่งอยู่แล้ว' : 'การ์ดนี้ใช้ได้ระหว่างเจรจาดีล'); return; }
     if ((t === 'trip' && p === 'any') || t === 'buy') { sfx(sound, 'select'); setPickCard(pickCard === c ? null : c); return; } play(c); };
   const pk = pickCard ? cparse(pickCard).t : null;
   const you = id => (id === myId ? 'คุณ' : nameOf(id));
@@ -568,7 +567,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
 
     {/* การ์ดในมือ */}
     {!res && meIn && <>
-      <SecH icon="🃏">การ์ดในมือ <small>{myHand.length}/{HAND_MAX} ใบ • {cdMs ? `⏳ รอ ${(cdMs / 1000).toFixed(1)} วิ ถึงเล่นการ์ดได้` : r.phase === 'nego' ? 'ใบที่สว่างใช้ได้ตอนนี้ แตะเพื่อใช้' : 'ใช้ได้ตอนมีคนเจรจาดีล'}{buyN > 0 && ` • 🧾 ซื้อหุ้น ${buyN}/${BUY_N}`}</small></SecH>
+      <SecH icon="🃏">การ์ดในมือ <small>{myHand.length}/{HAND_MAX} ใบ • {cdMs ? `⏳ รอ ${(cdMs / 1000).toFixed(1)} วิ ถึงเล่นการ์ดได้` : r.phase === 'nego' ? 'ใบที่สว่างใช้ได้ตอนนี้ แตะเพื่อใช้' : 'ใช้ได้ตอนมีคนเจรจาดีล (ซื้อหุ้นใช้ได้ทุกเมื่อ)'}{buyN > 0 && ` • 🧾 ซื้อหุ้น ${buyN}/${BUY_N}`}</small></SecH>
       <div className={'dc-hand' + (cdMs ? ' cd' : '')}>{cdMs > 0 && <span className="cd-badge-t">⏳ {(cdMs / 1000).toFixed(1)}</span>}{myHand.map(c => <DealCard key={c} id={c} ok={usable(c)} sel={pickCard === c} onClick={() => tapCard(c)} />)}
         {!myHand.length && <p className="hint">ไม่มีการ์ด — จั่วได้ตอนถึงตา</p>}</div>
       {pk === 'trip' && <div className="act-box"><b>🏖️ ส่งหุ้นส่วนรายไหนไปพักร้อน?</b><div className="pick-p">{D && slotsOf(D).filter(tripOK).map(p => <button type="button" key={p} style={{ '--pc': PARTNERS[p].c }} onClick={() => play(pickCard, p)}><Dot p={p} size={24} />{PARTNERS[p].n}<small>{nameOf(n.seats[p])}</small></button>)}</div></div>}
