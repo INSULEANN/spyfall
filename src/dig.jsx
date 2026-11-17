@@ -55,6 +55,8 @@ export const cardName = c => (isPath(c) ? (pathOf(c).d ? 'ทางตัน' : 
 export function buildDeck() { const d = []; [...PATHS, ...ACTS].forEach(([c, n]) => { for (let i = 0; i < n; i++) d.push(c); }); return d; }
 
 const say = (r, text) => { r.log = [...(r.log || []), { text, t: Date.now() }].slice(-40); };
+// การ์ดที่เพิ่งลง → ป๊อปอัปแจ้งทุกคน (r.last)
+const mark = (r, by, c, text) => { say(r, text); r.last = { by, c, text, at: Date.now() }; };
 export const fix = r => { r.board = r.board || {}; r.hands = r.hands || {}; r.broken = r.broken || {}; r.deck = r.deck || []; r.goals = r.goals || []; r.seen = r.seen || {}; r.gone = r.gone || {}; r.log = r.log || []; r.roleDeck = r.roleDeck || []; return r; };
 export const handOf = (r, id) => r.hands?.[id] || [];
 export const brokenOf = (r, id) => Object.keys(r.broken?.[id] || {}).filter(k => r.broken[id][k]);
@@ -149,34 +151,34 @@ export function digPlay(cur, me, a, now) {
     if (brokenOf(r, me).length) return; const p = pathOf(card); const m = rotM(p.m, +a.rot || 0);
     if (!canPlace(r, a.x, a.y, m, p.d)) return;
     take(r, me, idx, card); r.board = { ...r.board, [K(a.x, a.y)]: { m, ...(p.d ? { d: 1 } : {}), by: me } };
-    say(r, `${p.d ? '🧱 วางทางตัน' : '⛏️ ขุดทางต่อ'} — {${me}}`);
+    mark(r, me, card, `${p.d ? '🧱 วางทางตัน' : '⛏️ ขุดทางต่อ'} — {${me}}`);
     const hit = check(r);
     if (hit === 'gold') { draw(r, me); return finish(cur, 'dig', now, me); }
     if (hit === 'rock') { r.rockBy = me; return finish(cur, 'sab', now); }   // ขุดไปเจอหินเปล่า = แพ้ทันที
   } else {
     const A = ACT[card]; if (!A) return; const t = a.target;
     const isP = id => r.roles[id] && !r.gone?.[id] && r.order.includes(id);
-    if (A.t === 'brk') { if (!isP(t) || t === me || !canBreak(r, t, A.tool)) return; take(r, me, idx, card); r.broken = { ...r.broken, [t]: { ...(r.broken[t] || {}), [A.tool]: true } }; say(r, `🔨 {${me}} ทุบ${TOOLS[A.tool].n}ของ {${t}}`); r.fx = { k: 'brk', id: t, tool: A.tool, at: now }; }
-    else if (A.t === 'fix') { if (!isP(t)) return; const can = fixable(r, t, A.tools); const tool = can.includes(a.tool) ? a.tool : can[0]; if (!tool) return; take(r, me, idx, card); const bt = { ...(r.broken[t] || {}) }; delete bt[tool]; r.broken = { ...r.broken, [t]: bt }; say(r, `🔧 {${me}} ซ่อม${TOOLS[tool].n}ให้ {${t}}`); }
-    else if (A.t === 'fall') { const k = K(a.x, a.y); const c = r.board[k]; if (!c || c.s) return; take(r, me, idx, card); const b = { ...r.board }; delete b[k]; r.board = b; say(r, `💣 {${me}} ถล่มดินทับทางเดิน 1 ช่อง`); r.fx = { k: 'fall', x: a.x, y: a.y, at: now }; }
-    else if (A.t === 'map') { const g = +a.goal; if (!(g >= 0 && g < 3) || r.goals[g].open) return; take(r, me, idx, card); remember(r, me, 'g' + g, r.goals[g].t); r.peek = { ...(r.peek || {}), [me]: { k: 'map', g, v: r.goals[g].t, at: now } }; say(r, `🗺️ {${me}} แอบส่องแผนที่ ดูปลายทางที่ ${g + 1}`); }
-    else if (A.t === 'spy') { if (!isP(t) || t === me) return; take(r, me, idx, card); remember(r, me, 'r_' + t, r.roles[t]); r.peek = { ...(r.peek || {}), [me]: { k: 'spy', id: t, v: r.roles[t], at: now } }; say(r, `🔍 {${me}} แอบส่องบทบาทของ {${t}}`); }
-    else if (A.t === 'mask') { if (!isP(t)) return; take(r, me, idx, card); const old = r.roles[t]; let rd = [...r.roleDeck]; if (!rd.length) rd = shuffle(r.roleDiscard || ['dig', 'sab']); const nr = rd.shift(); r.roleDeck = rd; r.roleDiscard = [...(r.roleDiscard || []), old]; r.roles = { ...r.roles, [t]: nr }; r.masked = { ...(r.masked || {}), [t]: (r.masked?.[t] || 0) + 1 }; say(r, `🎭 {${me}} สลับหน้ากากให้ {${t}} — จั่วบทบาทใหม่!`); r.fx = { k: 'mask', id: t, at: now }; }
-    else if (A.t === 'swap') { if (!isP(t) || t === me || !handOf(r, t).length) return; take(r, me, idx, card); const mine = handOf(r, me), his = handOf(r, t); r.hands = { ...r.hands, [me]: his, [t]: mine }; draw(r, t); say(r, `🔄 {${me}} แลกการ์ดทั้งมือกับ {${t}}`); return advance(cur, now); }
+    if (A.t === 'brk') { if (!isP(t) || t === me || !canBreak(r, t, A.tool)) return; take(r, me, idx, card); r.broken = { ...r.broken, [t]: { ...(r.broken[t] || {}), [A.tool]: true } }; mark(r, me, card, `🔨 {${me}} ทุบ${TOOLS[A.tool].n}ของ {${t}}`); r.fx = { k: 'brk', id: t, tool: A.tool, at: now }; }
+    else if (A.t === 'fix') { if (!isP(t)) return; const can = fixable(r, t, A.tools); const tool = can.includes(a.tool) ? a.tool : can[0]; if (!tool) return; take(r, me, idx, card); const bt = { ...(r.broken[t] || {}) }; delete bt[tool]; r.broken = { ...r.broken, [t]: bt }; mark(r, me, card, `🔧 {${me}} ซ่อม${TOOLS[tool].n}ให้ {${t}}`); }
+    else if (A.t === 'fall') { const k = K(a.x, a.y); const c = r.board[k]; if (!c || c.s) return; take(r, me, idx, card); const b = { ...r.board }; delete b[k]; r.board = b; mark(r, me, card, `💣 {${me}} ถล่มดินทับทางเดิน 1 ช่อง`); r.fx = { k: 'fall', x: a.x, y: a.y, at: now }; }
+    else if (A.t === 'map') { const g = +a.goal; if (!(g >= 0 && g < 3) || r.goals[g].open) return; take(r, me, idx, card); remember(r, me, 'g' + g, r.goals[g].t); r.peek = { ...(r.peek || {}), [me]: { k: 'map', g, v: r.goals[g].t, at: now } }; mark(r, me, card, `🗺️ {${me}} แอบส่องแผนที่ ดูปลายทางที่ ${g + 1}`); }
+    else if (A.t === 'spy') { if (!isP(t) || t === me) return; take(r, me, idx, card); remember(r, me, 'r_' + t, r.roles[t]); r.peek = { ...(r.peek || {}), [me]: { k: 'spy', id: t, v: r.roles[t], at: now } }; mark(r, me, card, `🔍 {${me}} แอบส่องบทบาทของ {${t}}`); }
+    else if (A.t === 'mask') { if (!isP(t)) return; take(r, me, idx, card); const old = r.roles[t]; let rd = [...r.roleDeck]; if (!rd.length) rd = shuffle(r.roleDiscard || ['dig', 'sab']); const nr = rd.shift(); r.roleDeck = rd; r.roleDiscard = [...(r.roleDiscard || []), old]; r.roles = { ...r.roles, [t]: nr }; r.masked = { ...(r.masked || {}), [t]: (r.masked?.[t] || 0) + 1 }; mark(r, me, card, `🎭 {${me}} สลับหน้ากากให้ {${t}} — จั่วบทบาทใหม่!`); r.fx = { k: 'mask', id: t, at: now }; }
+    else if (A.t === 'swap') { if (!isP(t) || t === me || !handOf(r, t).length) return; take(r, me, idx, card); const mine = handOf(r, me), his = handOf(r, t); r.hands = { ...r.hands, [me]: his, [t]: mine }; draw(r, t); mark(r, me, card, `🔄 {${me}} แลกการ์ดทั้งมือกับ {${t}}`); return advance(cur, now); }
     else return;
   }
   draw(r, me); return advance(cur, now);
 }
 export function digDiscard(cur, me, idx, card, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'play' || current(r) !== me || !take(r, me, idx, card)) return;
-  say(r, `🗑️ {${me}} ทิ้งการ์ด 1 ใบ`); draw(r, me); return advance(cur, now);
+  mark(r, me, null, `🗑️ {${me}} ทิ้งการ์ด 1 ใบ`); draw(r, me); return advance(cur, now);
 }
 // หมดเวลา → ทิ้งการ์ดสุ่ม 1 ใบให้อัตโนมัติ (ไม่ให้เกมค้าง)
 export function digTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'dig' || cur.status !== 'playing' || r.phase !== 'play' || now < r.until) return; fix(r);
   const id = current(r); const h = handOf(r, id);
   if (!h.length || r.gone?.[id]) return advance(cur, now);
-  const i = rint(h.length); const c = h[i]; take(r, id, i, c); say(r, `⏰ {${id}} หมดเวลา — ทิ้งการ์ดให้อัตโนมัติ`); draw(r, id); return advance(cur, now);
+  const i = rint(h.length); const c = h[i]; take(r, id, i, c); mark(r, id, null, `⏰ {${id}} หมดเวลา — ทิ้งการ์ดให้อัตโนมัติ`); draw(r, id); return advance(cur, now);
 }
 // หัวหน้าห้อง: ข้ามตาคนที่ค้าง (ทิ้งการ์ดสุ่มให้)
 export function digSkip(cur, now) { const r = cur.round; if (!r || cur.status !== 'playing') return; fix(r); r.until = now; return digTick(cur, now); }
@@ -219,6 +221,16 @@ export function CardView({ c, size = 64, rot }) {
 const RoleFace = ({ role, size = 72 }) => <span className={'dig-role ' + role} style={{ width: size, height: size }}><ArtSvg k={ROLE[role].img} className="dig-act-img" /></span>;
 
 // อนิเมชันสั้น ๆ: ดินถล่ม / เปิดหีบ / หิน / สลับหน้ากาก
+// ป๊อปอัปเล็ก ๆ บอกทุกคนว่าตาที่แล้วใครลงการ์ดอะไร (ไม่บังจอ หายเองใน 3.5 วิ แตะเพื่อปิด)
+function LastToast({ last, myId, av, nameOf }) {
+  const [show, setShow] = useState(null); const seen = useRef(last?.at || 0);
+  useEffect(() => { if (!last || last.at <= seen.current) return; seen.current = last.at; if (last.by === myId) return; setShow(last); const t = setTimeout(() => setShow(null), 3500); return () => clearTimeout(t); }, [last?.at]);
+  if (!show || typeof document === 'undefined') return null;
+  return createPortal(<div className="dig-toast" key={show.at} role="status" onClick={() => setShow(null)}>
+    <Avatar id={show.by} av={av} size={36} />{show.c ? <CardView c={show.c} size={44} /> : <span className="dig-toast-back">🂠</span>}
+    <span>{String(show.text).replace(/{([^}]+)}/g, (_, id) => nameOf(id))}</span>
+  </div>, document.body);
+}
 function Fx({ fx }) {
   const [show, setShow] = useState(null); const last = useRef(fx?.at || 0);
   useEffect(() => { if (!fx || fx.at <= last.current) return; last.current = fx.at; setShow(fx); const t = setTimeout(() => setShow(null), fx.k === 'gold' ? 3200 : 1900); return () => clearTimeout(t); }, [fx?.at]);
@@ -280,7 +292,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
   if (res) {
     const W = res.winner; const myWin = r.roles[myId] === W;
     return <div className="dig-game">
-      <Fx fx={r.fx} />
+      <Fx fx={r.fx} /><LastToast last={r.last} myId={myId} av={av} nameOf={nameOf} />
       <section className={'dig-result ' + W}>
         <div className="dig-result-art"><ArtSvg k={W === 'dig' ? 'dig_gold' : 'dig_role_s'} className="dig-act-img" /></div>
         <h2>{W === 'dig' ? '👷 นักขุดชนะ! เจอหีบสมบัติ' : '😈 ตัวป่วนชนะ! ขุดไม่ถึงสมบัติ'}</h2>
@@ -295,7 +307,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
   }
 
   return <div className="dig-game">
-    <Fx fx={r.fx} />
+    <Fx fx={r.fx} /><LastToast last={r.last} myId={myId} av={av} nameOf={nameOf} />
     <div className="gcols dig-cols"><div className="gmain">{board}</div><div className="gside">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">🃏 กองเหลือ {r.deck.length}</span></div>
     {myRole && <div className={'uc-card dig-me' + (peekRole ? ' open' : '')} onClick={() => setPeekRole(p => !p)}>

@@ -121,3 +121,8 @@
 @keyframes digSpark{0%{opacity:1;transform:rotate(var(--a)) translateY(0)}100%{opacity:0;transform:rotate(var(--a)) translateY(-90px)}}
 @media (prefers-reduced-motion:reduce){.dig-scroll{transform:translateX(-50%)}.dig-flip-in{transform:rotateY(180deg)}.dig-peek-t{opacity:1}.dig-peek.anim *{animation:none!important}}
 .dig-peek.map .dig-peek-t{margin-top:16px}
+/* ป๊อปอัปแจ้งว่าใครลงการ์ดอะไร */
+.dig-toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:55;display:flex;align-items:center;gap:10px;max-width:min(92vw,460px);padding:8px 14px 8px 8px;border-radius:16px;background:color-mix(in srgb,var(--panel) 94%,#000);border:2px solid var(--accent);box-shadow:0 10px 30px #000a;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;animation:digToast 3.5s ease both}
+.dig-toast .dig-tile,.dig-toast .dig-act{width:44px!important;height:44px!important;border-radius:8px;flex:none}
+.dig-toast-back{display:grid;place-items:center;width:44px;height:44px;border-radius:8px;background:#3a2a1f;font-size:28px;flex:none}
+@keyframes digToast{0%{opacity:0;transform:translate(-50%,-20px)}8%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
