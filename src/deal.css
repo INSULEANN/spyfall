@@ -282,3 +282,13 @@
 @keyframes dfxStamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(3)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(.92)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
 @media (max-width:700px){.dfx.nope .dfx-card.dc-hand{width:140px}}
 @media (prefers-reduced-motion:reduce){.close-cd,.close-cd b,.dfx-stamp,.dfx-card.was{animation:none}}
+
+/* แถบเงินระหว่างเกม: ตัวใหญ่ เรียงอันดับ คนนำมีมงกุฎ */
+.money-row.live{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.money-row.live>span{padding:5px 10px 5px 6px;border-radius:14px;font-size:14px;gap:7px}
+.money-row.live>span>em{font-style:normal;font-weight:900;min-width:20px;text-align:center;color:var(--accent);font-size:15px}
+.money-row.live .mr-n{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.15;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.money-row.live .mr-n small{font-size:11px}
+.money-row.live>span>b{font-size:20px;font-weight:900;white-space:nowrap}
+.money-row.live>span.top{background:linear-gradient(135deg,rgba(255,215,106,.28),rgba(255,215,106,.08));box-shadow:0 0 0 2px #ffd76a}
+.money-row.live>span.top.cur{box-shadow:0 0 0 2px #ffd76a,0 0 0 4px var(--accent)}
