@@ -23,8 +23,8 @@ const DIRS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0]]; // [บิต, dx, 
 export const flip = m => ((m << 2) | (m >> 2)) & 15;           // หมุน 180°: เหนือ↔ใต้ ออก↔ตก
 // หมุนตามเข็มนาฬิกาทีละ 90° k ครั้ง (บิต เหนือ→ออก→ใต้→ตก)
 export const rotM = (m, k = 0) => { k = ((k % 4) + 4) % 4; for (let i = 0; i < k; i++) m = ((m << 1) | (m >> 3)) & 15; return m; };
-// มุมที่ให้ผลต่างกันจริง (ทางตรง = 2 แบบ, ทางแยกสี่ = 1 แบบ)
-export const rotsOf = m => [0, 1, 2, 3].filter(k => [0, 1, 2, 3].slice(0, k).every(j => rotM(m, j) !== rotM(m, k)));
+// การ์ดเป็นทรงยาว → กลับหัวได้แค่ 180° (k = 0 หรือ 2) • ทางที่สมมาตรอยู่แล้ว (ทางตรง/สี่แยก) มีแบบเดียว
+export const rotsOf = m => (rotM(m, 2) === m ? [0] : [0, 2]);
 const K = (x, y) => x + '_' + y;
 const TOOLS = { p: { n: 'จอบ', e: '⛏️', img: 'dig_pick' }, l: { n: 'ตะเกียง', e: '🏮', img: 'dig_lamp' }, c: { n: 'รถเข็น', e: '🛒', img: 'dig_cart' } };
 export const ROLE = { dig: { n: 'นักขุด', e: '👷', img: 'dig_role_d' }, sab: { n: 'ตัวป่วน', e: '😈', img: 'dig_role_s' } };
@@ -47,7 +47,8 @@ export const ACT = {
   mask: { n: 'สลับหน้ากาก', e: '🎭', t: 'mask', img: 'dig_mask', d: 'เลือก 1 คน (รวมตัวเองได้) ทิ้งบทบาทเดิม แล้วจั่วบทบาทใหม่' },
   swap: { n: 'แลกไพ่ทั้งมือ', e: '🔄', t: 'swap', img: 'dig_swap', d: 'แลกการ์ดทั้งมือกับเพื่อน 1 คน แล้วเขาจั่วเพิ่ม 1 ใบ (คุณไม่จั่ว)' },
 };
-const PATHS = [['p15', 5], ['p14', 5], ['p13', 5], ['p10', 4], ['p5', 3], ['p6', 4], ['p12', 5], ['p15d', 1], ['p14d', 1], ['p13d', 1], ['p10d', 1], ['p5d', 1], ['p6d', 1], ['p12d', 1], ['p2d', 1], ['p4d', 1]];
+// กลับหัวได้แค่ 180° → ทางนอน (p10) กับทางตั้ง (p5) เป็นคนละใบ • ทางนอนพาไปหาสมบัติ เลยมีมากกว่า
+const PATHS = [['p15', 5], ['p14', 5], ['p13', 5], ['p10', 5], ['p5', 3], ['p6', 4], ['p12', 5], ['p15d', 1], ['p14d', 1], ['p13d', 1], ['p10d', 1], ['p5d', 1], ['p6d', 1], ['p12d', 1], ['p2d', 1], ['p4d', 1]];
 const ACTS = [['bp', 3], ['bl', 3], ['bc', 3], ['fp', 2], ['fl', 2], ['fc', 2], ['fpl', 1], ['fpc', 1], ['flc', 1], ['fall', 3], ['map', 5], ['spy', 2], ['mask', 2], ['swap', 2]];
 export const isPath = c => c[0] === 'p' && /^p\d/.test(c);
 export const pathOf = c => ({ m: parseInt(c.slice(1), 10), d: c.endsWith('d') ? 1 : 0 });
@@ -199,20 +200,24 @@ export function digBot(cur, me, now) {
 
 // ================= หน้าจอ =================
 const EARTH = '#3a2a1f', DIRT = '#c79a5e', DIRT2 = '#8a6238';
+// การ์ดทรงยาว 2:3 (กว้าง 100 × สูง 150) — ทางเดินแนวตั้งจึงยาวกว่าแนวนอน
+export const TW = 100, TH = 150;
 export function Tile({ m, d, s, size = 40 }) {
-  const arms = DIRS.filter(([bit]) => m & bit);
-  return <svg width={size} height={size} viewBox="0 0 100 100" className="dig-tile" aria-hidden="true">
-    <rect width="100" height="100" fill={EARTH} /><g fill="#2a1d15" opacity=".7"><circle cx="16" cy="18" r="5" /><circle cx="82" cy="78" r="6" /><circle cx="78" cy="20" r="3" /><circle cx="22" cy="80" r="4" /></g>
-    {arms.map(([bit, dx, dy]) => { const len = d ? 34 : 50; const w = 34; const x = dx === 0 ? 50 - w / 2 : dx > 0 ? 100 - len : 0; const y = dy === 0 ? 50 - w / 2 : dy > 0 ? 100 - len : 0;
+  const arms = DIRS.filter(([bit]) => m & bit); const cx = TW / 2, cy = TH / 2, w = 34;
+  const h = typeof size === 'number' ? size * TH / TW : size;
+  return <svg width={size} height={h} viewBox={`0 0 ${TW} ${TH}`} className="dig-tile" aria-hidden="true">
+    <rect width={TW} height={TH} fill={EARTH} /><g fill="#2a1d15" opacity=".7"><circle cx="16" cy="20" r="5" /><circle cx="82" cy="128" r="6" /><circle cx="78" cy="24" r="3" /><circle cx="20" cy="124" r="4" /><circle cx="86" cy="76" r="3" /></g>
+    {arms.map(([bit, dx, dy]) => { const len = dx ? (d ? 34 : cx) : (d ? 50 : cy);
+      const x = dx === 0 ? cx - w / 2 : dx > 0 ? TW - len : 0; const y = dy === 0 ? cy - w / 2 : dy > 0 ? TH - len : 0;
       return <rect key={bit} x={x} y={y} width={dx === 0 ? w : len} height={dy === 0 ? w : len} fill={DIRT} stroke={DIRT2} strokeWidth="3" />; })}
-    {!d && arms.length > 0 && <rect x="33" y="33" width="34" height="34" fill={DIRT} />}
-    {!d && arms.length > 0 && <g stroke="#a77c48" strokeWidth="2" opacity=".6"><path d="M40 46 h8 M54 56 h6" /></g>}
-    {d ? <g><circle cx="50" cy="50" r="17" fill="#6d6a66" stroke="#2a2522" strokeWidth="3" /><path d="M40 46 l8 -6 l10 4" stroke="#9a9590" strokeWidth="3" fill="none" /></g> : null}
-    {s ? <g><ellipse cx="50" cy="52" rx="24" ry="20" fill="#1a110b" stroke="#6b4a2a" strokeWidth="4" /><g stroke="#a0763f" strokeWidth="4"><path d="M40 34 V68 M60 34 V68" /><path d="M40 42 H60 M40 52 H60 M40 62 H60" strokeWidth="3" /></g></g> : null}
+    {!d && arms.length > 0 && <rect x={cx - w / 2 + 1} y={cy - w / 2 + 1} width={w - 2} height={w - 2} fill={DIRT} />}
+    {!d && arms.length > 0 && <g stroke="#a77c48" strokeWidth="2" opacity=".6"><path d="M40 71 h8 M54 81 h6" /></g>}
+    {d ? <g><circle cx={cx} cy={cy} r="17" fill="#6d6a66" stroke="#2a2522" strokeWidth="3" /><path d="M40 71 l8 -6 l10 4" stroke="#9a9590" strokeWidth="3" fill="none" /></g> : null}
+    {s ? <g><ellipse cx={cx} cy={cy + 2} rx="26" ry="30" fill="#1a110b" stroke="#6b4a2a" strokeWidth="4" /><g stroke="#a0763f" strokeWidth="4"><path d="M40 52 V98 M60 52 V98" /><path d="M40 62 H60 M40 75 H60 M40 88 H60" strokeWidth="3" /></g></g> : null}
   </svg>;
 }
-const GoalBack = ({ i }) => <svg viewBox="0 0 100 100" className="dig-tile" aria-hidden="true"><rect width="100" height="100" fill="#2b2230" /><path d="M24 92 V40 Q24 14 50 14 Q76 14 76 40 V92 Z" fill="#8e8a94" stroke="#4a4552" strokeWidth="4" /><path d="M30 92 V42 Q30 22 50 22" stroke="#b3afba" strokeWidth="3" fill="none" /><text x="50" y="66" textAnchor="middle" fontSize="30" fontWeight="900" fill="#3a3540" fontFamily="sans-serif">{i + 1}</text><rect x="14" y="88" width="72" height="8" fill="#3a5a2a" /></svg>;
-const ActFace = ({ c, size = 64 }) => { const A = ACT[c]; return <span className={'dig-act' + (A.x ? ' ' + A.x : '')} style={{ width: size, height: size }}>
+const GoalBack = ({ i }) => <svg viewBox={`0 0 ${TW} ${TH}`} className="dig-tile" aria-hidden="true"><rect width={TW} height={TH} fill="#2b2230" /><path d="M20 136 V50 Q20 16 50 16 Q80 16 80 50 V136 Z" fill="#8e8a94" stroke="#4a4552" strokeWidth="4" /><path d="M27 136 V52 Q27 25 50 25" stroke="#b3afba" strokeWidth="3" fill="none" /><text x="50" y="90" textAnchor="middle" fontSize="34" fontWeight="900" fill="#3a3540" fontFamily="sans-serif">{i + 1}</text><rect x="10" y="132" width="80" height="10" fill="#3a5a2a" /></svg>;
+const ActFace = ({ c, size = 64 }) => { const A = ACT[c]; return <span className={'dig-act' + (A.x ? ' ' + A.x : '')} style={{ width: size, height: size * TH / TW }}>
   <ArtSvg k={A.img} className="dig-act-img" />{A.x === 'brk' && <i className="dig-ov brk">✖</i>}{A.x === 'fix' && <i className="dig-ov fix">🔧</i>}</span>; };
 export function CardView({ c, size = 64, rot }) {
   if (isPath(c)) { const p = pathOf(c); return <Tile m={rotM(p.m, +rot || 0)} d={p.d} size={size} />; }
@@ -325,7 +330,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <CardView c={c} size={58} rot={sel === i && rot} /><small>{cardName(c)}</small></button>)}{!hand.length && <span className="hint">ไม่มีการ์ดในมือแล้ว</span>}</div>
     {myTurn && card && <div className="dig-actions">
       {A && <div className="dig-desc">{A.e} <b>{A.n}</b> — {A.d}</div>}
-      {isPath(card) && rotsOf(pathOf(card).m).length > 1 && <button className="secondary" onClick={() => { sfx(sound, 'click'); setRot(x => { const ks = rotsOf(pathOf(card).m); return ks[(ks.indexOf(x) + 1) % ks.length]; }); }}>🔄 หมุน 90° <small>({rot * 90}°)</small></button>}
+      {isPath(card) && rotsOf(pathOf(card).m).length > 1 && <button className="secondary" onClick={() => { sfx(sound, 'click'); setRot(x => { const ks = rotsOf(pathOf(card).m); return ks[(ks.indexOf(x) + 1) % ks.length]; }); }}>🔄 กลับหัว 180° <small>({rot * 90}°)</small></button>}
       {needTarget && <button className="primary" disabled={!targets.length} onClick={() => setTurnPop('t' + sel)}>{targets.length ? '👉 เลือกผู้เล่น' : 'ไม่มีใครเลือกได้'}</button>}
       <button className="secondary" onClick={() => { sfx(sound, 'click'); tx(c => digDiscard(c, myId, sel, card, srvNow)); setSel(null); }}>🗑️ ทิ้งใบนี้ (ผ่าน)</button>
     </div>}

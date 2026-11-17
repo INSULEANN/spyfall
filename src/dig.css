@@ -2,8 +2,8 @@
 .dig-game{display:grid;gap:10px}
 .dig-tile{display:block;width:100%;height:100%}
 .dig-board-wrap{overflow-x:auto;border-radius:14px;background:#1a120d;border:2px solid #4a3424;padding:4px;box-shadow:inset 0 0 30px #000a}
-.dig-board{display:grid;grid-template-columns:repeat(var(--bw),minmax(0,1fr));gap:2px;min-width:0;max-width:640px;margin:0 auto}
-.dig-cell{aspect-ratio:1;padding:0;border:0;border-radius:4px;background:#24180f;overflow:hidden;position:relative;cursor:default;min-height:0}
+.dig-board{display:grid;grid-template-columns:repeat(var(--bw),minmax(0,1fr));gap:2px;min-width:0;max-width:540px;margin:0 auto}
+.dig-cell{aspect-ratio:2/3;padding:0;border:0;border-radius:4px;background:#24180f;overflow:hidden;position:relative;cursor:default;min-height:0}
 .dig-cell:not(.on):not(.goal){background:repeating-linear-gradient(45deg,#22170f 0 6px,#26190f 6px 12px)}
 .dig-cell.can{cursor:pointer;outline:2px solid #ffd27a;outline-offset:-2px;animation:digGlow 1.1s ease-in-out infinite alternate}
 .dig-cell.can .dig-ghost{opacity:.55;display:block;width:100%;height:100%}
@@ -84,17 +84,18 @@
   .dig-cols>.gmain{display:block}
   .dig-cols>.gside{display:grid;gap:10px;align-content:start}
   .dig-cols .gside>*{order:0!important}
-  .dig-cols .dig-board{max-width:none}
+  .dig-cols .dig-board{max-width:620px}
   .dig-cols .dig-board-wrap{padding:8px}
 }
 /* การ์ดในมือขนาดใหญ่: เรียงเป็นตาราง ขยายตามความกว้าง (มือถือ ~3 ใบต่อแถว, จอคอม 3–4 ใบต่อแถว) */
-.dig-hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;overflow:visible}
+.dig-hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;overflow:visible}
 .dig-card{min-width:0;padding:6px;gap:5px}
-.dig-card .dig-tile,.dig-card .dig-act{width:100%!important;height:auto!important;aspect-ratio:1;border-radius:8px}
+.dig-card .dig-tile,.dig-card .dig-act{width:100%!important;height:auto!important;aspect-ratio:2/3;border-radius:8px}
+.dig-act .dig-act-img{height:auto;aspect-ratio:1}   /* การ์ดพิเศษทรงยาว: ภาพจัตุรัสอยู่กลางการ์ด */
 .dig-card .dig-act-emo{font-size:44px}
 .dig-card .dig-ov.brk{font-size:56px}.dig-card .dig-ov.fix{font-size:24px}
 .dig-card small{font-size:13px;max-width:100%}
-@media (min-width:1100px){.dig-hand{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}}
+@media (min-width:1100px){.dig-hand{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}}
 
 .dig-draw-note{color:var(--muted);font-size:12px;font-weight:400}
 
@@ -106,6 +107,7 @@
 .dig-scroll i{position:absolute;top:-6px;bottom:-6px;width:14px;border-radius:7px;background:linear-gradient(90deg,#8a5a2a,#c99a5a,#8a5a2a)}.dig-scroll i:first-child{left:-7px}.dig-scroll i:last-child{right:-7px}
 .dig-flip{position:relative;z-index:1;display:block;width:120px;height:120px;margin-top:15px;perspective:700px}
 .dig-peek.spy .dig-flip{margin-top:0}
+.dig-peek.map .dig-flip{width:100px;height:150px;margin-top:0}
 .dig-flip-in{position:absolute;inset:0;transform-style:preserve-3d;animation:digFlip .7s cubic-bezier(.4,1.4,.5,1) .6s both}
 .dig-peek.spy .dig-flip-in{animation-delay:.15s}
 .dig-flip-f{position:absolute;inset:0;display:grid;place-items:center;border-radius:14px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 8px 24px #000a}
@@ -123,6 +125,6 @@
 .dig-peek.map .dig-peek-t{margin-top:16px}
 /* ป๊อปอัปแจ้งว่าใครลงการ์ดอะไร */
 .dig-toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:55;display:flex;align-items:center;gap:10px;max-width:min(92vw,460px);padding:8px 14px 8px 8px;border-radius:16px;background:color-mix(in srgb,var(--panel) 94%,#000);border:2px solid var(--accent);box-shadow:0 10px 30px #000a;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;animation:digToast 3.5s ease both}
-.dig-toast .dig-tile,.dig-toast .dig-act{width:44px!important;height:44px!important;border-radius:8px;flex:none}
+.dig-toast .dig-tile,.dig-toast .dig-act{width:36px!important;height:54px!important;border-radius:8px;flex:none}
 .dig-toast-back{display:grid;place-items:center;width:44px;height:44px;border-radius:8px;background:#3a2a1f;font-size:28px;flex:none}
 @keyframes digToast{0%{opacity:0;transform:translate(-50%,-20px)}8%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
