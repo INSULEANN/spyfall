@@ -1,6 +1,6 @@
 // เกม "ขุดสมบัติป่าช้า" ⛏️🪦 — เกมขุดอุโมงค์ บทบาทลับ (ต้นฉบับของเว็บนี้)
 //   👷 นักขุด   ต่ออุโมงค์จากปากหลุมไปให้ถึงหีบสมบัติ (1 ใน 3 ป้ายหลุมปลายทาง)
-//   😈 ตัวป่วน  แอบขวาง — ถ้านักขุดขุดไปเจอหินเปล่า หรือการ์ดหมดกองและหมดมือก่อนถึงสมบัติ ตัวป่วนชนะ
+//   😈 ตัวป่วน  แอบขวาง — ถ้านักขุดขุดไปเจอหลุมศพที่มีแต่กระดูก หรือการ์ดหมดกองและหมดมือก่อนถึงสมบัติ ตัวป่วนชนะ
 // ตาของคุณทำ 1 อย่าง: วางการ์ดทางเดิน / เล่นการ์ดพิเศษ / ทิ้ง 1 ใบ แล้วจั่ว
 // กระดาน: board["x_y"] = { m: ขอบที่เปิด (N1 E2 S4 W8), d: 1 = ทางตัน (ตรงกลางมีหินกั้น), s: 1 = ปากหลุม }
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -139,7 +139,7 @@ function draw(r, id) { if (!r.deck.length) return; r.hands = { ...r.hands, [id]:
 function remember(r, me, key, val) { r.seen = { ...r.seen, [me]: { ...(r.seen[me] || {}), [key]: val } }; }
 function check(r) { // ปลายทางที่อุโมงค์ชน → พลิก • คืน 'gold' (นักขุดชนะ) / 'rock' (ขุดเจอหิน = นักขุดแพ้ทันที) / null
   const { touched } = reach(r); let gold = false, rock = false;
-  touched.forEach(g => { const G = r.goals[g]; if (G.open) return; G.open = 1; if (G.t === 'gold') gold = true; else rock = true; say(r, G.t === 'gold' ? '💰 ขุดทะลุถึงหีบสมบัติ!!' : `⛰️ พลิกปลายทางที่ ${g + 1} — หินเปล่า! นักขุดพลาด`); r.fx = { k: G.t === 'gold' ? 'gold' : 'rock', g, at: Date.now() }; });
+  touched.forEach(g => { const G = r.goals[g]; if (G.open) return; G.open = 1; if (G.t === 'gold') gold = true; else rock = true; say(r, G.t === 'gold' ? '💰 ขุดทะลุถึงหีบสมบัติ!!' : `💀 พลิกปลายทางที่ ${g + 1} — เจอแต่กระดูก! นักขุดพลาด`); r.fx = { k: G.t === 'gold' ? 'gold' : 'rock', g, at: Date.now() }; });
   return gold ? 'gold' : rock ? 'rock' : null;
 }
 
@@ -155,7 +155,7 @@ export function digPlay(cur, me, a, now) {
     mark(r, me, card, `${p.d ? '🧱 วางทางตัน' : '⛏️ ขุดทางต่อ'} — {${me}}`);
     const hit = check(r);
     if (hit === 'gold') { draw(r, me); return finish(cur, 'dig', now, me); }
-    if (hit === 'rock') { r.rockBy = me; return finish(cur, 'sab', now); }   // ขุดไปเจอหินเปล่า = แพ้ทันที
+    if (hit === 'rock') { r.rockBy = me; return finish(cur, 'sab', now); }   // ขุดไปเจอแต่กระดูก = แพ้ทันที
   } else {
     const A = ACT[card]; if (!A) return; const t = a.target;
     const isP = id => r.roles[id] && !r.gone?.[id] && r.order.includes(id);
@@ -202,17 +202,43 @@ export function digBot(cur, me, now) {
 const EARTH = '#3a2a1f', DIRT = '#c79a5e', DIRT2 = '#8a6238';
 // การ์ดทรงยาว 2:3 (กว้าง 100 × สูง 150) — ทางเดินแนวตั้งจึงยาวกว่าแนวนอน
 export const TW = 100, TH = 150;
+// ของประดับในดิน (วาดเล็ก ๆ ตามมุมการ์ด — มุมทั้งสี่ไม่มีทางเดินผ่านเสมอ)
+const BONE = '#e8dcc0', BONE2 = '#9c8c6c';
+const Bone = ({ x, y, a = 0, s = 1 }) => <g transform={`translate(${x} ${y}) rotate(${a}) scale(${s})`} fill={BONE} stroke={BONE2} strokeWidth="1.2">
+  <rect x="-9" y="-2" width="18" height="4" rx="1.5" /><circle cx="-9" cy="-2.6" r="2.8" /><circle cx="-9" cy="2.6" r="2.8" /><circle cx="9" cy="-2.6" r="2.8" /><circle cx="9" cy="2.6" r="2.8" /></g>;
+const Skull = ({ x, y, s = 1 }) => <g transform={`translate(${x} ${y}) scale(${s})`}>
+  <path d="M-8 2 Q-9 -10 0 -10 Q9 -10 8 2 L5 4 V8 H-5 V4 Z" fill={BONE} stroke={BONE2} strokeWidth="1.2" />
+  <circle cx="-3.4" cy="-1.5" r="2.4" fill="#2a1d15" /><circle cx="3.4" cy="-1.5" r="2.4" fill="#2a1d15" /><path d="M0 2 l-1.2 2.2 h2.4 Z M-2.5 8 V5.5 M0 8 V5.5 M2.5 8 V5.5" fill="#2a1d15" stroke="#2a1d15" strokeWidth=".8" /></g>;
+const Root = ({ d }) => <path d={d} fill="none" stroke="#5a3f28" strokeWidth="2.2" strokeLinecap="round" />;
+// มุมทั้งสี่: [x, y] กลางมุม • สุ่มแบบคงที่ตามรูปทาง (การ์ดแบบเดียวกันหน้าตาเหมือนกัน)
+const CORNERS = [[17, 26], [83, 26], [17, 124], [83, 124]];
+const Deco = ({ v }) => <g>
+  <g stroke="#2e2118" strokeWidth="2" fill="none" opacity=".8"><path d="M0 44 Q25 40 50 45 T100 42" /><path d="M0 112 Q30 116 55 110 T100 114" /></g>
+  <g fill="#4a382a"><circle cx="8" cy="64" r="2.5" /><circle cx="92" cy="98" r="3" /><circle cx="30" cy="6" r="2" /><circle cx="70" cy="146" r="2.5" /><ellipse cx="92" cy="60" rx="3.5" ry="2.5" /></g>
+  {CORNERS.map(([x, y], i) => { const k = (v + i) % 4;
+    return <g key={i}>{k === 0 ? <Bone x={x} y={y} a={i * 50 - 30} s=".85" /> : k === 1 ? <Skull x={x} y={y} s=".8" />
+      : k === 2 ? <Root d={`M${x - 14} ${y - 18} q6 10 2 18 t8 16 M${x - 6} ${y} q8 2 12 -6`} />
+      : <g fill="#5e4a38" stroke="#2a1d15" strokeWidth="1"><ellipse cx={x - 4} cy={y + 2} rx="6" ry="4.5" /><ellipse cx={x + 6} cy={y - 4} rx="4" ry="3" /></g>}</g>; })}
+</g>;
 export function Tile({ m, d, s, size = 40 }) {
   const arms = DIRS.filter(([bit]) => m & bit); const cx = TW / 2, cy = TH / 2, w = 34;
   const h = typeof size === 'number' ? size * TH / TW : size;
   return <svg width={size} height={h} viewBox={`0 0 ${TW} ${TH}`} className="dig-tile" aria-hidden="true">
-    <rect width={TW} height={TH} fill={EARTH} /><g fill="#2a1d15" opacity=".7"><circle cx="16" cy="20" r="5" /><circle cx="82" cy="128" r="6" /><circle cx="78" cy="24" r="3" /><circle cx="20" cy="124" r="4" /><circle cx="86" cy="76" r="3" /></g>
-    {arms.map(([bit, dx, dy]) => { const len = dx ? (d ? 34 : cx) : (d ? 50 : cy);
+    <rect width={TW} height={TH} fill={EARTH} />{!s && <Deco v={(m * 5 + (d ? 2 : 0)) % 4} />}
+    {[0, 1, 2].map(layer => <g key={layer}>{!d && arms.length > 0 && layer < 2 && <rect x={cx - w / 2 + (layer ? 1.5 : 0)} y={cy - w / 2 + (layer ? 1.5 : 0)} width={w - (layer ? 3 : 0)} height={w - (layer ? 3 : 0)} fill={DIRT} {...(layer ? {} : { stroke: DIRT2, strokeWidth: 3 })} />}{arms.map(([bit, dx, dy]) => { const len = dx ? (d ? 34 : cx) : (d ? 50 : cy);
       const x = dx === 0 ? cx - w / 2 : dx > 0 ? TW - len : 0; const y = dy === 0 ? cy - w / 2 : dy > 0 ? TH - len : 0;
-      return <rect key={bit} x={x} y={y} width={dx === 0 ? w : len} height={dy === 0 ? w : len} fill={DIRT} stroke={DIRT2} strokeWidth="3" />; })}
-    {!d && arms.length > 0 && <rect x={cx - w / 2 + 1} y={cy - w / 2 + 1} width={w - 2} height={w - 2} fill={DIRT} />}
-    {!d && arms.length > 0 && <g stroke="#a77c48" strokeWidth="2" opacity=".6"><path d="M40 71 h8 M54 81 h6" /></g>}
-    {d ? <g><circle cx={cx} cy={cy} r="17" fill="#6d6a66" stroke="#2a2522" strokeWidth="3" /><path d="M40 71 l8 -6 l10 4" stroke="#9a9590" strokeWidth="3" fill="none" /></g> : null}
+      const W = dx === 0 ? w : len, H = dy === 0 ? w : len;
+      if (layer === 0) return <rect key={bit} x={x} y={y} width={W} height={H} fill={DIRT} stroke={DIRT2} strokeWidth="3" />;
+      // ชั้นที่ 2 ทับเส้นขอบตรงรอยต่อกลางการ์ด ไม่ให้เห็นตะเข็บ
+      if (layer === 1) return <rect key={bit} x={x + (dx > 0 ? -2 : 1.5)} y={y + (dy > 0 ? -2 : 1.5)} width={W - (dx ? 1.5 - 2 : 3)} height={H - (dy ? 1.5 - 2 : 3)} fill={DIRT} />;
+      // รอยล้อรถเข็น: จากขอบการ์ดถึงกลางทาง
+      const a = d ? len - 4 : len - w / 2 - 2;
+      return <path key={bit} d={dx === 0 ? (dy < 0 ? `M${cx - 7} 4 V${a} M${cx + 7} 4 V${a}` : `M${cx - 7} ${TH - 4} V${TH - a} M${cx + 7} ${TH - 4} V${TH - a}`)
+        : (dx < 0 ? `M4 ${cy - 7} H${a} M4 ${cy + 7} H${a}` : `M${TW - 4} ${cy - 7} H${TW - a} M${TW - 4} ${cy + 7} H${TW - a}`)} stroke="#a77c48" strokeWidth="1.6" strokeDasharray="5 4" opacity=".7" />; })}</g>)}
+    {!d && arms.length > 0 && <g fill="#a77c48" opacity=".75"><circle cx={cx - 6} cy={cy - 5} r="1.8" /><circle cx={cx + 7} cy={cy + 4} r="1.4" /><circle cx={cx + 2} cy={cy - 9} r="1.2" /></g>}
+    {/* ทางตัน: ก้อนหินขวางทาง */}
+    {d ? <g><ellipse cx={cx} cy={cy + 12} rx="20" ry="5" fill="#1a110b" opacity=".5" /><path d={`M${cx - 18} ${cy + 10} Q${cx - 20} ${cy - 8} ${cx - 6} ${cy - 15} Q${cx + 10} ${cy - 18} ${cx + 17} ${cy - 4} Q${cx + 21} ${cy + 8} ${cx + 12} ${cy + 13} Z`} fill="#6d6a66" stroke="#2a2522" strokeWidth="3" />
+      <path d={`M${cx - 11} ${cy - 6} q6 -6 14 -5`} stroke="#9a9590" strokeWidth="3" fill="none" strokeLinecap="round" /><path d={`M${cx + 2} ${cy + 1} l5 6 l-3 5`} stroke="#3e3a36" strokeWidth="1.8" fill="none" /></g> : null}
     {s ? <g><ellipse cx={cx} cy={cy + 2} rx="26" ry="30" fill="#1a110b" stroke="#6b4a2a" strokeWidth="4" /><g stroke="#a0763f" strokeWidth="4"><path d="M40 52 V98 M60 52 V98" /><path d="M40 62 H60 M40 75 H60 M40 88 H60" strokeWidth="3" /></g></g> : null}
   </svg>;
 }
@@ -244,7 +270,7 @@ function Fx({ fx }) {
   return createPortal(<div className={'dig-fx ' + show.k} onClick={() => setShow(null)} aria-hidden="true">
     {show.k === 'fall' && <>{Array.from({ length: 14 }, (_, i) => <i key={i} className="rock" style={{ '--x': (8 + (i * 37) % 84) + '%', '--dl': (i % 5) * 0.07 + 's', '--s': 0.6 + (i % 3) * 0.3 }} />)}<b>💣 ดินถล่ม!</b></>}
     {show.k === 'gold' && <><span className="chest"><ArtSvg k="dig_gold" className="dig-fx-img" /></span>{Array.from({ length: 18 }, (_, i) => <i key={i} className="coin" style={{ '--a': (i * 20) + 'deg', '--dl': (i % 6) * 0.06 + 's' }} />)}<b>💰 เจอสมบัติ!</b></>}
-    {show.k === 'rock' && <><span className="chest"><ArtSvg k="dig_rock" className="dig-fx-img" /></span><b>⛰️ หินเปล่า…</b></>}
+    {show.k === 'rock' && <><span className="chest"><ArtSvg k="dig_rock" className="dig-fx-img" /></span><b>💀 เจอแต่กระดูก…</b></>}
     {show.k === 'mask' && <b className="maskfx">🎭</b>}
     {show.k === 'brk' && <b className="maskfx">🔨💥</b>}
   </div>, document.body);
@@ -283,7 +309,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       return <button key={k} type="button" className={'dig-cell' + (t ? ' on' : '') + (g >= 0 ? ' goal' : '') + (pl ? ' can' : '') + (canFall ? ' fall' : '') + (canMap ? ' map' : '') + (t?.by && t.by === r.lastBy ? '' : '')} disabled={!click} onClick={click || undefined}>
         {t ? <Tile m={t.m} d={t.d} s={t.s} size="100%" /> : g >= 0 ? (r.goals[g].open || res
           ? <span className={'dig-goal ' + r.goals[g].t + (r.goals[g].open ? ' open' : ' ghost')}><ArtSvg k={r.goals[g].t === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span>
-          : <span className="dig-goal back"><GoalBack i={g} />{seen['g' + g] && <em className={'dig-seen ' + seen['g' + g]}>{seen['g' + g] === 'gold' ? '💰' : '⛰️'}</em>}</span>)
+          : <span className="dig-goal back"><GoalBack i={g} />{seen['g' + g] && <em className={'dig-seen ' + seen['g' + g]}>{seen['g' + g] === 'gold' ? '💰' : '💀'}</em>}</span>)
           : pl ? <span className="dig-ghost"><Tile m={rotM(pathOf(card).m, rotAt(pl))} d={pathOf(card).d} size="100%" /></span> : null}
       </button>;
     }))}
@@ -301,7 +327,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <section className={'dig-result ' + W}>
         <div className="dig-result-art"><ArtSvg k={W === 'dig' ? 'dig_gold' : 'dig_role_s'} className="dig-act-img" /></div>
         <h2>{W === 'dig' ? '👷 นักขุดชนะ! เจอหีบสมบัติ' : '😈 ตัวป่วนชนะ! ขุดไม่ถึงสมบัติ'}</h2>
-        <p>{W === 'dig' ? (r.finisher ? `${nameOf(r.finisher)} ขุดทะลุถึงสมบัติ (+${DIG_SCORE.finisher} โบนัส)` : '') : r.rockBy ? `${nameOf(r.rockBy)} ขุดไปเจอหินเปล่า ⛰️ — นักขุดแพ้ทันที` : 'การ์ดหมดก่อนถึงหีบสมบัติ'} {myRole && (myWin ? '• คุณอยู่ฝ่ายชนะ 🎉' : '• คุณอยู่ฝ่ายแพ้')}</p>
+        <p>{W === 'dig' ? (r.finisher ? `${nameOf(r.finisher)} ขุดทะลุถึงสมบัติ (+${DIG_SCORE.finisher} โบนัส)` : '') : r.rockBy ? `${nameOf(r.rockBy)} ขุดไปเจอแต่กระดูก 💀 — นักขุดแพ้ทันที` : 'การ์ดหมดก่อนถึงหีบสมบัติ'} {myRole && (myWin ? '• คุณอยู่ฝ่ายชนะ 🎉' : '• คุณอยู่ฝ่ายแพ้')}</p>
       </section>
       {board}
       <SecH icon="🎭">บทบาทตอนจบ</SecH>
@@ -356,7 +382,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
           <span className="dig-flip-f back">{peek.k === 'map' ? <GoalBack i={peek.g} /> : <span className="dig-flip-q">?</span>}</span>
           <span className="dig-flip-f front">{peek.k === 'map' ? <span className={'dig-goal open ' + peek.v}><ArtSvg k={peek.v === 'gold' ? 'dig_gold' : 'dig_rock'} className="dig-act-img" /></span> : <RoleFace role={peek.v} size={110} />}</span>
         </span>{peek.v === 'gold' && Array.from({ length: 10 }, (_, i) => <i key={i} className="dig-spark" style={{ '--a': i * 36 + 'deg' }} />)}</span>
-        <b className="dig-peek-t">{peek.k === 'map' ? (peek.v === 'gold' ? '💰 หีบสมบัติ!' : '⛰️ หินเปล่า') : `${ROLE[peek.v].e} ${ROLE[peek.v].n}`}</b></div>}
+        <b className="dig-peek-t">{peek.k === 'map' ? (peek.v === 'gold' ? '💰 หีบสมบัติ!' : '💀 มีแต่กระดูก') : `${ROLE[peek.v].e} ${ROLE[peek.v].n}`}</b></div>}
       <button className="primary wide" onClick={() => setPeekSeen(peek.at)}>รับทราบ 🤫</button>
     </ActionSheet>
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>

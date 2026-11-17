@@ -562,13 +562,23 @@ const DIG = {
     <g fill="#ffd34d" {...OD} strokeWidth="1.4"><ellipse cx="14" cy="92" rx="5" ry="2.5" /><ellipse cx="88" cy="90" rx="5" ry="2.5" /></g>
     <Sparks pts={[[22, 18, 5], [80, 14, 6], [88, 40, 3.5]]} />
   </g>,
-  dig_rock: () => <g><Tunnel glow="#8a9aa8" bg="#241b14" />
-    <path d="M18 84Q14 58 30 46Q40 32 58 36Q78 38 84 58Q90 76 80 86Z" fill="#7d7468" {...OD} />
-    <path d="M58 36Q78 38 84 58Q90 76 80 86H62Q76 72 70 52Q66 42 58 36Z" fill="#625a50" />
-    <path d="M30 50Q38 40 50 40" stroke="#9a9084" strokeWidth="4" fill="none" strokeLinecap="round" />
-    <path d="M44 58L50 66L46 74M64 48L60 56" stroke="#3e3830" strokeWidth="2" fill="none" strokeLinejoin="round" />
-    <circle cx="24" cy="88" r="6" fill="#e8e2cc" {...OD} strokeWidth="1.6" /><circle cx="22" cy="87" r="1.5" fill="#140b05" /><circle cx="26.5" cy="87" r="1.5" fill="#140b05" />
-    <path d="M78 34L92 34M85 27L85 41M80 29L90 39M90 29L80 39" stroke="#c8c8c8" strokeWidth=".8" opacity=".55" />
+  // ปลายทางที่ไม่ใช่สมบัติ = หลุมศพมีแต่กระดูก (ชื่อคีย์เดิม dig_rock)
+  dig_rock: () => <g><Tunnel glow="#9ab0a0" bg="#241b14" />
+    {/* โลงไม้ผุเปิดฝา */}
+    <path d="M26 92L20 50L34 36H66L80 50L74 92Z" fill="#4a2e1c" {...OD} />
+    <path d="M30 86L26 52L37 42H63L74 52L70 86Z" fill="#1c120c" />
+    <path d="M70 34L90 22L94 30L76 44Z" fill="#6b4a2e" {...OD} strokeWidth="1.8" /><path d="M78 30L86 26" stroke="#3a2416" strokeWidth="1.5" />
+    {/* หัวกะโหลก + กระดูกในโลง */}
+    <g {...OD} strokeWidth="1.8">
+      <path d="M38 58Q37 44 50 44Q63 44 62 58L58 61V67H42V61Z" fill="#efe4c6" />
+      <g transform="rotate(-20 46 78)"><rect x="32" y="76" width="28" height="5" rx="2" fill="#e3d6b4" /><circle cx="32" cy="76" r="3.4" fill="#e3d6b4" /><circle cx="32" cy="81" r="3.4" fill="#e3d6b4" /><circle cx="60" cy="76" r="3.4" fill="#e3d6b4" /><circle cx="60" cy="81" r="3.4" fill="#e3d6b4" /></g>
+      <g transform="rotate(24 54 80)"><rect x="40" y="78" width="28" height="5" rx="2" fill="#efe4c6" /><circle cx="40" cy="78" r="3.4" fill="#efe4c6" /><circle cx="40" cy="83" r="3.4" fill="#efe4c6" /><circle cx="68" cy="78" r="3.4" fill="#efe4c6" /><circle cx="68" cy="83" r="3.4" fill="#efe4c6" /></g>
+    </g>
+    <circle cx="44.5" cy="54" r="4" fill="#140b05" /><circle cx="55.5" cy="54" r="4" fill="#140b05" /><path d="M50 58l-2 4h4Z" fill="#140b05" />
+    <path d="M46 67V63M50 67V63M54 67V63" stroke="#140b05" strokeWidth="1.4" />
+    {/* ใยแมงมุม + หญ้าแห้ง */}
+    <path d="M20 14L34 28M20 28L34 14M27 12V30M18 21H36" stroke="#c8c8c8" strokeWidth=".8" opacity=".5" />
+    <path d="M14 94q2 -8 4 0M84 94q2 -9 5 -1" stroke="#6a7a4a" strokeWidth="2" fill="none" strokeLinecap="round" />
   </g>,
   dig_spy: () => <g><Tunnel glow="#9adcff" />
     <rect x="20" y="22" width="40" height="56" rx="4" fill="#3a2a5a" {...OD} transform="rotate(-8 40 50)" />
