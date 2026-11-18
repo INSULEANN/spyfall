@@ -85,7 +85,7 @@ export function picTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'pic' || cur.status !== 'playing') return; picFix(r);
   if (r.phase === 'word' && now >= r.at + WORD_MS) return picSetWord(cur, r.informant, CODE_WORDS[rint(CODE_WORDS.length)], now);
   if (r.phase === 'play' && now >= r.at + (r.tmT || PLAY_MS)) { const id = playerOf(r); const h = r.hands[id] || []; return h.length ? picPlay(cur, id, h[rint(h.length)], now) : undefined; }
-  if (r.phase === 'talk' && now >= r.at + TALK_MS) return picDoneTalk(cur, null, now, true);
+  if (r.phase === 'talk' && now >= r.at + (r.tmK || TALK_MS)) return picDoneTalk(cur, null, now, true);
   if (r.phase === 'vote' && now >= r.at + (r.tmV || VOTE_MS)) return finish(cur, now);
 }
 export function picForce(cur, now) {
@@ -127,7 +127,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
   const meIn = r.order.includes(myId); const isInf = myId === r.informant; const isCon = myId === r.conspirator;
   const cur = playerOf(r); const tk = talkerOf(r); const hand = r.hands[myId] || [];
   const secs = ms => Math.max(0, Math.ceil(ms / 1000));
-  const lim = r.phase === 'word' ? WORD_MS : r.phase === 'play' ? (r.tmT || PLAY_MS) : r.phase === 'talk' ? TALK_MS : (r.tmV || VOTE_MS);
+  const lim = r.phase === 'word' ? WORD_MS : r.phase === 'play' ? (r.tmT || PLAY_MS) : r.phase === 'talk' ? (r.tmK || TALK_MS) : (r.tmV || VOTE_MS);
   const left = secs(r.at + lim - srvNow);
   const due = !res && srvNow >= r.at + lim;
   useEffect(() => { if (due) tx(c => picTick(c, srvNow)); }, [due, r.at, r.phase]);
@@ -180,7 +180,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
     {r.phase === 'talk' && <section className={'clue-turn' + (tk === myId ? ' me' : '')}><div className="ct-main">
       <div className="ct-av" key={tk}>{tk && <Avatar id={tk} av={av} size={70} />}</div>
       <div className="ct-text"><span className="ct-kicker">🎙️ อธิบายภาพ • เหลืออีก {talkers(r).length - r.talk} คน</span><h2>{tk === myId ? 'ตาคุณอธิบาย!' : `ตาของ ${nameOf(tk)}`}</h2><small>{tk === myId ? 'บอกว่าทำไมลง 2 ภาพนี้เข้ากับคำ • จบแล้วกดปุ่ม' : 'ฟังให้ดี ใครอธิบายแปลก ๆ?'}</small></div>
-      <TimerRing secs={left} total={TALK_MS / 1000} size={56} label="วิ" /></div>
+      <TimerRing secs={left} total={(r.tmK || TALK_MS) / 1000} size={56} label="วิ" /></div>
       {(tk === myId || isInf || isHost) && <button className={tk === myId ? 'primary wide' : 'secondary wide'} onClick={() => { sfx(sound, 'click'); tx(c => picDoneTalk(c, myId, srvNow, isHost)); }}>{tk === myId ? '✅ อธิบายเสร็จ' : `⏭️ ข้าม ${nameOf(tk)}`}</button>}
     </section>}
     {r.phase === 'vote' && <>

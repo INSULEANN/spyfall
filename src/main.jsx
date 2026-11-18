@@ -43,7 +43,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.64';
+const APP_VERSION = '1.65';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -350,8 +350,8 @@ function App() {
     update(ref(db,`rooms/${roomCode}`),{active:serverTimestamp()}).catch(()=>{});
     // ตัวร้าย 2 ตาล่าสุด → ลดโอกาสได้ตัวร้ายซ้ำ (ดู rand.js)
     const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
-    const tmS=TIMING[G.id]?room.settings?.timing?.[G.id]||{}:{},tmT=TIMING[G.id]?.turn&&tmS.turn>0?tmS.turn*1000:0,tmV=TIMING[G.id]?.vote&&tmS.vote>0?tmS.vote*1000:0;
-    const tm=rd=>{if(tmT)rd.tmT=tmT;if(tmV)rd.tmV=tmV;return rd};   // เวลาเทิร์น/โหวตที่หัวหน้าห้องตั้ง (ไม่ตั้ง = ค่าปกติของเกม)
+    const tmS=TIMING[G.id]?room.settings?.timing?.[G.id]||{}:{},tmT=TIMING[G.id]?.turn&&tmS.turn>0?tmS.turn*1000:0,tmV=TIMING[G.id]?.vote&&tmS.vote>0?tmS.vote*1000:0,tmK=TIMING[G.id]?.talk&&tmS.talk>0?tmS.talk*1000:0;
+    const tm=rd=>{if(tmT)rd.tmT=tmT;if(tmV)rd.tmV=tmV;if(tmK)rd.tmK=tmK;return rd};   // เวลาเทิร์น/โหวตที่หัวหน้าห้องตั้ง (ไม่ตั้ง = ค่าปกติของเกม)
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
@@ -755,15 +755,15 @@ function App() {
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>
 }
-// ⏱️ เวลาต่อเทิร์น / 🗳️ เวลาโหวต ที่หัวหน้าห้องตั้งเองได้ (วินาที = ค่าปกติของเกม) • เก็บที่ settings/timing/<game> แล้วคัดลอกเข้า round เป็น tmT/tmV ตอนเริ่มเกม
+// ⏱️ เวลาต่อเทิร์น / 🎙️ เวลาอธิบาย / 🗳️ เวลาโหวต ที่หัวหน้าห้องตั้งเองได้ (วินาที = ค่าปกติของเกม) • เก็บที่ settings/timing/<game> แล้วคัดลอกเข้า round เป็น tmT/tmK/tmV ตอนเริ่มเกม
 // เกมที่ไม่มีในนี้: ไม่มีตัวจับเวลาเทิร์น/โหวต หรือมีตัวตั้งเวลาของตัวเองในล็อบบี้อยู่แล้ว
-const TIMING={spy:{vote:90},insider:{vote:90},pics:{turn:45,vote:75},tam:{turn:30},deal:{turn:30},gold:{turn:30},yadong:{turn:40},animal:{turn:45},snake:{turn:60,tl:'⏱️ เวลาเลือกภาพ (ผู้ตาย/งูพิษ)'},checkpoint:{turn:180,tl:'⏱️ เวลาจ่าตรวจ'}};
+const TIMING={spy:{vote:90},insider:{vote:90},pics:{turn:45,talk:40,vote:75},tam:{turn:30},deal:{turn:30},gold:{turn:30},yadong:{turn:40},animal:{turn:45},snake:{turn:60,tl:'⏱️ เวลาเลือกภาพ (ผู้ตาย/งูพิษ)'},checkpoint:{turn:180,tl:'⏱️ เวลาจ่าตรวจ'}};
 const TIME_OPTS=[15,30,45,60,90,120,180];
 function TimingSet({gid,db,roomCode,room,isHost}){
   const T=TIMING[gid];if(!T)return null;const cur=room.settings?.timing?.[gid]||{};
   const save=(k,v)=>update(ref(db,`rooms/${roomCode}/settings/timing/${gid}`),{[k]:v||null}).catch(()=>{});
   const sel=(k,lbl)=>T[k]?<label className="tm-row">{lbl}<select value={cur[k]||0} disabled={!isHost} onChange={e=>save(k,+e.target.value)}><option value={0}>ปกติ ({T[k]} วิ)</option>{TIME_OPTS.filter(x=>x!==T[k]).map(x=><option key={x} value={x}>{x} วิ</option>)}</select></label>:null;
-  return <div className="tm-set"><b>⏱️ ตั้งเวลา {isHost?'':'(หัวหน้าห้องตั้ง)'}</b>{sel('turn',T.tl||'⏱️ เวลาต่อเทิร์น')}{sel('vote','🗳️ เวลาโหวต')}</div>
+  return <div className="tm-set"><b>⏱️ ตั้งเวลา {isHost?'':'(หัวหน้าห้องตั้ง)'}</b>{sel('turn',T.tl||'⏱️ เวลาต่อเทิร์น')}{sel('talk','🎙️ เวลาอธิบาย')}{sel('vote','🗳️ เวลาโหวต')}</div>
 }
 function HeadGame({room,roomCode,myId,players,isHost,scores,sound,av,nameOf,msg,onBack,srvNow}){
   const r=room.round;const [g,setG]=useState('');const [guessing,setGuessing]=useState(false);
