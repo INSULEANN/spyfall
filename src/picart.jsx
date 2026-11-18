@@ -27,10 +27,18 @@ import { HD15 } from './picartHD15.jsx';
 import { HD16 } from './picartHD16.jsx';
 import { HD17 } from './picartHD17.jsx';
 import { HD18 } from './picartHD18.jsx';
+import { HD19 } from './picartHD19.jsx';
+import { HD20 } from './picartHD20.jsx';
+import { HD21 } from './picartHD21.jsx';
+import { HD22 } from './picartHD22.jsx';
+import { HD23 } from './picartHD23.jsx';
+import { HD24 } from './picartHD24.jsx';
+import { HD25 } from './picartHD25.jsx';
+import { HD26 } from './picartHD26.jsx';
 
 export const ART = [...ART1, ...ART2, ...ART3, ...ART4, ...ART5, ...ART6, ...ART7, ...ART8];
 // ภาพแบบละเอียด (picartHD.jsx) ใช้แทนภาพเดิมเลขเดียวกัน
-const HD_MAP = Object.fromEntries([...HD, ...HD2, ...HD3, ...HD4, ...HD5, ...HD6, ...HD7, ...HD8, ...HD9, ...HD10, ...HD11, ...HD12, ...HD13, ...HD14, ...HD15, ...HD16, ...HD17, ...HD18].map(([n, , svg]) => [n, svg]));
+const HD_MAP = Object.fromEntries([...HD, ...HD2, ...HD3, ...HD4, ...HD5, ...HD6, ...HD7, ...HD8, ...HD9, ...HD10, ...HD11, ...HD12, ...HD13, ...HD14, ...HD15, ...HD16, ...HD17, ...HD18, ...HD19, ...HD20, ...HD21, ...HD22, ...HD23, ...HD24, ...HD25, ...HD26].map(([n, , svg]) => [n, svg]));
 
 export function PicSvg({ n }) {
   if (HD_MAP[n]) return HD_MAP[n];
