@@ -497,6 +497,24 @@ function SnakeScene() {
     <g transform="translate(200 236)"><rect x="-70" y="-12" width="140" height="22" rx="4" fill="#0e1a14" stroke="#7fd07a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#9ae07a" fontFamily="Mitr,sans-serif">ภาพไหนคือภาพจริง?</text></g>
   </S>;
 }
+// ---------- ⚡ ศึกควิซไวไฟ: เวทีเกมโชว์ สปอตไลต์ จอยักษ์มีคำถาม ปุ่ม ก ข ค ง สี่สี แท่นผู้แข่งขันกับปุ่มกด ----------
+function QuizScene() {
+  const C = ['#ff5f6d', '#3fa9f5', '#ffb627', '#3ccf91'];
+  return <S id="quiz" label="เวทีเกมโชว์ยามค่ำ สปอตไลต์สีทอง จอยักษ์ขึ้นเครื่องหมายคำถาม ปุ่มตอบ ก ข ค ง สี่สี และแท่นผู้แข่งขันมีปุ่มกดสีแดง">
+    <defs><linearGradient id="qz-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#110c24" /><stop offset="1" stopColor="#2a1a5e" /></linearGradient>
+      <linearGradient id="qz-beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe37a" stopOpacity=".55" /><stop offset="1" stopColor="#ffe37a" stopOpacity="0" /></linearGradient></defs>
+    <rect width="400" height="260" fill="url(#qz-sky)" />
+    <path d="M40 0 L10 200 H110Z" fill="url(#qz-beam)" className="pulse" /><path d="M360 0 L290 200 H390Z" fill="url(#qz-beam)" className="pulse" />
+    <g fill="#ffcf3a">{[20, 60, 100, 300, 340, 380].map((x, i) => <circle key={x} cx={x} cy={14 + (i % 2) * 6} r="3" className="pulse" />)}</g>
+    <g transform="translate(110 22)"><rect width="180" height="92" rx="10" fill="#0b0818" stroke="#ff4fa3" strokeWidth="4" /><rect x="8" y="8" width="164" height="76" rx="6" fill="#1d1638" />
+      <text x="90" y="62" textAnchor="middle" fontSize="54" fontWeight="800" fill="#ffe37a" fontFamily="Mitr,sans-serif">?</text>
+      <g className="pulse">{[0, 1, 2, 3, 4, 5, 6, 7].map(i => <circle key={i} cx={14 + i * 21.7} cy="4" r="2.4" fill="#ff4fa3" />)}</g></g>
+    {C.map((c, i) => <g key={i} transform={`translate(${86 + (i % 2) * 118} ${124 + Math.floor(i / 2) * 30})`}><rect width="110" height="24" rx="7" fill={c} stroke="#0b0818" strokeWidth="2.5" /><circle cx="14" cy="12" r="8" fill="#fff" opacity=".9" /><text x="14" y="16.5" textAnchor="middle" fontSize="12" fontWeight="800" fill={c} fontFamily="Mitr,sans-serif">{'กขคง'[i]}</text><rect x="28" y="9" width={50 + (i * 13) % 30} height="6" rx="3" fill="#fff" opacity=".55" /></g>)}
+    <path d="M0 196 H400 V260 H0Z" fill="#3a2a7a" /><path d="M0 196 H400" stroke="#ffcf3a" strokeWidth="3" />
+    {[60, 200, 340].map((x, i) => <g key={x} transform={`translate(${x} 214)`}><path d="M-34 -14 H34 L28 34 H-28Z" fill={['#2c2252', '#4a2a8a', '#2c2252'][i]} stroke="#ffcf3a" strokeWidth="2.5" /><ellipse cy="-16" rx="16" ry="6" fill="#c81a3a" stroke="#0b0818" strokeWidth="2" /><ellipse cy="-19" rx="12" ry="4" fill="#ff5f6d" className={i === 1 ? 'pulse' : ''} /><text y="16" textAnchor="middle" fontSize="15" fontWeight="800" fill="#ffe37a" fontFamily="Mitr,sans-serif">{[1200, 2750, 900][i]}</text></g>)}
+    {[[44, 140], [356, 140]].map(([x, y]) => <g key={x} transform={`translate(${x} ${y}) scale(1.3)`} className="bob"><path d="M-8 -26 L6 -26 L-2 -8 H10 L-10 18 L-4 -2 H-14Z" fill="#ffe37a" stroke="#2a1a00" strokeWidth="2" strokeLinejoin="round" /></g>)}
+  </S>;
+}
 // ---------- 🐷 สัตว์หน้านิ่ง: วงไพ่ใต้ถุนบ้าน เสื่อเขียว หมูยื่นไพ่คว่ำ แมวลังเล กบลุ้น ----------
 function AnimalScene() {
   return <S id="animal" label="วงไพ่ใต้ถุนบ้าน หมูยื่นไพ่คว่ำให้แมวพร้อมบอกว่านี่คือหมู กบแอบมอง ไพ่สัตว์หงายวางบนเสื่อ">
@@ -550,5 +568,5 @@ function GoldScene() {
     <g transform="translate(200 30)"><g className="pulse"><path d="M-70 -18 H70 a10 10 0 0 1 10 10 V10 a10 10 0 0 1 -10 10 H-70 a10 10 0 0 1 -10 -10 V-8 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2a1a0a" strokeWidth="2.5" /><text y="8" textAnchor="middle" fontSize="18" fontWeight="800" fill="#c88a12" fontFamily="Mitr,sans-serif">ทอง…หรือตูม!?</text></g></g>
   </S>;
 }
-const SCENES = { gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+const SCENES = { quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

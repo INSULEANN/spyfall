@@ -340,3 +340,14 @@ body{min-height:100vh}
 /* รหัสห้อง/ชื่อเว็บ ต้องอ่านง่ายเสมอ (ฟอนต์ตกแต่งบางธีมอ่านตัวอังกฤษยาก) */
 .room-code{font-family:"Kanit",sans-serif!important;font-weight:800;letter-spacing:2px}
 [data-theme="curse"] .brand,[data-theme="curse"] .brand *{font-family:"Kanit",sans-serif!important;font-weight:800}
+
+/* ⚡ ศึกควิซไวไฟ — เวทีเกมโชว์ยามค่ำ ม่วงน้ำเงินเข้ม ไฟสปอตไลต์ทอง ป้ายไฟนีออนชมพู */
+[data-theme="quiz"]{
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:18px;
+  --bg:#110c24;--panel:#1d1638;--inset:#17112e;--chip:#2c2252;--glow:#3a2a7a;
+  --text:#f7f3ff;--soft:#ddd4f5;--muted:#a79cc8;--dim:#6e6494;
+  --accent:#ffcf3a;--accent-hi:#ffe37a;--accent-2:#ff4fa3;--on-accent:#2a1a00;
+  --hero-1:#110c24;--hero-2:#2a1a5e;--hero-3:#6a1a5a;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M30 8 L20 30 H28 L24 48 L38 24 H30 Z' fill='%23ffcf3a' fill-opacity='.05'/%3E%3C/svg%3E");
+}
+[data-theme="quiz"] .hero h1 em{color:#ffe37a;text-shadow:0 0 22px #ffcf3a66}

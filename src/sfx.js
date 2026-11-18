@@ -295,6 +295,7 @@ export const FILMS = {
 export const playFilm = (on, id) => { if (!on) return; try { FILMS[id]?.(); } catch { /* ignore */ } };
 
 THEMES.animal = THEMES.deal || THEMES.boom; // สัตว์หน้านิ่ง
+THEMES.quiz = THEMES.clue || THEMES.deal; // ศึกควิซไวไฟ
 // ไพ่เนียนยาดอง: ตะโกนโกหก • หัวใจเต้นตอนกระดก • รอด / ฟุบ
 THEMES.yadong = { ...(THEMES.deal || {}),
   liar: () => { noise(0.15, { gain: 0.12, freq: 900 }); thump(0, 0.45); tone(520, 0.18, { type: 'square', gain: 0.05 }); tone(390, 0.3, { type: 'square', gain: 0.05, at: 0.16 }); },

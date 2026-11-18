@@ -22,6 +22,7 @@ Thai party board-game website (formerly "Spyfall Thai"). Many online multiplayer
   - `APP_VERSION`
 - Game modules, one file each:
   - pure logic functions plus a React screen and an optional `...Lobby`
+  - `quiz.jsx` (type `qz`, ศึกควิซไวไฟ): question banks live in `src/quiz/<cat>.js` (100 each, lazy-loaded; first choice = correct answer); validate with `node scripts/checkquiz.mjs`
   - games: `werewolf.jsx`, `explore.jsx`, `cake.jsx`, `boom.jsx`, `curse.jsx`, `tam.jsx`, `deal.jsx`, `checkpoint.jsx`, `clue.jsx`, `undercover.jsx` (SPY, type `uc`), `insider.jsx` (type `ins`), `dig.jsx`, `snake.jsx`, and `pics.jsx` (type `pic`; disabled with `soon:true` because it has no art yet)
 - `src/ui.jsx`: shared UI pieces:
   - `Avatar`, `Figure`, `PlayerGrid`, `WhoDone`, `Phase`, `Outcome`, `Leaderboard`

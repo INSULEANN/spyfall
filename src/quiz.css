@@ -1,0 +1,90 @@
+/* ⚡ ศึกควิซไวไฟ */
+.qz-game{display:flex;flex-direction:column;gap:12px}
+.qz-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.qz-no{font-family:var(--display);font-weight:700;font-size:1.05rem;background:var(--chip);padding:4px 12px;border-radius:999px}
+.qz-top .tring,.qz-ans-n{margin-left:auto}
+.qz-ans-n{font-family:var(--display);font-weight:700;color:var(--accent);font-size:1.1rem;animation:qzPulse 1s ease-in-out infinite}
+.qz-card{background:linear-gradient(160deg,var(--panel),var(--inset));border:2px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:var(--radius);padding:18px 16px 14px;text-align:center;box-shadow:0 0 0 4px #0003,0 10px 30px #0005;animation:qzIn .45s cubic-bezier(.2,1.4,.4,1)}
+.qz-card.ready{border-color:var(--accent-2)}
+.qz-q{font-family:var(--display);font-size:clamp(1.15rem,4.6vw,1.6rem);font-weight:600;line-height:1.45;margin:0;color:var(--text)}
+.qz-cnt{display:block;margin-top:8px;color:var(--muted)}
+.qz-img{margin:0 auto 12px;max-width:240px;border-radius:10px;overflow:hidden;background:#fff1;display:flex;justify-content:center}
+.qz-img img{display:block;max-width:100%;max-height:150px;object-fit:contain}
+.qz-img.bad{padding:10px;font-size:.85rem;color:var(--muted);max-width:none}
+.qz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qz-opt{--c:#ff5f6d;position:relative;display:flex;align-items:center;gap:10px;min-height:76px;padding:10px 12px;border:none;border-radius:14px;background:var(--c);color:#fff;font-family:var(--display);font-weight:600;font-size:clamp(.92rem,3.6vw,1.12rem);line-height:1.3;text-align:left;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 55%,#000),0 8px 18px #0004;transition:transform .12s,filter .2s,opacity .2s;text-shadow:0 1px 2px #0005}
+.qz-opt.b{--c:#2f97e8}.qz-opt.c{--c:#f0a312}.qz-opt.d{--c:#2fbf80}
+.qz-opt i{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;color:var(--c);font-style:normal;font-weight:800;font-size:1.1rem;text-shadow:none}
+.qz-opt:not(:disabled):hover{filter:brightness(1.08);transform:translateY(-2px)}
+.qz-opt:not(:disabled):active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 55%,#000)}
+.qz-opt:disabled{cursor:default;opacity:1;transform:none}
+.qz-opts.wait .qz-opt{filter:saturate(.5) brightness(.8)}
+.qz-opt.picked{outline:4px solid #fff;outline-offset:2px;transform:scale(1.02)}
+.qz-opt.off{opacity:.45}
+.qz-opt.dim{opacity:.35;filter:grayscale(.5)}
+.qz-opt.good{animation:qzGood .6s ease;outline:4px solid #fff;outline-offset:2px}
+.qz-tick{position:absolute;top:-10px;right:-8px;width:30px;height:30px;border-radius:50%;background:#fff;color:#1a9a5a;display:grid;place-items:center;font-size:1.1rem;box-shadow:0 2px 8px #0005}
+.qz-votes{position:absolute;bottom:4px;right:8px;font-size:.7rem;letter-spacing:-2px;opacity:.9}
+.qz-wait{text-align:center;color:var(--muted);margin:0}
+.qz-me{text-align:center;font-family:var(--display);font-weight:700;font-size:1.1rem;margin:0;padding:8px;border-radius:12px;animation:qzIn .4s ease}
+.qz-me.ok{background:#2fbf8033;color:#7dffc0}.qz-me.no{background:#ff5f6d26;color:#ffadb4}
+
+/* เวที: ตัวละครยืนเรียง คะแนนลอยบนหัว (ไม่มีชื่อ) */
+.qz-stage{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:4px 8px;padding:34px 8px 10px;border-radius:var(--radius);background:linear-gradient(180deg,transparent 0 62%,color-mix(in srgb,var(--accent) 22%,var(--panel)) 62% 100%);border-bottom:4px solid var(--accent);position:relative}
+.qz-pl{position:relative;display:flex;flex-direction:column;align-items:center;min-width:52px;transition:transform .3s}
+.qz-pl .fig{filter:drop-shadow(0 4px 2px #0005)}
+.qz-pl.me .qz-bub{background:var(--accent);color:var(--on-accent)}
+.qz-bub{position:relative;margin-bottom:4px;padding:2px 8px;border-radius:10px;background:#fff;color:#1d1638;font-family:var(--display);font-weight:700;font-size:.82rem;white-space:nowrap;box-shadow:0 2px 6px #0004;display:flex;gap:3px;align-items:center}
+.qz-bub::after{content:'';position:absolute;bottom:-5px;left:50%;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:inherit;border-top-color:#fff}
+.qz-pl.me .qz-bub::after{border-top-color:var(--accent)}
+.qz-bub i{font-style:normal;font-size:.72rem}
+.qz-pl.in{animation:qzHop .35s ease}
+.qz-lock{position:absolute;top:24px;right:-2px;font-size:1rem;animation:qzIn .3s ease}
+.qz-pl.ok{animation:qzJump .7s ease 2}
+.qz-pl.no{animation:qzShake .5s ease;filter:saturate(.55)}
+.qz-x{position:absolute;top:26px;right:-4px;font-weight:800;color:#ff6b76;font-size:1.1rem}
+.qz-plus{position:absolute;top:-24px;font-style:normal;font-family:var(--display);font-weight:800;color:#7dffc0;text-shadow:0 2px 4px #000a;animation:qzFloat 1.6s ease forwards;white-space:nowrap}
+
+/* อันดับย่อตอนเฉลย */
+.qz-mini,.qz-rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.qz-mini li,.qz-rank li{display:flex;align-items:center;gap:8px;background:var(--inset);border-radius:12px;padding:6px 10px;animation:qzIn .35s ease backwards}
+.qz-mini li:nth-child(2){animation-delay:.06s}.qz-mini li:nth-child(3){animation-delay:.12s}.qz-mini li:nth-child(4){animation-delay:.18s}.qz-mini li:nth-child(5){animation-delay:.24s}
+.qz-mini li.me,.qz-rank li.me{outline:2px solid var(--accent)}
+.qz-mini b,.qz-rank b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qz-mini em,.qz-rank em{font-style:normal;font-family:var(--display);font-weight:700;color:var(--accent)}
+.qz-rank span{width:22px;text-align:center;font-weight:700;color:var(--muted)}
+.qz-rank small{color:var(--muted)}
+
+/* โพเดียม */
+.qz-podium{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:8px;padding:10px 4px 0}
+.qz-pod{display:flex;flex-direction:column;align-items:center;animation:qzRise .7s cubic-bezier(.2,1.3,.4,1) backwards}
+.qz-pod.p1{animation-delay:.5s}.qz-pod.p2{animation-delay:.25s}
+.qz-block{width:100%;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--chip),var(--inset));border:2px solid var(--accent);border-bottom:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;margin-top:4px}
+.qz-block span{font-size:1.7rem}.qz-block small{font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
+.qz-pod.p1 .qz-block{height:104px;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 55%,var(--chip)),var(--inset))}
+.qz-pod.p2 .qz-block{height:78px}.qz-pod.p3 .qz-block{height:58px}
+
+/* ห้องรอ */
+.qz-lobby{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}
+.qz-lobby>label{font-weight:700}
+.qz-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.qz-cat{position:relative;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:2px solid var(--chip);background:var(--inset);color:var(--text);cursor:pointer;text-align:left}
+.qz-cat span{font-size:1.4rem}.qz-cat b{font-size:.95rem}
+.qz-cat.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--inset))}
+.qz-cat i{position:absolute;top:4px;right:8px;font-style:normal;color:var(--accent);font-weight:800}
+.qz-cat:disabled{cursor:default;opacity:.85}
+.qz-quick{display:flex;justify-content:flex-end}
+.qz-ns{display:flex;flex-wrap:wrap;gap:6px}
+.qz-n{padding:8px 14px;border-radius:999px;border:2px solid var(--chip);background:var(--inset);color:var(--text);font-weight:700;cursor:pointer}
+.qz-n.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.qz-n:disabled{cursor:default;opacity:.85}
+
+@keyframes qzIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes qzPulse{50%{opacity:.55}}
+@keyframes qzGood{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1.02)}}
+@keyframes qzHop{50%{transform:translateY(-8px)}}
+@keyframes qzJump{0%,100%{transform:none}30%{transform:translateY(-16px) rotate(-6deg)}60%{transform:translateY(-4px) rotate(4deg)}}
+@keyframes qzShake{20%,60%{transform:translateX(-5px) rotate(-4deg)}40%,80%{transform:translateX(5px) rotate(4deg)}}
+@keyframes qzFloat{0%{opacity:0;transform:translateY(8px)}20%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+@keyframes qzRise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.qz-game *{animation:none!important}}
