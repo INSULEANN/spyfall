@@ -439,7 +439,7 @@ function CurseScene() {
     <g fill="#050a07"><circle cx="84" cy="182" r="9" /><path d="M70 218 q0 -26 14 -28 q14 2 14 28 Z" /><path d="M92 196 L104 168" stroke="#050a07" strokeWidth="6" strokeLinecap="round" /></g>
     <path d="M78 196 Q84 202 92 196" stroke="#f3efe0" strokeWidth="2.5" fill="none" />
     <rect x="102" y="150" width="4" height="22" rx="2" fill="#6b4a2a" transform="rotate(20 104 160)" />
-    <g className="flick" transform="translate(108 146)"><path d="M0 -16 Q-8 -4 0 4 Q8 -4 0 -16 Z" fill="#ffcf5a" /><path d="M0 -8 Q-3 -2 0 2 Q3 -2 0 -8 Z" fill="#fff" /></g>
+    <g transform="translate(108 146)"><g className="pulse"><path d="M0 -16 Q-8 -4 0 4 Q8 -4 0 -16 Z" fill="#ffcf5a" /><path d="M0 -8 Q-3 -2 0 2 Q3 -2 0 -8 Z" fill="#fff" /></g></g>
     {/* ดวงไฟผีลอย */}
     <g className="drift"><circle cx="60" cy="64" r="5" fill="#9ff07a" opacity=".85" /><circle cx="60" cy="64" r="13" fill="#9ff07a" opacity=".16" /></g>
     <g className="drift"><circle cx="366" cy="186" r="5" fill="#9ff07a" opacity=".8" /><circle cx="366" cy="186" r="12" fill="#9ff07a" opacity=".14" /></g>
@@ -622,14 +622,14 @@ function DigScene() {
       <g transform="translate(-18 -10)"><rect width="36" height="22" rx="3" fill="#8a5530" stroke="#3a2010" strokeWidth="2.4" /><path d="M-2 3 Q18 -14 38 3" fill="#a86a3a" stroke="#3a2010" strokeWidth="2.4" /><path d="M8 0 V22 M28 0 V22" stroke="#c8a040" strokeWidth="3" /><rect x="14" y="4" width="8" height="8" rx="1" fill="#ffd34d" stroke="#3a2010" strokeWidth="1.2" /><g fill="#ffd34d" stroke="#8a5a10" strokeWidth="1"><circle cx="6" cy="-4" r="3.6" /><circle cx="18" cy="-8" r="3.6" /><circle cx="30" cy="-3" r="3.6" /></g></g>
       <g fill="#fff3a0">{[[-30, -30], [30, -26], [0, -44]].map(([x, y], i) => <path key={i} d={`M${x} ${y - 5} l1.6 3.4 l3.4 1.6 l-3.4 1.6 l-1.6 3.4 l-1.6 -3.4 l-3.4 -1.6 l3.4 -1.6Z`} className="pulse" />)}</g></g>
     {/* นักล่าสมบัติ 2 คน เดินบนทาง */}
-    <g transform="translate(150 168)" className="bob">
+    <g transform="translate(150 168)">
       <circle cx="-14" cy="-10" r="26" fill="url(#dgs-glow)" />
       <path d="M-8 30 l-3 14 M6 30 l4 14" stroke="#2a1d14" strokeWidth="5" strokeLinecap="round" />
       <path d="M-12 2 Q-12 -6 0 -6 Q12 -6 12 2 V32 H-12Z" fill="#7a5a36" stroke="#2a1d14" strokeWidth="2" /><path d="M-12 14 H12" stroke="#4a3220" strokeWidth="3" />
       <circle cy="-14" r="8" fill="#e8b88a" stroke="#2a1d14" strokeWidth="2" /><path d="M-13 -18 H13 M-8 -18 Q-8 -28 0 -28 Q8 -28 8 -18" fill="#6b4224" stroke="#2a1d14" strokeWidth="2.4" strokeLinecap="round" />
       <path d="M-12 4 L-22 -6" stroke="#2a1d14" strokeWidth="4" strokeLinecap="round" /><g transform="translate(-24 -10)"><path d="M0 -6 V-2" stroke="#2a2a30" strokeWidth="1.4" /><rect x="-4" y="-2" width="8" height="10" rx="2" fill="#ffdc7a" stroke="#2a1d14" strokeWidth="1.4" /><circle cy="3" r="2" fill="#fff6c8" /></g>
     </g>
-    <g transform="translate(108 196)" className="bob">
+    <g transform="translate(108 196)">
       <path d="M-8 30 l-3 14 M6 30 l4 14" stroke="#1e1a24" strokeWidth="5" strokeLinecap="round" />
       <path d="M-12 2 Q-12 -6 0 -6 Q12 -6 12 2 V32 H-12Z" fill="#4a5a6a" stroke="#1e1a24" strokeWidth="2" />
       <circle cy="-14" r="8" fill="#d8a678" stroke="#1e1a24" strokeWidth="2" /><path d="M-12 -18 H12 M-7 -18 Q-7 -27 0 -27 Q7 -27 7 -18" fill="#3a2a1e" stroke="#1e1a24" strokeWidth="2.4" strokeLinecap="round" />
@@ -685,9 +685,9 @@ function QuizScene() {
     {C.map((c, i) => <g key={i} transform={`translate(${86 + (i % 2) * 118} ${124 + Math.floor(i / 2) * 30})`}><rect width="110" height="24" rx="7" fill={c} stroke="#0b0818" strokeWidth="2.5" /><circle cx="14" cy="12" r="8" fill="#fff" opacity=".9" /><text x="14" y="16.5" textAnchor="middle" fontSize="12" fontWeight="800" fill={c} fontFamily="Mitr,sans-serif">{'กขคง'[i]}</text><rect x="28" y="9" width={50 + (i * 13) % 30} height="6" rx="3" fill="#fff" opacity=".55" /></g>)}
     <path d="M0 196 H400 V260 H0Z" fill="#3a2a7a" /><path d="M0 196 H400" stroke="#ffcf3a" strokeWidth="3" />
     {[60, 200, 340].map((x, i) => <g key={x} transform={`translate(${x} 214)`}><path d="M-34 -14 H34 L28 34 H-28Z" fill={['#2c2252', '#4a2a8a', '#2c2252'][i]} stroke="#ffcf3a" strokeWidth="2.5" /><ellipse cy="-16" rx="16" ry="6" fill="#c81a3a" stroke="#0b0818" strokeWidth="2" /><ellipse cy="-19" rx="12" ry="4" fill="#ff5f6d" className={i === 1 ? 'pulse' : ''} /><text y="16" textAnchor="middle" fontSize="15" fontWeight="800" fill="#ffe37a" fontFamily="Mitr,sans-serif">{[1200, 2750, 900][i]}</text></g>)}
-    {[[44, 140], [356, 140]].map(([x, y]) => <g key={x} transform={`translate(${x} ${y}) scale(1.3)`} className="bob"><path d="M-8 -26 L6 -26 L-2 -8 H10 L-10 18 L-4 -2 H-14Z" fill="#ffe37a" stroke="#2a1a00" strokeWidth="2" strokeLinejoin="round" /></g>)}
+    {[[44, 140], [356, 140]].map(([x, y]) => <g key={x} transform={`translate(${x} ${y}) scale(1.3)`} ><path d="M-8 -26 L6 -26 L-2 -8 H10 L-10 18 L-4 -2 H-14Z" fill="#ffe37a" stroke="#2a1a00" strokeWidth="2" strokeLinejoin="round" /></g>)}
     {/* ผู้ชมด้านล่าง คอนเฟตตี ป้าย ON AIR นาฬิกาจับเวลา */}
-    <g>{Array.from({ length: 24 }, (_, i) => [8 + i * 17, ['#ff5f6d', '#3fa9f5', '#ffb627', '#3ccf91', '#ff4fa3', '#fff'][i % 6], i]).map(([x, c, i]) => <rect key={i} x={x} y={(i * 37) % 120 + 10} width="6" height="3" rx="1.2" fill={c} transform={`rotate(${i * 33} ${x} ${(i * 37) % 120 + 10})`} opacity=".85" className={i % 3 ? 'float' : undefined} />)}</g>
+    <g>{Array.from({ length: 24 }, (_, i) => [8 + i * 17, ['#ff5f6d', '#3fa9f5', '#ffb627', '#3ccf91', '#ff4fa3', '#fff'][i % 6], i]).map(([x, c, i]) => <rect key={i} x={x} y={(i * 37) % 120 + 10} width="6" height="3" rx="1.2" fill={c} transform={`rotate(${i * 33} ${x} ${(i * 37) % 120 + 10})`} opacity=".85" />)}</g>
     <g transform="translate(330 46)"><rect x="-26" y="-11" width="52" height="22" rx="5" fill="#2a0a14" stroke="#ff3b4d" strokeWidth="2" /><circle cx="-16" r="4" fill="#ff3b4d" className="pulse" /><text x="5" y="4" textAnchor="middle" fontSize="10" fontWeight="900" fill="#ff8a96" fontFamily="sans-serif">ON AIR</text></g>
     <g transform="translate(70 52)"><circle r="18" fill="#1d1638" stroke="#ffe37a" strokeWidth="3" /><path d="M0 0 V-12 M0 0 L8 5" stroke="#ffe37a" strokeWidth="2.6" strokeLinecap="round" /><rect x="-4" y="-24" width="8" height="5" rx="1" fill="#ffe37a" /><path d="M0 -18 A18 18 0 0 1 16 -8" stroke="#ff4fa3" strokeWidth="3" fill="none" /></g>
     <g fill="#140e2e">{Array.from({ length: 14 }, (_, i) => <g key={i}><circle cx={14 + i * 29} cy={i % 2 ? 262 : 265} r="10" /><path d={`M${2 + i * 29} 270 Q${14 + i * 29} ${i % 2 ? 248 : 252} ${26 + i * 29} 270Z`} /></g>)}</g>
