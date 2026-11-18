@@ -2,7 +2,7 @@
 // viewBox 400×260 ทุกฉาก — ของสำคัญอยู่แถบกลาง เพราะการ์ดเกมจะครอปบน-ล่าง
 import React from 'react';
 import { AniArt } from './animal.jsx';
-import { SnackArt, ShotGlass, Paew } from './yadong.jsx';
+import { RankArt, ShotGlass, Paew } from './yadong.jsx';
 
 const S = ({ id, children, label }) => <svg className="scene" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label={label} data-scene={id}>{children}</svg>;
 
@@ -527,9 +527,9 @@ function YadongScene() {
     <path d="M0 168 H400 V260 H0Z" fill="#6a2e14" /><path d="M0 168 H400" stroke="#2b1608" strokeWidth="4" /><g stroke="#4a1e0c" strokeWidth="2" opacity=".6">{[190, 214, 238].map(y => <path key={y} d={`M0 ${y} H400`} />)}</g>
     {[0, 1, 2, 3, 4].map(i => <g key={i} transform={`translate(${168 + i * 9} ${190 - i * 2}) rotate(${(i - 2) * 12})`}><rect x="-14" y="-20" width="28" height="40" rx="4" fill="#6a1a22" stroke="#f3c26a" strokeWidth="2" /></g>)}
     {[0, 1, 2, 3, 4, 5].map(i => <ShotGlass key={i} size={20} x={40 + i * 24} y={180} fill={i < 2 ? 0 : 1} />)}
-    <g className="bob"><g transform="translate(300 196) rotate(10)"><rect x="-17" y="-24" width="34" height="48" rx="5" fill="#f7a38a" stroke="#2b1608" strokeWidth="2.5" /><SnackArt k={1} size={30} x={-15} y={-16} /></g></g>
+    <g className="bob"><g transform="translate(300 196) rotate(10)"><rect x="-17" y="-24" width="34" height="48" rx="5" fill="#fffdf6" stroke="#2b1608" strokeWidth="2.5" /><RankArt k={2} size={30} x={-15} y={-16} /></g></g>
     <g transform="translate(200 100)"><g className="pulse"><path d="M-62 -26 H62 a10 10 0 0 1 10 10 V12 a10 10 0 0 1 -10 10 H10 L-4 38 L-2 22 H-62 a10 10 0 0 1 -10 -10 V-16 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2b1608" strokeWidth="2.5" /><text y="7" textAnchor="middle" fontSize="22" fontWeight="800" fill="#d8283a" fontFamily="Mitr,sans-serif">โกหก!!</text></g></g>
-    <g transform="translate(200 244)"><rect x="-78" y="-12" width="156" height="22" rx="4" fill="#22100e" stroke="#f0a24a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffcf8a" fontFamily="Mitr,sans-serif">หมึกย่าง 3 ใบจ้า…จริงนะ</text></g>
+    <g transform="translate(200 244)"><rect x="-78" y="-12" width="156" height="22" rx="4" fill="#22100e" stroke="#f0a24a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffcf8a" fontFamily="Mitr,sans-serif">คิง 3 ใบจ้า…จริงนะ</text></g>
   </S>;
 }
 const SCENES = { yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
