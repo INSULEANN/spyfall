@@ -1,0 +1,62 @@
+/* 🥃 ไพ่เนียนยาดอง */
+.yd-game{display:grid;gap:4px}
+.yd-card{position:relative;display:inline-grid;justify-items:center;align-content:center;gap:2px;width:72px;height:100px;padding:6px 4px;border-radius:12px;border:3px solid #2b1608;background:radial-gradient(circle at 50% 35%,#fff8 0,transparent 60%),var(--c,#eee);color:#2b1608;box-shadow:0 4px 0 #0004;font:inherit;cursor:default;transition:transform .15s,opacity .15s}
+.yd-card b{font-family:var(--display);font-size:13px;line-height:1.1}
+.yd-card.wild{box-shadow:0 4px 0 #0004,0 0 0 3px #ffd27a88}
+.yd-card.back{padding:0;background:none;border:none}
+.yd-card.sm{width:38px;height:54px;border-width:2px;border-radius:8px}
+.yd-card.dim{opacity:.72}
+button.yd-card{cursor:pointer}button.yd-card:hover{transform:translateY(-3px)}
+.yd-card.sel{transform:translateY(-8px);outline:4px solid var(--accent);outline-offset:2px;opacity:1}
+.yd-hand{display:flex;flex-wrap:wrap;gap:10px;padding:10px 4px 4px}
+.yd-hand.lobby .yd-card{width:62px;height:88px}
+.yd-snack{display:inline-flex;align-items:center;gap:3px;font-weight:700;vertical-align:middle;color:var(--accent-hi)}
+.yd-banner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:18px;background:linear-gradient(135deg,var(--chip),var(--inset));border:2px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.yd-banner>div{flex:1;display:grid;gap:2px}.yd-banner h2{margin:0;font-size:20px}.yd-banner small{color:var(--muted)}
+.yd-stage{display:grid;gap:10px;padding:14px;border-radius:18px;background:radial-gradient(ellipse at 50% 30%,#7a3a1a55,transparent 70%),var(--inset);border:2px solid color-mix(in srgb,var(--accent) 30%,transparent);margin:8px 0}
+.yd-stage.me{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.yd-pile{position:relative;height:70px;display:flex;justify-content:center;align-items:center}
+.yd-pile span{position:absolute;transform:translateX(calc((var(--i) - 4) * 9px)) rotate(calc((var(--i) - 4) * 7deg))}
+.yd-flight{display:flex;align-items:center;gap:10px}
+.yd-ft{flex:1;display:grid;gap:2px}.yd-ft small{color:var(--muted)}
+.yd-claim{animation:yd-pop .4s ease}
+.yd-seats{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.yd-seat{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:16px;background:var(--panel);border:2px solid transparent}
+.yd-seat.me{background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.yd-seat.now{border-color:var(--accent)}
+.yd-seat.out{opacity:.5;filter:grayscale(.6)}
+.yd-seat.win{border-color:#3cbf6a;background:color-mix(in srgb,#3cbf6a 14%,var(--panel))}
+.yd-seat-tt{flex:1;display:grid;min-width:0}.yd-seat-tt small{color:var(--muted);font-size:12px}
+.yd-glasses{display:flex;gap:1px;margin-top:2px}
+.yd-inhand{padding:3px 10px;border-radius:99px;background:var(--chip);font-weight:700;font-size:14px;white-space:nowrap}
+.yd-step{display:block;margin:10px 0 2px;color:var(--muted);font-weight:700}
+.yd-recv{display:grid;justify-items:center;gap:8px;margin:4px 0 10px}
+.yd-fan{display:flex;gap:6px;justify-content:center}
+.yd-bubble{padding:5px 12px;border-radius:14px;background:#fffdf4;color:#2b1608;font-size:15px;box-shadow:0 2px 0 #0003}
+.yd-liar{background:linear-gradient(135deg,#ff8a6a,#d8283a)!important;color:#fff!important;font-size:20px!important;padding:14px!important;margin-bottom:6px}
+/* ฉากเรียกโกหก + ดื่มแก้วลุ้น */
+.yd-shot-back{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:#0009;animation:yd-fade .25s ease}
+.yd-shot{width:min(440px,100%);display:grid;justify-items:center;gap:10px;padding:18px;border-radius:22px;background:var(--panel);border:3px solid var(--accent);box-shadow:0 20px 60px #000c;text-align:center}
+.yd-shout{font-size:24px;color:#ff8a6a;animation:yd-shake .5s ease}
+.yd-fan.big{gap:8px;perspective:600px}
+.yd-flip{display:inline-block;animation:yd-flip .5s ease both;animation-delay:var(--d)}
+.yd-verdict{margin:0;font-size:20px;font-weight:800;animation:yd-pop .4s ease 1.3s both}
+.yd-verdict.lie{color:#ff8a6a}.yd-verdict.true{color:#7ee09a}
+.yd-drink{display:flex;align-items:center;gap:12px;animation:yd-pop .4s ease 1.8s both}
+.yd-dtx{display:grid;gap:2px;text-align:left}.yd-dtx small{color:var(--muted)}.yd-dtx strong{font-size:20px}
+.yd-glass-wrap{transform-origin:50% 90%;animation:yd-gulp 1.6s ease-in-out 2s both}
+.yd-glass-wrap svg path:nth-child(2){animation:yd-drain 1.4s ease-in 2.1s both;transform-origin:50% 100%}
+.yd-shot.safe{border-color:#3cbf6a}.yd-shot.safe strong{color:#7ee09a;animation:yd-pop .4s ease}
+.yd-shot.ko{border-color:#d8283a;animation:yd-shake .6s ease}.yd-shot.ko strong{color:#ff8a6a;animation:yd-pop .4s ease}
+.yd-shot.ko .yd-drink .av{animation:yd-faint 1s ease forwards}
+@keyframes yd-fade{from{opacity:0}}
+@keyframes yd-pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+@keyframes yd-flip{from{transform:rotateY(90deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes yd-shake{0%,100%{transform:none}20%{transform:translateX(-8px) rotate(-2deg)}40%{transform:translateX(8px) rotate(2deg)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes yd-gulp{0%{transform:none}30%,80%{transform:rotate(-70deg) translateY(-6px)}100%{transform:none}}
+@keyframes yd-drain{to{transform:scaleY(0)}}
+@keyframes yd-faint{to{transform:rotate(80deg) translateY(10px)}}
+/* ระหว่างเล่น: เกมเต็มความกว้าง รายชื่อห้องย้ายลงล่าง */
+.room-grid.playing:has(.yd-game){grid-template-columns:minmax(0,1fr)}
+.room-grid.playing:has(.yd-game) .game-panel{order:-1}
+.room-grid.playing:has(.yd-game) .players-panel{order:3;position:static;max-height:none;overflow:visible}

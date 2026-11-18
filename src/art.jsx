@@ -2,6 +2,7 @@
 // viewBox 400×260 ทุกฉาก — ของสำคัญอยู่แถบกลาง เพราะการ์ดเกมจะครอปบน-ล่าง
 import React from 'react';
 import { AniArt } from './animal.jsx';
+import { SnackArt, ShotGlass, Paew } from './yadong.jsx';
 
 const S = ({ id, children, label }) => <svg className="scene" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label={label} data-scene={id}>{children}</svg>;
 
@@ -513,5 +514,23 @@ function AnimalScene() {
     <g transform="translate(200 238)"><rect x="-74" y="-12" width="148" height="22" rx="4" fill="#21170f" stroke="#f6a5b8" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffc7d4" fontFamily="Mitr,sans-serif">จริง…หรือไม่จริง?</text></g>
   </S>;
 }
-const SCENES = { animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+// ---------- 🥃 ไพ่เนียนยาดอง: ร้านยาดองป้าแป๋ว ชั้นไหดอง โต๊ะไพ่ แก้วลุ้นเรียงแถว ----------
+function YadongScene() {
+  const jar = (x, y, c, s = 1) => <g key={x} transform={`translate(${x} ${y}) scale(${s})`}><rect x="-8" y="-30" width="16" height="7" rx="2" fill="#5a2a10" /><path d="M-12 -23 H12 C24 -16 24 10 18 18 H-18 C-24 10 -24 -16 -12 -23Z" fill={c} stroke="#2b1608" strokeWidth="2.5" /><rect x="-10" y="-8" width="20" height="12" rx="2" fill="#fff1c9" /></g>;
+  return <S id="yadong" label="ร้านยาดองป้าแป๋ว ชั้นวางไหดอง โต๊ะไม้มีไพ่คว่ำกองกลาง แก้วลุ้นเรียงแถว มีคนตะโกนว่าโกหก">
+    <defs><radialGradient id="yd-lamp" cx=".5" cy=".1" r=".7"><stop offset="0" stopColor="#ffb85a" stopOpacity=".55" /><stop offset="1" stopColor="#ffb85a" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="#2a1210" /><rect width="400" height="260" fill="url(#yd-lamp)" />
+    <g fill="#4a2414" stroke="#1a0806" strokeWidth="3"><rect x="10" y="64" width="150" height="8" /><rect x="10" y="118" width="150" height="8" /></g>
+    {jar(30, 60, '#c8641e')}{jar(66, 60, '#8a2a1a')}{jar(104, 60, '#d88a2a')}{jar(140, 60, '#6a1a22')}{jar(40, 114, '#d88a2a')}{jar(80, 114, '#c8641e')}{jar(122, 114, '#8a2a1a')}
+    <g transform="translate(250 0)"><path d="M0 0 V22" stroke="#1a0806" strokeWidth="2" /><path d="M-14 22 H14 L10 34 H-10Z" fill="#f0a24a" stroke="#1a0806" strokeWidth="2" /><circle cy="38" r="5" fill="#fff2b0" className="pulse" /></g>
+    <Paew size={92} x={280} y={70} />
+    <path d="M0 168 H400 V260 H0Z" fill="#6a2e14" /><path d="M0 168 H400" stroke="#2b1608" strokeWidth="4" /><g stroke="#4a1e0c" strokeWidth="2" opacity=".6">{[190, 214, 238].map(y => <path key={y} d={`M0 ${y} H400`} />)}</g>
+    {[0, 1, 2, 3, 4].map(i => <g key={i} transform={`translate(${168 + i * 9} ${190 - i * 2}) rotate(${(i - 2) * 12})`}><rect x="-14" y="-20" width="28" height="40" rx="4" fill="#6a1a22" stroke="#f3c26a" strokeWidth="2" /></g>)}
+    {[0, 1, 2, 3, 4, 5].map(i => <ShotGlass key={i} size={20} x={40 + i * 24} y={180} fill={i < 2 ? 0 : 1} />)}
+    <g className="bob"><g transform="translate(300 196) rotate(10)"><rect x="-17" y="-24" width="34" height="48" rx="5" fill="#f7a38a" stroke="#2b1608" strokeWidth="2.5" /><SnackArt k={1} size={30} x={-15} y={-16} /></g></g>
+    <g transform="translate(200 100)"><g className="pulse"><path d="M-62 -26 H62 a10 10 0 0 1 10 10 V12 a10 10 0 0 1 -10 10 H10 L-4 38 L-2 22 H-62 a10 10 0 0 1 -10 -10 V-16 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2b1608" strokeWidth="2.5" /><text y="7" textAnchor="middle" fontSize="22" fontWeight="800" fill="#d8283a" fontFamily="Mitr,sans-serif">โกหก!!</text></g></g>
+    <g transform="translate(200 244)"><rect x="-78" y="-12" width="156" height="22" rx="4" fill="#22100e" stroke="#f0a24a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffcf8a" fontFamily="Mitr,sans-serif">หมึกย่าง 3 ใบจ้า…จริงนะ</text></g>
+  </S>;
+}
+const SCENES = { yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

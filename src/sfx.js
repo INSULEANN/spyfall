@@ -295,6 +295,13 @@ export const FILMS = {
 export const playFilm = (on, id) => { if (!on) return; try { FILMS[id]?.(); } catch { /* ignore */ } };
 
 THEMES.animal = THEMES.deal || THEMES.boom; // สัตว์หน้านิ่ง
+// ไพ่เนียนยาดอง: ตะโกนโกหก • หัวใจเต้นตอนกระดก • รอด / ฟุบ
+THEMES.yadong = { ...(THEMES.deal || {}),
+  liar: () => { noise(0.15, { gain: 0.12, freq: 900 }); thump(0, 0.45); tone(520, 0.18, { type: 'square', gain: 0.05 }); tone(390, 0.3, { type: 'square', gain: 0.05, at: 0.16 }); },
+  tension: () => { [0, 0.34, 0.9, 1.22, 1.75, 2.03].forEach((at, i) => thump(at, i % 2 ? 0.22 : 0.34)); [1.2, 1.5, 1.8].forEach(at => noise(0.18, { at, gain: 0.05, freq: 300, to: 120 })); },
+  survive: () => { noise(0.3, { gain: 0.05, freq: 600, to: 200 }); arp([523, 659, 784], 0.1, { type: 'triangle', gain: 0.07, at: 0.2 }); },
+  knock: () => { tone(400, 1.4, { type: 'sawtooth', gain: 0.05, to: 60, lp: 1200, vib: 20, vibRate: 7 }); thump(1.1, 0.55); noise(0.4, { at: 1.1, gain: 0.12, freq: 500 }); arp([1568, 1319, 1568, 1319], 0.12, { gain: 0.03, at: 1.4 }); },
+};
 THEMES.snake = THEMES.werewolf; // อีนังงูพิษ ใช้ชุดเสียงกลางคืน/โหวตเดียวกับแวร์วูฟ
 let theme = 'hub';
 export const setSfxTheme = t => { theme = t || 'hub'; };

@@ -182,6 +182,17 @@
 }
 [data-theme="animal"] .hero h1 em{color:#ffc7d4;text-shadow:0 0 22px #f6a5b866}
 
+/* 🥃 ไพ่เนียนยาดอง — ร้านยาดองป้าแป๋ว ไม้แดงเข้ม ไฟหลอดส้ม ยาดองสีอำพัน */
+[data-theme="yadong"]{
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:18px;
+  --bg:#1c0e0c;--panel:#2c1614;--inset:#22100e;--chip:#3e201a;--glow:#6a2a14;
+  --text:#fdf0e2;--soft:#ecd6c0;--muted:#c09a84;--dim:#7e5e4c;
+  --accent:#f0a24a;--accent-hi:#ffcf8a;--accent-2:#d8283a;--on-accent:#2b1608;
+  --hero-1:#1c0e0c;--hero-2:#6a1a22;--hero-3:#c8641e;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M18 14 H38 L35 42 H21Z' fill='%23f0a24a' fill-opacity='.06'/%3E%3C/svg%3E");
+}
+[data-theme="yadong"] .hero h1 em{color:#ffcf8a;text-shadow:0 0 22px #f0a24a66}
+
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}
 body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}
