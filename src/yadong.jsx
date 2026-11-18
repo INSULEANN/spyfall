@@ -44,13 +44,14 @@ function deal(r, starter, now) {
   r.order.forEach(id => { r.hands[id] = []; });
   ids.forEach((id, j) => { r.hands[id] = deck.slice(j * HAND, (j + 1) * HAND).sort((a, b) => a - b); });
   r.deal = (r.deal || 0) + 1; r.table = rint(NR); r.pile = 0; r.lastPlay = null; r.shot = null;
-  r.phase = 'play'; r.turn = starter; r.at = now; r.until = now + 2500 + PLAY_MS;
+  r.phase = 'play'; r.turn = starter; r.at = now; r.until = now + 2500 + (r.tmT || PLAY_MS);
   say(r, `🍶 ป้าแป๋วแจกไพ่ใหม่ — ไพ่ประจำวงคือ “${rk(r.table)}”`);
 }
 
 export function makeYdRound(ids, set = {}, number = 1, t0 = Date.now()) {
   const order = shuffle(ids); const shots = {}; order.forEach(id => { shots[id] = 0; });
   const r = { number, kind: 'yd', order, glasses: +set.glasses === 4 ? 4 : 6, out: {}, gone: {}, shots, hands: {}, log: [], deal: 0, startedAt: t0 };
+  if (+set.tmT) r.tmT = +set.tmT;
   deal(r, order[0], t0); return r;
 }
 
@@ -70,7 +71,7 @@ function afterShot(cur, now) {
   const who = s?.who && !r.out[s.who] ? s.who : nextAlive(r, s?.who || r.turn);
   deal(r, who, now); return cur;
 }
-function nextTurn(r, from, now) { r.turn = nextAlive(r, from); r.phase = 'play'; r.at = now; r.until = now + PLAY_MS; }
+function nextTurn(r, from, now) { r.turn = nextAlive(r, from); r.phase = 'play'; r.at = now; r.until = now + (r.tmT || PLAY_MS); }
 
 // ---------- การกระทำ (เรียกใน transaction) ----------
 export function ydPlay(cur, me, idxs, now) {
@@ -219,7 +220,7 @@ export function YdGame({ db, room, roomCode, myId, players, isHost, scores, soun
         <div className="yd-ft"><span className="ct-kicker">{r.turn === myId ? '🫵 ตาคุณ' : `⏳ ตาของ ${nameOf(r.turn)}`}</span>
           {lp ? <b key={lp.at} className="yd-claim">{name(lp.by)} ลงคว่ำ {lp.cards.length} ใบ: “{RANKS[r.table].n} {lp.cards.length} ใบ!”</b> : <b>เริ่มลงไพ่ได้เลย</b>}
           <small>{lp ? `${name(r.turn)} จะลงต่อ หรือตะโกน “โกหก!”` : ' '}</small></div>
-        <TimerRing secs={left} total={PLAY_MS / 1000} size={58} label="วิ" /></div>
+        <TimerRing secs={left} total={(r.tmT || PLAY_MS) / 1000} size={58} label="วิ" /></div>
     </section>
 
     <SecH icon="🪑">คนในวง</SecH>
@@ -229,7 +230,7 @@ export function YdGame({ db, room, roomCode, myId, players, isHost, scores, soun
       <div className="yd-hand">{myHand.map((k, i) => <YdCard key={i} k={k} dim={k !== r.table && k !== WILD} />)}{!myHand.length && <i className="hint">ไพ่หมดมือ — ถึงตาแล้วต้องเรียก “โกหก!”</i>}</div></>}
     {!inGame && r.order.includes(myId) && <p className="hint">😵 คุณฟุบไปแล้ว นั่งดูเพื่อนลุ้นต่อได้เลย</p>}
 
-    <ActionSheet open={myTurn} k={'p' + stepKey} icon="🂠" title={myHand.length ? 'ตาคุณ! ลงไพ่ หรือ เรียกโกหก' : 'ไพ่หมดมือ — ต้องเรียก!'} sub={`บอกว่าเป็น “${rk(r.table)}” ทั้งหมด จะจริงหรือไม่ก็ได้`} secs={left} total={PLAY_MS / 1000}>
+    <ActionSheet open={myTurn} k={'p' + stepKey} icon="🂠" title={myHand.length ? 'ตาคุณ! ลงไพ่ หรือ เรียกโกหก' : 'ไพ่หมดมือ — ต้องเรียก!'} sub={`บอกว่าเป็น “${rk(r.table)}” ทั้งหมด จะจริงหรือไม่ก็ได้`} secs={left} total={(r.tmT || PLAY_MS) / 1000}>
       {lp && <div className="yd-recv"><div className="yd-fan">{lp.cards.map((_, i) => <YdCard key={i} back small />)}</div><span className="yd-bubble">{name(lp.by)}: “{RANKS[r.table].n} {lp.cards.length} ใบจ้า”</span></div>}
       {lp && <button className="primary wide yd-liar" onClick={() => { sfx(sound, 'confirm'); tx(cc => ydCall(cc, myId, srvNow)); }}>📣 โกหก! เปิดไพ่ {name(lp.by)}</button>}
       {myHand.length > 0 && <>

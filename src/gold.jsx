@@ -53,7 +53,7 @@ function end(cur, winner, why, now) {
   cur.status = 'result'; cur.scores = sc; cur.result = { type: 'gb', winner, why, points: pts };
   return cur;
 }
-function setTurn(r, id, phase, now) { r.turn = id; r.phase = phase; r.at = now; r.until = now + (phase === 'bid' ? BID_MS : phase === 'flip' ? FLIP_MS : TURN_MS); }
+function setTurn(r, id, phase, now) { r.turn = id; r.phase = phase; r.at = now; r.until = now + (phase === 'bid' ? BID_MS : phase === 'flip' ? FLIP_MS : (r.tmT || TURN_MS)); }
 
 // ---------- การกระทำ (เรียกใน transaction) ----------
 export function gbPlace(cur, me, k, now) {
@@ -259,7 +259,7 @@ export function GbGame({ db, room, roomCode, myId, players, isHost, scores, soun
   const flipOpen = myTurn && r.phase === 'flip';
   return <div className="gb-game">
     <div className="gb-banner"><Thongdee size={64} /><div><span className="eyebrow">รอบที่ {r.rno} • เกมที่ {r.number}</span><h2>{r.bid ? <>📣 ท้าเปิดทอง <em>{r.bid.n}</em> ห่อ</> : 'ซ่อนห่อ ท้าเปิด ลุ้นทอง!'}</h2><small>{phaseTx}</small></div>
-      <TimerRing secs={sLeft} total={(r.phase === 'place' ? PLACE_MS : r.phase === 'bid' ? BID_MS : r.phase === 'flip' ? FLIP_MS : r.phase === 'res' ? RES_MS : TURN_MS) / 1000} size={58} label="วิ" /></div>
+      <TimerRing secs={sLeft} total={(r.phase === 'place' ? PLACE_MS : r.phase === 'bid' ? BID_MS : r.phase === 'flip' ? FLIP_MS : r.phase === 'res' ? RES_MS : (r.tmT || TURN_MS)) / 1000} size={58} label="วิ" /></div>
 
     {r.phase === 'flip' && <section className="gb-flips"><span className="ct-kicker">🔦 ห่อที่เปิดแล้ว</span><div className="gb-row">{r.flips.map((f, i) => <span key={i} className="gb-pop" title={nameOf(f.id)}><Tile k={f.k} small /><Avatar id={f.id} av={av} size={20} /></span>)}</div></section>}
 
@@ -274,7 +274,7 @@ export function GbGame({ db, room, roomCode, myId, players, isHost, scores, soun
     <ActionSheet open={!res && inGame && r.phase === 'place' && !r.stack[myId].length} k={'pl' + r.rno} icon="🎒" title="ซ่อนห่อแรกของคุณ" sub="เลือกห่อที่จะวางคว่ำไว้ ทองหรือระเบิด ไม่มีใครเห็น" secs={sLeft} total={PLACE_MS / 1000}>
       <HandPick act={k => tx(cc => gbPlace(cc, myId, k, srvNow))} />
     </ActionSheet>
-    <ActionSheet open={myTurn && r.phase === 'turn'} k={'t' + stepKey} icon="⛏️" title={h.g + h.b ? 'ตาคุณ! วางห่อเพิ่ม หรือ ท้าเปิด' : 'ห่อหมดมือ — ต้องท้าเปิด!'} sub="ท้า = บอกว่าจะเปิดเจอทองติดกันกี่ห่อ (เปิดกองตัวเองก่อนเสมอ)" secs={sLeft} total={TURN_MS / 1000}>
+    <ActionSheet open={myTurn && r.phase === 'turn'} k={'t' + stepKey} icon="⛏️" title={h.g + h.b ? 'ตาคุณ! วางห่อเพิ่ม หรือ ท้าเปิด' : 'ห่อหมดมือ — ต้องท้าเปิด!'} sub="ท้า = บอกว่าจะเปิดเจอทองติดกันกี่ห่อ (เปิดกองตัวเองก่อนเสมอ)" secs={sLeft} total={(r.tmT || TURN_MS) / 1000}>
       {h.g + h.b > 0 && <HandPick act={k => tx(cc => gbPlace(cc, myId, k, srvNow))} />}
       <small className="gb-lbl">📣 หรือท้าเปิดทอง</small><Bidder />
       <button className="primary wide gb-dare" onClick={() => { sfx(sound, 'confirm'); tx(cc => gbBid(cc, myId, n, srvNow)); }}>📣 ท้าเปิดทอง {n} ห่อ!</button>

@@ -103,7 +103,7 @@ export function ucWhiteGuess(cur, me, guess, now) {
 export function ucTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'uc' || cur.status !== 'playing') return;
   if (r.phase === 'clue' && r.turnMs > 0 && now >= r.at + r.turnMs) { const id = speakerOf(r); return ucDoneSpeaking(cur, id, now, true); }
-  if (r.phase === 'vote' && now >= r.at + VOTE_MS) return resolveVote(cur, now);
+  if (r.phase === 'vote' && now >= r.at + (r.tmV || VOTE_MS)) return resolveVote(cur, now);
   if (r.phase === 'white' && r.white && now >= r.white.until) return ucWhiteGuess(cur, r.white.id, '', now);
 }
 export function ucForce(cur, now) {
@@ -133,7 +133,7 @@ export function UcGame({ db, room, roomCode, myId, players, isHost, scores, soun
   const al = aliveIds(r); const sp = speakers(r); const curSp = speakerOf(r); const lapLeft = sp.length - r.spoke;
   const votes = r.votes || {};
   // หมดเวลา → ทุกเครื่องช่วยกันเลื่อน (transaction กันซ้ำ)
-  const due = !res && ((r.phase === 'clue' && r.turnMs > 0 && srvNow >= r.at + r.turnMs) || (r.phase === 'vote' && srvNow >= r.at + VOTE_MS) || (r.phase === 'white' && r.white && srvNow >= r.white.until));
+  const due = !res && ((r.phase === 'clue' && r.turnMs > 0 && srvNow >= r.at + r.turnMs) || (r.phase === 'vote' && srvNow >= r.at + (r.tmV || VOTE_MS)) || (r.phase === 'white' && r.white && srvNow >= r.white.until));
   useEffect(() => { if (due) tx(c => ucTick(c, srvNow)); }, [due, r.at, r.phase]);
   useEffect(() => { if (curSp === myId) sfx(sound, 'yourTurn'); }, [curSp === myId, r.lap, r.spoke]);
   useEffect(() => { setGuess(''); }, [r.phase]);
@@ -184,11 +184,11 @@ export function UcGame({ db, room, roomCode, myId, players, isHost, scores, soun
 
     {/* โหวต */}
     {r.phase === 'vote' && <>
-      <Phase art="vote" tone={meAlive && !votes[myId] ? 'me' : ''} kicker={`🗳️ โหวตรอบที่ ${r.lap}`} title={meAlive ? (votes[myId] ? `คุณโหวต ${nameOf(votes[myId])} แล้ว (เปลี่ยนใจได้)` : 'ใครน่าสงสัยที่สุด?') : 'เพื่อนกำลังโหวต…'} aside={<TimerRing secs={secs(r.at + VOTE_MS - srvNow)} total={VOTE_MS / 1000} label="วิ" />}>เสียงมากสุดออก 1 คน แล้วเปิดบทบาท • เสมอ = ไม่มีใครออก</Phase>
+      <Phase art="vote" tone={meAlive && !votes[myId] ? 'me' : ''} kicker={`🗳️ โหวตรอบที่ ${r.lap}`} title={meAlive ? (votes[myId] ? `คุณโหวต ${nameOf(votes[myId])} แล้ว (เปลี่ยนใจได้)` : 'ใครน่าสงสัยที่สุด?') : 'เพื่อนกำลังโหวต…'} aside={<TimerRing secs={secs(r.at + (r.tmV || VOTE_MS) - srvNow)} total={(r.tmV || VOTE_MS) / 1000} label="วิ" />}>เสียงมากสุดออก 1 คน แล้วเปิดบทบาท • เสมอ = ไม่มีใครออก</Phase>
       <PlayerGrid ids={al.filter(id => id !== myId)} av={av} nameOf={nameOf} selected={votes[myId]} onPick={meAlive ? t => { sfx(sound, 'vote'); tx(c => ucVote(c, myId, t, srvNow)); } : undefined}
         badge={id => <Voters ids={al.filter(v => votes[v] === id)} av={av} size={20} />} />
       <WhoDone ids={al} done={id => !!votes[id]} av={av} nameOf={nameOf} label="🗳️ โหวตแล้ว" />
-      <ActionSheet open={meAlive && !votes[myId]} k={'v' + r.lap} icon="🗳️" title="โหวตเอาใครออก?" sub="แตะคนที่น่าสงสัยที่สุด (เปลี่ยนใจทีหลังได้)" secs={secs(r.at + VOTE_MS - srvNow)} total={VOTE_MS / 1000}>
+      <ActionSheet open={meAlive && !votes[myId]} k={'v' + r.lap} icon="🗳️" title="โหวตเอาใครออก?" sub="แตะคนที่น่าสงสัยที่สุด (เปลี่ยนใจทีหลังได้)" secs={secs(r.at + (r.tmV || VOTE_MS) - srvNow)} total={(r.tmV || VOTE_MS) / 1000}>
         <PlayerGrid ids={al.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => { sfx(sound, 'vote'); tx(c => ucVote(c, myId, t, srvNow)); }} badge={() => <span className="tag">🗳️ โหวต</span>} />
       </ActionSheet>
     </>}

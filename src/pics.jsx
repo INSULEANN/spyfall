@@ -84,9 +84,9 @@ export function picVote(cur, me, target, now) {
 export function picTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'pic' || cur.status !== 'playing') return; picFix(r);
   if (r.phase === 'word' && now >= r.at + WORD_MS) return picSetWord(cur, r.informant, CODE_WORDS[rint(CODE_WORDS.length)], now);
-  if (r.phase === 'play' && now >= r.at + PLAY_MS) { const id = playerOf(r); const h = r.hands[id] || []; return h.length ? picPlay(cur, id, h[rint(h.length)], now) : undefined; }
+  if (r.phase === 'play' && now >= r.at + (r.tmT || PLAY_MS)) { const id = playerOf(r); const h = r.hands[id] || []; return h.length ? picPlay(cur, id, h[rint(h.length)], now) : undefined; }
   if (r.phase === 'talk' && now >= r.at + TALK_MS) return picDoneTalk(cur, null, now, true);
-  if (r.phase === 'vote' && now >= r.at + VOTE_MS) return finish(cur, now);
+  if (r.phase === 'vote' && now >= r.at + (r.tmV || VOTE_MS)) return finish(cur, now);
 }
 export function picForce(cur, now) {
   const r = cur.round; if (cur.status !== 'playing' || r?.kind !== 'pic') return;
@@ -127,7 +127,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
   const meIn = r.order.includes(myId); const isInf = myId === r.informant; const isCon = myId === r.conspirator;
   const cur = playerOf(r); const tk = talkerOf(r); const hand = r.hands[myId] || [];
   const secs = ms => Math.max(0, Math.ceil(ms / 1000));
-  const lim = r.phase === 'word' ? WORD_MS : r.phase === 'play' ? PLAY_MS : r.phase === 'talk' ? TALK_MS : VOTE_MS;
+  const lim = r.phase === 'word' ? WORD_MS : r.phase === 'play' ? (r.tmT || PLAY_MS) : r.phase === 'talk' ? TALK_MS : (r.tmV || VOTE_MS);
   const left = secs(r.at + lim - srvNow);
   const due = !res && srvNow >= r.at + lim;
   useEffect(() => { if (due) tx(c => picTick(c, srvNow)); }, [due, r.at, r.phase]);
@@ -175,7 +175,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <button className="primary wide" disabled={!word.trim()} onClick={() => { sfx(sound, 'confirm'); tx(c => picSetWord(c, myId, word, srvNow)); }}>✅ ใช้คำนี้</button>
     </ActionSheet>
 
-    {r.phase === 'play' && <Phase art="bubble" tone={cur === myId ? 'me' : ''} kicker={`🖼️ ลงภาพรอบที่ ${playLap(r) + 1}/2`} title={cur === myId ? 'ตาคุณ! เลือกภาพ 1 ใบ' : `ตาของ ${nameOf(cur)}`} aside={<TimerRing secs={left} total={PLAY_MS / 1000} label="วิ" />}>{isCon ? 'ดูภาพที่เพื่อนลงก่อนหน้า แล้วเดาว่าคำคืออะไร' : 'เลือกภาพที่เข้ากับคำ • แตะภาพเพื่อขยายดู'}</Phase>}
+    {r.phase === 'play' && <Phase art="bubble" tone={cur === myId ? 'me' : ''} kicker={`🖼️ ลงภาพรอบที่ ${playLap(r) + 1}/2`} title={cur === myId ? 'ตาคุณ! เลือกภาพ 1 ใบ' : `ตาของ ${nameOf(cur)}`} aside={<TimerRing secs={left} total={(r.tmT || PLAY_MS) / 1000} label="วิ" />}>{isCon ? 'ดูภาพที่เพื่อนลงก่อนหน้า แล้วเดาว่าคำคืออะไร' : 'เลือกภาพที่เข้ากับคำ • แตะภาพเพื่อขยายดู'}</Phase>}
     {(r.phase === 'talk' || r.phase === 'vote') && r.word && <div className="pic-reveal" key={'rv' + r.number}><small>🔓 เฉลยคำลับ</small><b>“{r.word}”</b></div>}
     {r.phase === 'talk' && <section className={'clue-turn' + (tk === myId ? ' me' : '')}><div className="ct-main">
       <div className="ct-av" key={tk}>{tk && <Avatar id={tk} av={av} size={70} />}</div>
@@ -184,7 +184,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
       {(tk === myId || isInf || isHost) && <button className={tk === myId ? 'primary wide' : 'secondary wide'} onClick={() => { sfx(sound, 'click'); tx(c => picDoneTalk(c, myId, srvNow, isHost)); }}>{tk === myId ? '✅ อธิบายเสร็จ' : `⏭️ ข้าม ${nameOf(tk)}`}</button>}
     </section>}
     {r.phase === 'vote' && <>
-      <Phase art="vote" tone={voters(r).includes(myId) && !r.votes[myId] ? 'me' : ''} kicker="🗳️ โหวตหาคนไม่รู้คำ" title={isInf ? 'คุณคือคนบอกคำ ไม่ต้องโหวต' : r.votes[myId] ? `คุณโหวต ${nameOf(r.votes[myId])} (เปลี่ยนใจได้)` : 'ใครไม่รู้คำ?'} aside={<TimerRing secs={left} total={VOTE_MS / 1000} label="วิ" />}>เสียงมากสุด = ถูกจับ • เสมอ = คนไม่รู้คำรอด</Phase>
+      <Phase art="vote" tone={voters(r).includes(myId) && !r.votes[myId] ? 'me' : ''} kicker="🗳️ โหวตหาคนไม่รู้คำ" title={isInf ? 'คุณคือคนบอกคำ ไม่ต้องโหวต' : r.votes[myId] ? `คุณโหวต ${nameOf(r.votes[myId])} (เปลี่ยนใจได้)` : 'ใครไม่รู้คำ?'} aside={<TimerRing secs={left} total={(r.tmV || VOTE_MS) / 1000} label="วิ" />}>เสียงมากสุด = ถูกจับ • เสมอ = คนไม่รู้คำรอด</Phase>
       <PlayerGrid ids={voters(r).filter(id => id !== myId)} av={av} nameOf={nameOf} selected={r.votes[myId]} onPick={voters(r).includes(myId) ? t => { sfx(sound, 'vote'); tx(c => picVote(c, myId, t, srvNow)); } : undefined} badge={id => <Voters ids={voters(r).filter(v => r.votes[v] === id)} av={av} size={20} />} />
       <WhoDone ids={voters(r).filter(id => room.players?.[id])} done={id => !!r.votes[id]} av={av} nameOf={nameOf} label="🗳️ โหวตแล้ว" />
     </>}
@@ -203,10 +203,10 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
       {r.order.filter(id => !room.players?.[id] && !r.gone[id]).map(id => <button key={id} className="secondary" onClick={() => tx(c => kickPic(c, id, srvNow))}>🚪 ตัด {nameOf(id)} ออก</button>)}
     </HostBar>}
     {zoom && <Zoom n={zoom.n} onClose={() => setZoom(null)} action={zoom.mine && cur === myId && hand.includes(zoom.n) ? <button className="primary" onClick={() => play(zoom.n)}>🖼️ ลงภาพนี้</button> : null} />}
-    <ActionSheet open={r.phase === 'play' && cur === myId && !zoom} k={'p' + r.number + '-' + r.turn} icon="🖼️" title="ตาคุณ! เลือกภาพลงโต๊ะ" sub={isCon ? 'คุณไม่รู้คำ — เลือกให้เข้ากับภาพของเพื่อน' : `คำคือ “${r.word}” • แตะภาพเพื่อขยายก่อนลง`} secs={left} total={PLAY_MS / 1000}>
+    <ActionSheet open={r.phase === 'play' && cur === myId && !zoom} k={'p' + r.number + '-' + r.turn} icon="🖼️" title="ตาคุณ! เลือกภาพลงโต๊ะ" sub={isCon ? 'คุณไม่รู้คำ — เลือกให้เข้ากับภาพของเพื่อน' : `คำคือ “${r.word}” • แตะภาพเพื่อขยายก่อนลง`} secs={left} total={(r.tmT || PLAY_MS) / 1000}>
       <div className="pic-hand in-sheet">{hand.map(n => <PicCard key={n} n={n} onClick={() => setZoom({ n, mine: true })} />)}</div>
     </ActionSheet>
-    <ActionSheet open={r.phase === 'vote' && voters(r).includes(myId) && !r.votes[myId]} k={'v' + r.number} icon="🗳️" title="ใครไม่รู้คำ?" sub="แตะคนที่น่าสงสัย (เปลี่ยนใจทีหลังได้) • ย่อหน้าต่างนี้เพื่อดูภาพบนโต๊ะได้" secs={left} total={VOTE_MS / 1000}>
+    <ActionSheet open={r.phase === 'vote' && voters(r).includes(myId) && !r.votes[myId]} k={'v' + r.number} icon="🗳️" title="ใครไม่รู้คำ?" sub="แตะคนที่น่าสงสัย (เปลี่ยนใจทีหลังได้) • ย่อหน้าต่างนี้เพื่อดูภาพบนโต๊ะได้" secs={left} total={(r.tmV || VOTE_MS) / 1000}>
       <PlayerGrid ids={voters(r).filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => { sfx(sound, 'vote'); tx(c => picVote(c, myId, t, srvNow)); }} badge={id => <span className="pic-mini">{(r.played[id] || []).map(n => <i key={n}><PicSvg n={n} /></i>)}</span>} />
     </ActionSheet>
   </div>;

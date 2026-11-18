@@ -173,7 +173,7 @@ function autoMove(cur, now) {
 }
 export function tamTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'tam' || cur.status !== 'playing') return;
-  const due = r.phase === 'play' ? now >= (r.at || 0) + TURN_MS : now >= (r.pick?.until || 0);
+  const due = r.phase === 'play' ? now >= (r.at || 0) + (r.tmT || TURN_MS) : now >= (r.pick?.until || 0);
   return due ? autoMove(cur, now) : undefined;
 }
 export const forceMove = (cur, now) => (cur.status === 'playing' && cur.round?.kind === 'tam' ? autoMove(cur, now) : undefined);
@@ -284,7 +284,7 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
   const nm = s => String(s).replace(/\{([^}]+)\}/g, (_, id) => nameOf(id));
   useEffect(() => { setSel(null); }, [r.turn, r.phase, myHand.length, r.stack]);
   // หมดเวลา → ระบบเล่นแทน (ทุกเครื่องพยายาม transaction ทำให้เกิดครั้งเดียว)
-  const deadline = r.phase === 'play' ? (r.at || 0) + TURN_MS : r.pick?.until || 0;
+  const deadline = r.phase === 'play' ? (r.at || 0) + (r.tmT || TURN_MS) : r.pick?.until || 0;
   const secs = Math.max(0, Math.ceil((deadline - srvNow) / 1000)); const due = !res && srvNow >= deadline;
   useEffect(() => { if (due) tx(c => tamTick(c, srvNow)); }, [due, r.turn, r.phase, r.at]);
   // เสียง
@@ -329,7 +329,7 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
       pick={r.phase === 'pick7' && pickMine ? alive.filter(id => id !== myId) : null} onPick={swapTo} /></div><div className="gside">
 
     {/* ตอนนี้ตาใคร */}
-    {!res && r.phase === 'play' && (myTurn ? <div className={'turn-banner me tam-tb' + (r.stack > 0 ? ' hot' : '')}><TimerRing secs={secs} total={TURN_MS / 1000} size={48} />
+    {!res && r.phase === 'play' && (myTurn ? <div className={'turn-banner me tam-tb' + (r.stack > 0 ? ' hot' : '')}><TimerRing secs={secs} total={(r.tmT || TURN_MS) / 1000} size={48} />
       <div><b>{r.stack > 0 ? `🔥 โดนสะสม +${r.stack}!` : r.drew ? '🃏 จั่วได้ใบที่ลงได้แล้ว' : '🎯 ตาคุณ!'}</b><small>{r.stack > 0 ? `ซ้อนไพ่บวกตั้งแต่ +${r.stackMin} ขึ้นไป (รสไหนก็ได้) ส่งต่อ หรือกดรับ` : r.drew ? 'ลงไพ่ หรือกดผ่าน' : <>ลงไพ่ที่ตรงรส <b>{FLAVORS[r.color].e} {FLAVORS[r.color].n}</b> หรือตรงเลข • ไม่มีให้จั่ว</>}</small></div></div>
       : <div className="turn-banner tam-tb"><Avatar id={cur} av={av} size={30} /><div><b>ตาของ {nameOf(cur)} <span className="tb-secs">⏱ {secs}</span></b><small>{!meIn ? '🥵 คุณตกรอบแล้ว — ดูเพื่อนเล่นต่อได้' : r.stack > 0 ? `${nameOf(cur)} โดนสะสม +${r.stack} อยู่ — จะซ้อนต่อหรือรับ?` : nextId === myId ? 'ตาถัดไปคือคุณ เตรียมไพ่ไว้!' : 'รอสักครู่…'}</small></div></div>)}
 

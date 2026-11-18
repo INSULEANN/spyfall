@@ -386,3 +386,8 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .pic-reveal{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 0 12px;padding:12px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,215,106,.25),rgba(255,215,106,.06));box-shadow:0 0 0 2px #ffd76a;animation:picRv .6s cubic-bezier(.2,1.6,.4,1)}
 .pic-reveal small{opacity:.8}.pic-reveal b{font-size:28px;font-weight:900;color:#ffd76a}
 @keyframes picRv{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* ⏱️ ตั้งเวลาเทิร์น/โหวต (ใช้ร่วมทุกเกม) */
+.tm-set{display:grid;gap:6px;margin:12px 0 0;padding:10px 12px;border-radius:14px;background:var(--inset);border:1px solid #ffffff18}
+.tm-set b{font-size:.92rem}
+.tm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;margin:0}
+.tm-row select{width:auto;min-width:118px;margin:0}

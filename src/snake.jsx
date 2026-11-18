@@ -102,14 +102,14 @@ export function resolveNight(cur, now, force) {
   if (!v || saved) { r.dawn = { day: r.day, dead: [], saved }; return startDay(cur, now); }
   r.alive = { ...r.alive, [v]: false }; r.victim = v; r.dawn = { day: r.day, dead: [v], saved: false };
   const w = winner(cur); if (w) return endGame(cur, w);
-  r.phase = 'clue'; r.until = now + CLUE_MS; r.at = now;
+  r.phase = 'clue'; r.until = now + (r.tmT || CLUE_MS); r.at = now;
   if (!here(cur, v)) return snClue(cur, v, pick(r.pool), now, true);
   return cur;
 }
 // ผู้ตายเลือกภาพจริง 1 ใบจากกองกลาง
 export function snClue(cur, me, card, now, auto) {
   const r = cur.round; if (r.phase !== 'clue' || me !== r.victim || !(r.pool || []).includes(card)) return;
-  r.real = card; r.autoReal = !!auto; r.phase = 'fake'; r.fakes = null; r.until = now + FAKE_MS; r.at = now;
+  r.real = card; r.autoReal = !!auto; r.phase = 'fake'; r.fakes = null; r.until = now + (r.tmT || FAKE_MS); r.at = now;
   if (!ofRole(cur, 'killer').length) return finishFake(cur, now);
   return cur;
 }
@@ -191,7 +191,7 @@ export function SnakeGame({ db, room, roomCode, myId, players, isHost, scores, s
   const tx = f => runTransaction(ref(db, `rooms/${roomCode}`), cur => { if (!cur || cur.status !== 'playing' || cur.round?.kind !== 'snake') return; return f(cur); });
   const n = r.night || {}; const votes = r.votes || {}; const pool = r.pool || []; const msgs = r.msgs || [];
   const secs = r.until ? Math.max(0, Math.ceil((r.until - srvNow) / 1000)) : 0;
-  const total = r.phase === 'night' ? NIGHT_MS / 1000 : r.phase === 'clue' ? CLUE_MS / 1000 : r.phase === 'fake' ? FAKE_MS / 1000 : (r.dayMs || 180000) / 1000;
+  const total = r.phase === 'night' ? NIGHT_MS / 1000 : r.phase === 'clue' ? (r.tmT || CLUE_MS) / 1000 : r.phase === 'fake' ? (r.tmT || FAKE_MS) / 1000 : (r.dayMs || 180000) / 1000;
   const due = !res && r.until && srvNow >= r.until + 800;
   useEffect(() => { if (due) tx(c => snTick(c, srvNow)); }, [due, r.phase, r.day]);
   const lastMsg = msgs[msgs.length - 1]; const todayMsg = lastMsg && lastMsg.day === r.day ? lastMsg : null;

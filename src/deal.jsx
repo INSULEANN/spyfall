@@ -290,7 +290,7 @@ export function playDealCard(cur, me, card, arg, now) {
 // หมดเวลา: ไม่เลือกในตา → จั่วให้ • นับถอยหลังปิดดีลครบ → ปิดจริง • เจรจาไม่จบ → ดีลล่ม
 export function dealTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'deal' || cur.status !== 'playing') return;
-  if (r.phase === 'turn' && now >= (r.at || 0) + TURN_MS) return drawTurn(cur, curOf(r), now);
+  if (r.phase === 'turn' && now >= (r.at || 0) + (r.tmT || TURN_MS)) return drawTurn(cur, curOf(r), now);
   if (r.phase === 'nego' && r.nego.closeAt) { if (now < r.nego.closeAt) return; if (canClose(r.nego)) return settle(cur, now); guard(r, now); return cur; }
   if (r.phase === 'nego' && now >= r.nego.until) return failDeal(cur, now, 'หมดเวลาเจรจา');
 }
@@ -424,7 +424,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
   const nm = s => String(s).replace(/\{([^}]+)\}/g, (_, id) => nameOf(id));
   useEffect(() => { setPickCard(null); }, [r.phase, n?.boss, JSON.stringify(n?.seats || null), myHand.length]);
   // หมดเวลา
-  const deadline = r.phase === 'turn' ? (r.at || 0) + TURN_MS : n?.closeAt || n?.until || 0; const secs = Math.max(0, Math.ceil((deadline - srvNow) / 1000));
+  const deadline = r.phase === 'turn' ? (r.at || 0) + (r.tmT || TURN_MS) : n?.closeAt || n?.until || 0; const secs = Math.max(0, Math.ceil((deadline - srvNow) / 1000));
   const due = !res && srvNow >= deadline; useEffect(() => { if (due) tx(c => dealTick(c, srvNow)); }, [due, r.turn, r.phase, n?.closeAt]);
   // คูลดาวน์การ์ด 2 วิ + นับถอยหลังปิดดีล 5 วิ (ใช้เวลาเซิร์ฟเวอร์ ทุกเครื่องเห็นตรงกัน)
   const [, setTick] = useState(0); const cdMs = Math.max(0, (r.cardAt || 0) + CARD_CD - srvNow); const closeMs = n?.closeAt ? Math.max(0, n.closeAt - srvNow) : 0;
@@ -513,7 +513,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
 
   const center = res ? <div className="mid-res">🏆<b>{nameOf(res.winner)}</b><small>รวยสุด {fmtM(money(res.winner))}</small></div>
     : r.phase === 'nego' ? <div className="mid-nego">{n.die ? <span className="mid-die">{DIE[n.die]}</span> : null}<span className="mid-e">{D.e}</span><b>{D.n}</b><small>{v} M × {mult} = {fmtM(v * mult)} • <Avatar id={n.boss} av={av} size={18} /> คุมดีล</small><TimerRing secs={secs} total={Math.round(NEGO_MS / 1000)} size={40} /></div>
-      : <div className="mid-turn"><Avatar id={cur} av={av} size={38} /><b>{cur === myId ? 'ตาคุณ!' : `ตาของ ${nameOf(cur)}`}</b><small>ปิดดีลแล้ว {r.closed || 0}/{TILES}</small>{endNums.length > 0 && <small className="mid-end">🎴 ระวังเลข {endNums.join(' ')}</small>}<TimerRing secs={secs} total={TURN_MS / 1000} size={40} /></div>;
+      : <div className="mid-turn"><Avatar id={cur} av={av} size={38} /><b>{cur === myId ? 'ตาคุณ!' : `ตาของ ${nameOf(cur)}`}</b><small>ปิดดีลแล้ว {r.closed || 0}/{TILES}</small>{endNums.length > 0 && <small className="mid-end">🎴 ระวังเลข {endNums.join(' ')}</small>}<TimerRing secs={secs} total={(r.tmT || TURN_MS) / 1000} size={40} /></div>;
 
   return <div className="deal-game">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number} • ตาที่ {(r.turns || 0) + 1}</span><span className="cat-tag">💼 ปิดแล้ว {r.closed || 0}/{TILES}</span></div>

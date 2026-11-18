@@ -43,7 +43,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.63';
+const APP_VERSION = '1.64';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -350,45 +350,47 @@ function App() {
     update(ref(db,`rooms/${roomCode}`),{active:serverTimestamp()}).catch(()=>{});
     // ตัวร้าย 2 ตาล่าสุด → ลดโอกาสได้ตัวร้ายซ้ำ (ดู rand.js)
     const hist=readHist(room.badHist),ids=players.map(p=>p.id);const nextHist=bad=>({0:bad,1:hist[0]});
+    const tmS=TIMING[G.id]?room.settings?.timing?.[G.id]||{}:{},tmT=TIMING[G.id]?.turn&&tmS.turn>0?tmS.turn*1000:0,tmV=TIMING[G.id]?.vote&&tmS.vote>0?tmS.vote*1000:0;
+    const tm=rd=>{if(tmT)rd.tmT=tmT;if(tmV)rd.tmV=tmV;return rd};   // เวลาเทิร์น/โหวตที่หัวหน้าห้องตั้ง (ไม่ตั้ง = ค่าปกติของเกม)
     if(G.max&&players.length>G.max){msg(`เกมนี้เล่นได้สูงสุด ${G.max} คน`);return}
     if(G.type==='deal'){const rd=makeDealRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='pic'){const pt=room.picTurn||{};const rd=makePicRound(ids,(pt.n||0)+1,Date.now()+skew,hist,pt.seat||null);   // คนบอกคำเวียนตามที่นั่ง (จำไว้ในห้อง เพราะกลับห้องรอแล้ว round ถูกล้าง)
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,picTurn:{n:rd.number,seat:rd.seat},badHist:nextHist([rd.conspirator]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),picTurn:{n:rd.number,seat:rd.seat},badHist:nextHist([rd.conspirator]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='snake'){const rd=makeSnakeRound(ids,room.settings?.snake||{},(room.round?.number||0)+1,Date.now()+skew,hist);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='killer')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist(ids.filter(id=>rd.roles[id]==='killer')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='dig'){const rd=makeDigRound(ids,room.settings?.dig||{},(room.round?.number||0)+1,Date.now()+skew,hist);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='sab')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist(ids.filter(id=>rd.roles[id]==='sab')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='gb'){const rd=makeGbRound(ids,room.settings?.gb||{},(room.round?.number||0)+1,Date.now()+skew,hist);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
-    if(G.type==='yd'){const rd=makeYdRound(ids,room.settings?.yd||{},(room.round?.number||0)+1,Date.now()+skew,hist);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
-    if(G.type==='ani'){const rd=makeAniRound(ids,room.settings?.ani||{},(room.round?.number||0)+1,Date.now()+skew,hist);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='yd'){const rd=makeYdRound(ids,{...(room.settings?.yd||{}),tmT},(room.round?.number||0)+1,Date.now()+skew,hist);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='ani'){const rd=makeAniRound(ids,{...(room.settings?.ani||{}),tmT},(room.round?.number||0)+1,Date.now()+skew,hist);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='ins'){const rd=makeInsRound(ids,room.settings?.ins||{},(room.round?.number||0)+1,Date.now()+skew,hist,room.round?.kind==='ins'?room.round.master:null);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([rd.insider]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([rd.insider]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='uc'){const rd=makeUcRound(ids,room.settings?.uc||{},(room.round?.number||0)+1,Date.now()+skew,hist);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]!=='civ')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist(ids.filter(id=>rd.roles[id]!=='civ')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='clue'){const rd=makeClueRound(ids,room.settings?.clue||{},(room.round?.number||0)+1,Date.now()+skew);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='checkpoint'){const rd=makeCpRound(ids,{laps:room.settings?.cpLaps||lapsFor(ids.length)},(room.round?.number||0)+1,Date.now()+skew+(room.round?0:INTRO_LEAD));
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='tam'){const rd=makeTamRound(ids,{},(room.round?.number||0)+1,Date.now()+skew);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='boom'){const rd=makeBoomRound(ids,{},(room.round?.number||0)+1);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='curse'){const rd=makeCurseRound(ids,{...csOpts,hist},(room.round?.number||0)+1);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>(rd.fate[id]||[]).some(c=>c.t==='dark'))),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist(ids.filter(id=>(rd.fate[id]||[]).some(c=>c.t==='dark'))),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='cake'){const rd=makeCakeRound(ids,{...ckOpts,hist},(room.round?.number||0)+1,Date.now()+skew);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([rd.thief]),votes:null,ready:null,spyGuess:null,result:null});
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([rd.thief]),votes:null,ready:null,spyGuess:null,result:null});
       return}
     if(G.type==='wolf'){
       setWolfSkew(skew);const rd=makeWolfRound(ids,{...wfOpts,hist},(room.round?.number||0)+1);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='wolf')),votes:null,ready:null,spyGuess:null,result:null});
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist(ids.filter(id=>rd.roles[id]==='wolf')),votes:null,ready:null,spyGuess:null,result:null});
       sfx(sound,'start');return}
     if(G.type==='explore'){
       const rd=makeExploreRound(ids,{...exOpts,hist},(room.round?.number||0)+1);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>['traitor','mole'].includes(rd.roles[id]))),votes:null,ready:null,spyGuess:null,result:null});
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist(ids.filter(id=>['traitor','mole'].includes(rd.roles[id]))),votes:null,ready:null,spyGuess:null,result:null});
       sfx(sound,'start');return}
     if(!placePool.length){msg(`ติ๊กเลือก${I}อย่างน้อย 1 ${U}ก่อนนะ`);return}
     if(G.type==='head')return startHead();
@@ -745,12 +747,23 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {room.status==='lobby'&&<TimingSet gid={G.id} db={db} roomCode={roomCode} room={room} isHost={isHost}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
       {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
       {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>
+}
+// ⏱️ เวลาต่อเทิร์น / 🗳️ เวลาโหวต ที่หัวหน้าห้องตั้งเองได้ (วินาที = ค่าปกติของเกม) • เก็บที่ settings/timing/<game> แล้วคัดลอกเข้า round เป็น tmT/tmV ตอนเริ่มเกม
+// เกมที่ไม่มีในนี้: ไม่มีตัวจับเวลาเทิร์น/โหวต หรือมีตัวตั้งเวลาของตัวเองในล็อบบี้อยู่แล้ว
+const TIMING={spy:{vote:90},insider:{vote:90},pics:{turn:45,vote:75},tam:{turn:30},deal:{turn:30},gold:{turn:30},yadong:{turn:40},animal:{turn:45},snake:{turn:60,tl:'⏱️ เวลาเลือกภาพ (ผู้ตาย/งูพิษ)'},checkpoint:{turn:180,tl:'⏱️ เวลาจ่าตรวจ'}};
+const TIME_OPTS=[15,30,45,60,90,120,180];
+function TimingSet({gid,db,roomCode,room,isHost}){
+  const T=TIMING[gid];if(!T)return null;const cur=room.settings?.timing?.[gid]||{};
+  const save=(k,v)=>update(ref(db,`rooms/${roomCode}/settings/timing/${gid}`),{[k]:v||null}).catch(()=>{});
+  const sel=(k,lbl)=>T[k]?<label className="tm-row">{lbl}<select value={cur[k]||0} disabled={!isHost} onChange={e=>save(k,+e.target.value)}><option value={0}>ปกติ ({T[k]} วิ)</option>{TIME_OPTS.filter(x=>x!==T[k]).map(x=><option key={x} value={x}>{x} วิ</option>)}</select></label>:null;
+  return <div className="tm-set"><b>⏱️ ตั้งเวลา {isHost?'':'(หัวหน้าห้องตั้ง)'}</b>{sel('turn',T.tl||'⏱️ เวลาต่อเทิร์น')}{sel('vote','🗳️ เวลาโหวต')}</div>
 }
 function HeadGame({room,roomCode,myId,players,isHost,scores,sound,av,nameOf,msg,onBack,srvNow}){
   const r=room.round;const [g,setG]=useState('');const [guessing,setGuessing]=useState(false);

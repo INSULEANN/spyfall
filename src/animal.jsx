@@ -39,7 +39,7 @@ export function makeAniRound(ids, set = {}, number = 1, t0 = Date.now()) {
   const hands = {}, face = {};
   order.forEach((id, j) => { const h = Array(K).fill(0); deck.slice(j * per, (j + 1) * per).forEach(a => h[a]++); hands[id] = h; face[id] = Array(K).fill(0); });
   return { number, kind: 'ani', order, hands, face, limit: +set.limit === 3 ? 3 : 4, aside: deck.length - per * ids.length,
-    phase: 'pass', turn: order[0], at: t0, until: t0 + 3000 + PASS_MS, chain: null, last: null, log: [], gone: {}, startedAt: t0 };
+    phase: 'pass', turn: order[0], at: t0, until: t0 + 3000 + (+set.tmT || PASS_MS), chain: null, last: null, log: [], gone: {}, startedAt: t0 };
 }
 
 function end(cur, loser, why, now) {
@@ -50,7 +50,7 @@ function end(cur, loser, why, now) {
   return cur;
 }
 function startTurn(cur, who, now) {
-  const r = cur.round; r.turn = who; r.phase = 'pass'; r.at = now; r.until = now + LAST_MS + PASS_MS; r.chain = null;
+  const r = cur.round; r.turn = who; r.phase = 'pass'; r.at = now; r.until = now + LAST_MS + (r.tmT || PASS_MS); r.chain = null;
   if (!total(r.hands[who])) { say(r, `🫥 {${who}} ไม่มีไพ่เหลือในมือตอนถึงตาส่ง`); return end(cur, who, 'empty', now); }
   return cur;
 }
@@ -72,19 +72,19 @@ export function aniPass(cur, me, card, target, claim, now) {
   if (!okClaim(card) || !okClaim(claim) || !(r.hands[me][card] > 0) || target === me || !active(r).includes(target)) return;
   r.hands[me][card]--;
   r.chain = { card, claim, from: me, to: target, peek: false, seen: { [me]: true }, path: [{ from: me, to: target, claim }] };
-  r.phase = 'resp'; r.at = now; r.until = now + RESP_MS;
+  r.phase = 'resp'; r.at = now; r.until = now + (r.tmT || RESP_MS);
   say(r, `🂠 {${me}} ส่งไพ่คว่ำให้ {${target}} “นี่คือ${ANIMALS[claim].n}”`);
   return cur;
 }
 export function aniPeek(cur, me, now) {
   const r = cur.round; const c = r.chain; if (cur.status !== 'playing' || r.phase !== 'resp' || !c || c.to !== me || c.peek || !canPassOn(r).length) return;
-  c.peek = true; c.seen[me] = true; r.at = now; r.until = now + RESP_MS; return cur;
+  c.peek = true; c.seen[me] = true; r.at = now; r.until = now + (r.tmT || RESP_MS); return cur;
 }
 export function aniPassOn(cur, me, target, claim, now) {
   const r = cur.round; const c = r.chain; if (cur.status !== 'playing' || r.phase !== 'resp' || !c || c.to !== me || !c.peek) return;
   if (!okClaim(claim) || !canPassOn(r).includes(target)) return;
   c.from = me; c.to = target; c.claim = claim; c.peek = false; c.path = [...c.path, { from: me, to: target, claim }];
-  r.at = now; r.until = now + RESP_MS;
+  r.at = now; r.until = now + (r.tmT || RESP_MS);
   say(r, `👀 {${me}} แอบดูแล้วส่งต่อให้ {${target}} “นี่คือ${ANIMALS[claim].n}”`);
   return cur;
 }
@@ -182,7 +182,7 @@ export function AniGame({ db, room, roomCode, myId, players, isHost, scores, sou
   useEffect(() => { if (r.last) sfx(sound, r.last.right ? 'reveal' : 'nope'); }, [r.last?.at]);
   const due = !res && r.until && srvNow >= r.until;
   useEffect(() => { if (due) tx(cc => aniTick(cc, srvNow)); }, [due, r.at, r.phase]);
-  const left = secs(r.until - srvNow); const tot = (r.phase === 'pass' ? PASS_MS : RESP_MS) / 1000;
+  const left = secs(r.until - srvNow); const tot = (r.tmT || (r.phase === 'pass' ? PASS_MS : RESP_MS)) / 1000;
   const others = active(r).filter(id => id !== myId);
   const recent = r.last && srvNow - r.last.at < 7000;
   const name = id => id === myId ? 'คุณ' : nameOf(id);
@@ -239,7 +239,7 @@ export function AniGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <div className="ani-hand">{myHand.map((n, k) => n > 0 && <AniCard key={k} k={k} n={n} />)}{!total(myHand) && <i className="hint">ไม่มีไพ่เหลือ ถ้าถึงตาส่งจะแพ้ทันที!</i>}</div></>}
 
     {/* ส่งไพ่ */}
-    <ActionSheet open={myPass} k={'p' + stepKey} icon="🂠" title="ส่งไพ่คว่ำ" sub="เลือกไพ่ → เลือกคนรับ → บอกว่าเป็นตัวอะไร" secs={left} total={PASS_MS / 1000}>
+    <ActionSheet open={myPass} k={'p' + stepKey} icon="🂠" title="ส่งไพ่คว่ำ" sub="เลือกไพ่ → เลือกคนรับ → บอกว่าเป็นตัวอะไร" secs={left} total={(r.tmT || PASS_MS) / 1000}>
       <small className="ani-step">1. ไพ่ใบไหน (เห็นคนเดียว)</small>
       <div className="ani-hand">{myHand.map((n, k) => n > 0 && <AniCard key={k} k={k} n={n} sel={pick.card === k} onClick={() => { sfx(sound, 'card'); setPick(p => ({ ...p, card: k })); }} />)}</div>
       <small className="ani-step">2. ส่งให้ใคร</small>
@@ -250,7 +250,7 @@ export function AniGame({ db, room, roomCode, myId, players, isHost, scores, sou
     </ActionSheet>
 
     {/* รับไพ่: ตอบ หรือ แอบดู */}
-    <ActionSheet open={myResp && !c.peek} k={'r' + stepKey} icon="🤔" title={c ? `${nameOf(c.from)} บอกว่า “นี่คือ${ANIMALS[c.claim].n}”` : ''} sub="เชื่อไหม? ใครผิดต้องรับไพ่ใบนี้ไปหงาย" secs={left} total={RESP_MS / 1000}>
+    <ActionSheet open={myResp && !c.peek} k={'r' + stepKey} icon="🤔" title={c ? `${nameOf(c.from)} บอกว่า “นี่คือ${ANIMALS[c.claim].n}”` : ''} sub="เชื่อไหม? ใครผิดต้องรับไพ่ใบนี้ไปหงาย" secs={left} total={(r.tmT || RESP_MS) / 1000}>
       {c && <div className="ani-recv"><AniCard back /><span className="ani-bubble big">“นี่คือ <Claim k={c.claim} />”</span></div>}
       <div className="ani-calls">
         <button className="primary" onClick={() => { sfx(sound, 'confirm'); tx(cc => aniCall(cc, myId, true, srvNow)); }}>✅ จริง</button>
@@ -260,7 +260,7 @@ export function AniGame({ db, room, roomCode, myId, players, isHost, scores, sou
     </ActionSheet>
 
     {/* แอบดูแล้วส่งต่อ */}
-    <ActionSheet open={myResp && !!c?.peek} k={'o' + stepKey} icon="👀" title="แอบดูแล้ว — ส่งต่อ" sub="ส่งให้คนที่ยังไม่เห็นไพ่ บอกเหมือนเดิมหรือเปลี่ยนก็ได้" secs={left} total={RESP_MS / 1000}>
+    <ActionSheet open={myResp && !!c?.peek} k={'o' + stepKey} icon="👀" title="แอบดูแล้ว — ส่งต่อ" sub="ส่งให้คนที่ยังไม่เห็นไพ่ บอกเหมือนเดิมหรือเปลี่ยนก็ได้" secs={left} total={(r.tmT || RESP_MS) / 1000}>
       {c && <div className="ani-recv"><AniCard k={c.card} /><small>ไพ่จริงคือ <b>{ANIMALS[c.card].n}</b> • {nameOf(c.from)} บอกว่า{ANIMALS[c.claim].n}</small></div>}
       <small className="ani-step">ส่งให้ใคร</small>
       <PlayerGrid ids={canPassOn(r)} av={av} nameOf={nameOf} selected={pick.to} small onPick={t => { sfx(sound, 'select'); setPick(p => ({ ...p, to: t })); }} />

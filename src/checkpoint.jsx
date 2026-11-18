@@ -207,7 +207,7 @@ function autoInspect(cur, now, why = '⏰ หมดเวลาตรวจ — 
 export function cpTick(cur, now) {
   const r = cur.round; if (!r || r.kind !== 'checkpoint' || cur.status !== 'playing') return;
   if (r.phase === 'load' && now >= (r.at || 0) + LOAD_MS) return autoLoad(cur, now);
-  if (r.phase === 'inspect' && now >= (r.at || 0) + INSPECT_MS) return autoInspect(cur, now);
+  if (r.phase === 'inspect' && now >= (r.at || 0) + (r.tmT || INSPECT_MS)) return autoInspect(cur, now);
   if (r.phase === 'sum' && now >= (r.at || 0) + SUM_MS) return nextRound(cur, now);
 }
 export function forceCp(cur, now) {
@@ -371,7 +371,7 @@ export function CheckpointGame({ db, room, roomCode, myId, players, isHost, scor
   const swapped = !!r.swapped[myId]; const stage = myBag ? 'packed' : swapped || mode === 'pack' ? 'pack' : 'swap';
 
   // หมดเวลา
-  const total = r.phase === 'load' ? LOAD_MS : r.phase === 'inspect' ? INSPECT_MS : SUM_MS;
+  const total = r.phase === 'load' ? LOAD_MS : r.phase === 'inspect' ? (r.tmT || INSPECT_MS) : SUM_MS;
   const deadline = (r.at || 0) + total; const secs = Math.max(0, Math.ceil((deadline - srvNow) / 1000));
   const due = !res && srvNow >= deadline; useEffect(() => { if (due) tx(c => cpTick(c, srvNow)); }, [due, r.ri, r.phase]);
 

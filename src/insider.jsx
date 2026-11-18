@@ -35,7 +35,7 @@ const voters = r => Object.keys(r.roles).filter(id => r.roles[id] && !r.gone?.[i
 function toGuess(r, now) { r.phase = 'guess'; r.at = now; r.until = now + GUESS_MS; r.guesses = {}; say(r, '✍️ จบช่วงถามแล้ว — Commons พิมพ์คำตอบ'); }
 function judge(r, now) {
   const g = Object.values(r.guesses || {}); r.ok = g.some(x => insNorm(x) === insNorm(r.word));
-  r.phase = 'vote'; r.at = now; r.until = now + VOTE_MS; r.votes = {};
+  r.phase = 'vote'; r.at = now; r.until = now + (r.tmV || VOTE_MS); r.votes = {};
   say(r, r.ok ? `✅ ทายถูก! คำคือ “${r.word}” — โหวตหา Insider` : `❌ ทายผิด คำคือ “${r.word}” — ไม่มีใครชนะ แต่โหวตหา Insider กันหน่อย`);
 }
 function finish(cur, now) {
@@ -175,11 +175,11 @@ export function InsGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <div className={'ins-verdict ' + (r.ok ? 'ok' : 'no')}><b>{r.ok ? '✅ ทายถูก!' : '❌ ทายผิด'}</b><span>คำคือ “{r.word}”</span>{gList.length > 0 && <div className="ins-guesses">{gList.map((g, i) => <span key={i} className={insNorm(g) === insNorm(r.word) ? 'ok' : ''}>{g}</span>)}</div>}
         {!r.ok && (isMaster || isHost) && <button className="secondary" onClick={() => tx(c => insAccept(c, myId, isHost))}>✔️ นับว่าถูก (สะกดต่างนิดหน่อย)</button>}
         {!r.ok && <small>ไม่มีใครชนะรอบนี้ แต่โหวตหา Insider ให้รู้กันหน่อย</small>}</div>
-      <Phase art="vote" tone={!r.votes[myId] ? 'me' : ''} kicker="🗳️ โหวตหา Insider" title={r.votes[myId] ? `คุณโหวต ${nameOf(r.votes[myId])} แล้ว (เปลี่ยนใจได้)` : 'ใครคือ Insider?'} aside={<TimerRing secs={secs(r.until - srvNow)} total={VOTE_MS / 1000} label="วิ" />}>ทุกคนโหวต รวมถึง Master • เสียงมากสุดคือคนที่ถูกจับ • เสมอ = Insider รอด</Phase>
+      <Phase art="vote" tone={!r.votes[myId] ? 'me' : ''} kicker="🗳️ โหวตหา Insider" title={r.votes[myId] ? `คุณโหวต ${nameOf(r.votes[myId])} แล้ว (เปลี่ยนใจได้)` : 'ใครคือ Insider?'} aside={<TimerRing secs={secs(r.until - srvNow)} total={(r.tmV || VOTE_MS) / 1000} label="วิ" />}>ทุกคนโหวต รวมถึง Master • เสียงมากสุดคือคนที่ถูกจับ • เสมอ = Insider รอด</Phase>
       <PlayerGrid ids={r.order.filter(id => id !== myId)} av={av} nameOf={nameOf} selected={r.votes[myId]} onPick={myRole ? t => { sfx(sound, 'vote'); tx(c => insVote(c, myId, t, srvNow)); } : undefined}
         badge={id => <Voters ids={allIds.filter(v => r.votes[v] === id)} av={av} size={20} />} />
       <WhoDone ids={allIds.filter(id => room.players?.[id])} done={id => !!r.votes[id]} av={av} nameOf={nameOf} label="🗳️ โหวตแล้ว" />
-      <ActionSheet open={!!myRole && !r.votes[myId]} k={'v' + r.number} icon="🗳️" title="ใครคือ Insider?" sub="แตะคนที่ดูรู้มากเกินไป (เปลี่ยนใจทีหลังได้)" secs={secs(r.until - srvNow)} total={VOTE_MS / 1000}>
+      <ActionSheet open={!!myRole && !r.votes[myId]} k={'v' + r.number} icon="🗳️" title="ใครคือ Insider?" sub="แตะคนที่ดูรู้มากเกินไป (เปลี่ยนใจทีหลังได้)" secs={secs(r.until - srvNow)} total={(r.tmV || VOTE_MS) / 1000}>
         <PlayerGrid ids={r.order.filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => { sfx(sound, 'vote'); tx(c => insVote(c, myId, t, srvNow)); }} badge={() => <span className="tag">🗳️ โหวต</span>} />
       </ActionSheet>
     </>}
