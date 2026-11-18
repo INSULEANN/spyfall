@@ -9,9 +9,31 @@ import { ART6 } from './picart6.jsx';
 import { ART7 } from './picart7.jsx';
 import { ART8 } from './picart8.jsx';
 
+import { HD } from './picartHD.jsx';
+import { HD2 } from './picartHD2.jsx';
+import { HD3 } from './picartHD3.jsx';
+import { HD4 } from './picartHD4.jsx';
+import { HD5 } from './picartHD5.jsx';
+import { HD6 } from './picartHD6.jsx';
+import { HD7 } from './picartHD7.jsx';
+import { HD8 } from './picartHD8.jsx';
+import { HD9 } from './picartHD9.jsx';
+import { HD10 } from './picartHD10.jsx';
+import { HD11 } from './picartHD11.jsx';
+import { HD12 } from './picartHD12.jsx';
+import { HD13 } from './picartHD13.jsx';
+import { HD14 } from './picartHD14.jsx';
+import { HD15 } from './picartHD15.jsx';
+import { HD16 } from './picartHD16.jsx';
+import { HD17 } from './picartHD17.jsx';
+import { HD18 } from './picartHD18.jsx';
+
 export const ART = [...ART1, ...ART2, ...ART3, ...ART4, ...ART5, ...ART6, ...ART7, ...ART8];
+// ภาพแบบละเอียด (picartHD.jsx) ใช้แทนภาพเดิมเลขเดียวกัน
+const HD_MAP = Object.fromEntries([...HD, ...HD2, ...HD3, ...HD4, ...HD5, ...HD6, ...HD7, ...HD8, ...HD9, ...HD10, ...HD11, ...HD12, ...HD13, ...HD14, ...HD15, ...HD16, ...HD17, ...HD18].map(([n, , svg]) => [n, svg]));
 
 export function PicSvg({ n }) {
+  if (HD_MAP[n]) return HD_MAP[n];
   const a = ART[n - 1]; if (!a) return null;
   const id = 'pg' + n;
   return <svg viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice" className="pic-svg" role="img" aria-label={a[2]}>
