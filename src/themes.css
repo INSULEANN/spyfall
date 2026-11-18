@@ -230,7 +230,7 @@ body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%
 .game-card .hero-pills span{border-color:color-mix(in srgb,var(--accent) 22%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .game-card.soon .card-body{padding-top:24px}
 .hub-hero{position:relative;overflow:hidden}
-.hub-hero .hub-art{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:min(42%,380px);opacity:.95;pointer-events:none}
+.hub-hero .hub-art{position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(72%,1000px);height:100%;opacity:.95;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0,transparent 14%,#0006 32%,#000 52%);mask-image:linear-gradient(90deg,transparent 0,transparent 14%,#0006 32%,#000 52%)}
 .hub-hero>*:not(.hub-art){position:relative;z-index:1}
 @media(min-width:761px){.hub-hero p{max-width:min(560px,55%)}}
 .room-heading{position:relative;padding:18px 20px;border:1px solid color-mix(in srgb,var(--accent) 16%,transparent);border-radius:var(--radius);overflow:hidden;background:linear-gradient(110deg,var(--panel) 40%,transparent)}
