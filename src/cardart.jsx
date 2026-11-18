@@ -447,17 +447,26 @@ const CURSE = {
 
 // ===================== ⛏️ ขุดสมบัติป่าช้า — อุโมงค์ใต้ป่าช้าแสงตะเกียง =====================
 const OD = { stroke: '#140b05', strokeWidth: 2.4, strokeLinejoin: 'round', strokeLinecap: 'round' };
-const Tunnel = ({ glow = '#ffb84d', bg = '#2b1d13' }) => <g>
+// ฉากหลังการ์ดพิเศษ: ป่าช้ายามค่ำ — ฟ้ามืด จันทร์เสี้ยว ต้นไม้ตาย รั้วเหล็ก ป้ายหลุม หมอก
+const Tunnel = ({ glow = '#ffb84d', bg = '#1c1a2a' }) => <g>
   <rect width="100" height="100" fill={bg} />
-  <g fill="#3a2819">{[[6, 8], [24, 4], [90, 10], [94, 34], [4, 30], [70, 4]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? 1.5 : 2.2} />)}</g>
-  <path d="M16 100V46Q16 14 50 14Q84 14 84 46V100Z" fill="#170f09" />
-  <circle cx="50" cy="54" r="36" fill={glow} opacity=".13" /><circle cx="50" cy="54" r="22" fill={glow} opacity=".12" />
-  <rect y="88" width="100" height="12" fill="#3a2819" />
-  <rect x="9" y="28" width="8" height="72" fill="#6b4526" stroke="#24150b" strokeWidth="1.5" /><rect x="83" y="28" width="8" height="72" fill="#6b4526" stroke="#24150b" strokeWidth="1.5" />
-  <rect x="5" y="22" width="90" height="9" rx="2" fill="#7a5030" stroke="#24150b" strokeWidth="1.5" />
-  <g fill="#c8b090"><circle cx="13" cy="26.5" r="1.1" /><circle cx="87" cy="26.5" r="1.1" /></g>
-  <g stroke="#4a3020" strokeWidth="1.6" fill="none" strokeLinecap="round"><path d="M30 31q-2 8 2 14q2 6 -1 10" /><path d="M70 31q2 6 -1 12" /><path d="M58 31q-1 4 1 7" /></g>
-  <g stroke="#d8d0b8" strokeWidth="2.6" strokeLinecap="round"><path d="M22 94h9" /></g><g fill="#d8d0b8"><circle cx="21" cy="92.8" r="1.6" /><circle cx="21" cy="95.2" r="1.6" /><circle cx="32" cy="92.8" r="1.6" /><circle cx="32" cy="95.2" r="1.6" /></g>
+  <rect width="100" height="60" fill="#2a2840" opacity=".55" /><rect y="30" width="100" height="40" fill="#3a3450" opacity=".35" />
+  <g fill="#e8e4f8">{[[8, 8, .9], [22, 16, .6], [40, 6, .7], [64, 12, .6], [92, 22, .8], [56, 22, .5], [12, 30, .5]].map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} opacity=".7" />)}</g>
+  <circle cx="82" cy="14" r="8" fill="#f6efd2" opacity=".9" /><circle cx="85.5" cy="11.5" r="7.4" fill={bg} /><circle cx="82" cy="14" r="14" fill="#f6efd2" opacity=".06" />
+  {/* เนินไกล + ต้นไม้ตาย */}
+  <path d="M0 62 Q20 52 40 58 Q62 50 80 56 Q92 52 100 56 V100 H0Z" fill="#161a22" />
+  <g stroke="#0e0e14" strokeWidth="2.2" strokeLinecap="round" fill="none"><path d="M10 64 V34 M10 46 l-7 -8 M10 40 l6 -9 M16 31 l4 -2 M10 54 l7 -5" /><path d="M93 62 V40 M93 48 l5 -7 M93 44 l-5 -6" /></g>
+  <circle cx="50" cy="56" r="36" fill={glow} opacity=".12" /><circle cx="50" cy="56" r="22" fill={glow} opacity=".1" />
+  {/* รั้วเหล็กป่าช้า */}
+  <g stroke="#0c0c12" strokeWidth="1.4"><path d="M0 72 H100 M0 79 H100" />{Array.from({ length: 13 }, (_, i) => <path key={i} d={`M${2 + i * 8} 86 V68`} />)}</g>
+  <g fill="#0c0c12">{Array.from({ length: 13 }, (_, i) => <path key={i} d={`M${0.5 + i * 8} 68.5 l1.5 -3.5 l1.5 3.5Z`} />)}</g>
+  {/* ป้ายหลุมข้างฉาก */}
+  <g fill="#4a4656" stroke="#14121a" strokeWidth="1.2"><path d="M4 92 V78 Q4 72 10 72 Q16 72 16 78 V92Z" /><path d="M84 92 V80 Q84 75 89 75 Q94 75 94 80 V92Z" /></g>
+  <path d="M8.5 76 h3 M10 74.5 v5" stroke="#2a2834" strokeWidth="1.2" />
+  {/* พื้นหญ้า + หมอก */}
+  <rect y="88" width="100" height="12" fill="#1f2e1c" /><path d="M0 88 Q25 85 50 88 T100 87" stroke="#2f4a28" strokeWidth="2" fill="none" />
+  <g fill="#dfe4f0" opacity=".09"><ellipse cx="22" cy="86" rx="26" ry="4" /><ellipse cx="76" cy="90" rx="30" ry="4" /></g>
+  <g stroke="#d8d0b8" strokeWidth="2.4" strokeLinecap="round"><path d="M22 95h8" /></g><g fill="#d8d0b8"><circle cx="21" cy="93.9" r="1.5" /><circle cx="21" cy="96.1" r="1.5" /><circle cx="31" cy="93.9" r="1.5" /><circle cx="31" cy="96.1" r="1.5" /></g>
 </g>;
 const Card = ({ x, y, a, c }) => <g transform={`rotate(${a} ${x} ${y + 14})`}><rect x={x - 9} y={y - 13} width="18" height="26" rx="3" fill={c} {...OD} strokeWidth="1.8" /><rect x={x - 5.5} y={y - 9.5} width="11" height="19" rx="1.5" fill="none" stroke="#fff" strokeWidth="1" opacity=".5" /></g>;
 const arrow = (d, tip, c) => <g><path d={d} stroke={c} strokeWidth="3.5" fill="none" strokeLinecap="round" /><path d={tip} fill={c} /></g>;
@@ -491,26 +500,33 @@ const DIG = {
     <path d="M36 77H50" stroke="#e8705a" strokeWidth="2.5" strokeLinecap="round" />
   </g>,
   dig_cart: () => <g><Tunnel />
-    <g fill="#5a3418">{P(6, i => <rect key={i} x={4 + i * 17} y="88" width="9" height="5" rx="1" />)}</g>
-    <path d="M0 87H100" stroke="#8a8a92" strokeWidth="3" />
-    <g {...OD} strokeWidth="1.8"><circle cx="34" cy="40" r="7" fill="#ffd34d" /><circle cx="48" cy="36" r="8" fill="#7a6a5a" /><circle cx="62" cy="38" r="7" fill="#ffd34d" /><circle cx="72" cy="44" r="6" fill="#7a6a5a" /><circle cx="28" cy="46" r="5" fill="#7a6a5a" /><circle cx="54" cy="44" r="6" fill="#ffe680" /></g>
-    <Sparks pts={[[40, 30, 4], [66, 28, 3.5]]} />
-    <path d="M18 46H82L74 76H26Z" fill="#8a5a32" {...OD} />
-    <path d="M22 56H78M24 66H76" stroke="#6b4222" strokeWidth="1.6" />
-    <path d="M17 46H83" stroke="#5a6270" strokeWidth="5" strokeLinecap="round" />
-    <path d="M30 47L34 75M70 47L66 75" stroke="#5a6270" strokeWidth="3.5" />
-    <g fill="#c8ccd6"><circle cx="32" cy="52" r="1.3" /><circle cx="68" cy="52" r="1.3" /></g>
-    <circle cx="34" cy="80" r="8" fill="#3a3a40" {...OD} /><circle cx="34" cy="80" r="3" fill="#a8b0bc" />
-    <circle cx="66" cy="80" r="8" fill="#3a3a40" {...OD} /><circle cx="66" cy="80" r="3" fill="#a8b0bc" />
+    {/* รถเข็นล้อเดียวขนดินกับทอง */}
+    <ellipse cx="50" cy="90" rx="34" ry="5" fill="#0c140b" opacity=".6" />
+    <path d="M70 52L94 40" stroke="#140b05" strokeWidth="6" strokeLinecap="round" /><path d="M70 52L94 40" stroke="#a8703c" strokeWidth="3.4" strokeLinecap="round" />
+    <path d="M66 62L92 52" stroke="#140b05" strokeWidth="6" strokeLinecap="round" /><path d="M66 62L92 52" stroke="#a8703c" strokeWidth="3.4" strokeLinecap="round" />
+    <g {...OD} strokeWidth="1.8"><circle cx="30" cy="44" r="7" fill="#6a5240" /><circle cx="44" cy="40" r="8" fill="#5a4432" /><circle cx="40" cy="46" r="6" fill="#ffd34d" /><circle cx="56" cy="42" r="7" fill="#ffd34d" /><circle cx="64" cy="48" r="6" fill="#6a5240" /><circle cx="50" cy="48" r="5" fill="#ffe680" /></g>
+    <Sparks pts={[[42, 32, 4], [60, 32, 3.5]]} />
+    <path d="M16 48H74L66 72H30Z" fill="#5a6a7a" {...OD} /><path d="M20 54H70" stroke="#8a9aaa" strokeWidth="2" strokeLinecap="round" />
+    <path d="M16 48H74" stroke="#3a4450" strokeWidth="4.5" strokeLinecap="round" />
+    <g fill="#c8ccd6"><circle cx="24" cy="51" r="1.2" /><circle cx="66" cy="51" r="1.2" /></g>
+    <path d="M58 72L62 88M36 72L38 80" stroke="#3a3a40" strokeWidth="3.2" strokeLinecap="round" />
+    <circle cx="28" cy="80" r="9" fill="#3a3a40" {...OD} /><circle cx="28" cy="80" r="5" fill="none" stroke="#6a6a74" strokeWidth="1.6" /><circle cx="28" cy="80" r="2.4" fill="#a8b0bc" />
+    <path d="M28 71V89M19 80H37" stroke="#6a6a74" strokeWidth="1.2" />
   </g>,
   dig_fall: () => <g><Tunnel glow="#ff8a4d" />
-    <rect x="5" y="22" width="40" height="9" rx="2" fill="#7a5030" stroke="#24150b" strokeWidth="1.5" transform="rotate(14 45 26)" />
-    <path d="M30 14L36 22L32 30L40 38M64 10L60 20L68 26L62 36" stroke="#0a0604" strokeWidth="2.2" fill="none" strokeLinejoin="round" />
-    <g fill="#8a7a68" opacity=".45">{[[20, 80, 12], [40, 84, 14], [64, 82, 13], [82, 80, 10]].map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} />)}</g>
-    <path d="M10 100L22 80L34 86L46 72L60 84L72 76L90 100Z" fill="#6a5a4a" {...OD} />
-    <g fill="#8a7866" {...OD}><path d={rock(34, 44, 9)} /><path d={rock(62, 56, 11)} /><path d={rock(48, 26, 6)} /><path d={rock(74, 32, 5)} /></g>
-    <g fill="#a8968a"><path d="M28 40l6 -3l4 4Z" /><path d="M55 50l8 -4l5 6Z" /></g>
-    <g stroke="#e8d8c0" strokeWidth="2" strokeLinecap="round" opacity=".7"><path d="M34 30v-6" /><path d="M62 40v-7" /><path d="M58 40v-4" /><path d="M48 14v-4" /></g>
+    {/* ต้นไม้ตายโค่นล้มขวางทางเดินในป่าช้า */}
+    <path d="M14 100 Q18 80 30 76 Q46 72 50 80 Q60 74 74 80 Q88 84 92 100Z" fill="#3a2c1c" />
+    <g stroke="#e8d8c0" strokeWidth="1.8" strokeLinecap="round" opacity=".6"><path d="M22 70l-4 -6M30 66l0 -7M70 64l3 -6M78 70l5 -4" /></g>
+    <g transform="rotate(-24 50 60)">
+      <rect x="6" y="52" width="80" height="17" rx="7" fill="#5a3c22" {...OD} />
+      <path d="M12 57H70M16 63H78" stroke="#3a2412" strokeWidth="1.4" /><path d="M12 55H58" stroke="#8a6440" strokeWidth="1.6" strokeLinecap="round" />
+      <ellipse cx="86" cy="60.5" rx="5" ry="8.5" fill="#c8a070" {...OD} strokeWidth="1.8" /><ellipse cx="86" cy="60.5" rx="2.6" ry="4.4" fill="none" stroke="#8a6440" strokeWidth="1" />
+      <path d="M86 52l2 -4l3 3M86 69l3 3l-3 2" stroke="#e8d8c0" strokeWidth="1.2" fill="none" />
+      <path d="M22 52l-6 -16l-6 2M18 42l8 -6M40 52l2 -14l6 -3M56 69l4 12l5 -1M30 69l-4 10" stroke="#140b05" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      <path d="M22 52l-6 -16l-6 2M18 42l8 -6M40 52l2 -14l6 -3M56 69l4 12l5 -1M30 69l-4 10" stroke="#4a3018" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+    </g>
+    <g fill="#4a4656" {...OD} strokeWidth="1.6"><path d="M66 90 V80 Q66 74 72 74 Q78 74 78 80 V90Z" transform="rotate(16 72 86)" /></g>
+    <g fill="#8a7a68" opacity=".4">{[[24, 88, 8], [44, 92, 9], [64, 94, 8]].map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} />)}</g>
   </g>,
   dig_map: () => <g><Tunnel />
     <path d="M12 20L28 16L42 22L58 15L74 21L90 17L88 84L72 88L58 82L42 88L28 82L10 86Z" fill="#e8d4a0" {...OD} />
@@ -525,13 +541,12 @@ const DIG = {
     <path d="M54 32L100 4V44Z" fill="#fff3b0" opacity=".25" />
     <path d="M70 100L88 52" stroke="#140b05" strokeWidth="7" strokeLinecap="round" /><path d="M70 100L88 52" stroke="#a8703c" strokeWidth="4" strokeLinecap="round" />
     <path d="M82 50Q84 36 92 34Q100 40 96 54Q90 58 82 50Z" fill="#9aa4b2" {...OD} />
-    <path d="M22 100Q22 72 50 70Q78 72 78 100Z" fill="#3a78c0" {...OD} />
-    <path d="M38 72L36 100M62 72L64 100" stroke="#ffc93a" strokeWidth="4" />
+    <path d="M22 100Q22 72 50 70Q78 72 78 100Z" fill="#a8865a" {...OD} />
+    <path d="M38 72L36 100M62 72L64 100" stroke="#6b4224" strokeWidth="4" />
     <circle cx="50" cy="52" r="16" fill={SKIN} {...OD} />
-    <path d="M32 50Q32 28 50 28Q68 28 68 50Z" fill="#ffc93a" {...OD} />
-    <path d="M28 50H72" stroke="#140b05" strokeWidth="7" strokeLinecap="round" /><path d="M28 50H72" stroke="#e0a020" strokeWidth="4" strokeLinecap="round" />
-    <path d="M40 34Q46 30 52 30" stroke="#fff3b0" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-    <circle cx="50" cy="38" r="5" fill="#fff7c0" {...OD} strokeWidth="1.8" />
+    <path d="M33 48Q33 26 50 26Q67 26 67 48Z" fill="#8a5a32" {...OD} /><path d="M34 44H66" stroke="#3a2412" strokeWidth="4" />
+    <path d="M22 49Q50 43 78 49" stroke="#140b05" strokeWidth="7" strokeLinecap="round" fill="none" /><path d="M22 49Q50 43 78 49" stroke="#6b4224" strokeWidth="4" strokeLinecap="round" fill="none" />
+    <path d="M40 33Q46 29 52 29" stroke="#c8915a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
     <circle cx="44" cy="57" r="2.2" fill="#140b05" /><circle cx="56" cy="57" r="2.2" fill="#140b05" />
     <path d="M44 62q6 5 12 0" stroke="#140b05" strokeWidth="2.2" fill="none" strokeLinecap="round" />
     <ellipse cx="38" cy="62" rx="3" ry="2" fill="#ff9a8a" opacity=".7" /><ellipse cx="61" cy="64" rx="3.5" ry="2" fill="#8a6a4a" opacity=".5" />

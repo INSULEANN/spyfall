@@ -1,5 +1,5 @@
-// เกม "ขุดสมบัติป่าช้า" ⛏️🪦 — เกมขุดอุโมงค์ บทบาทลับ (ต้นฉบับของเว็บนี้)
-//   👷 นักขุด   ต่ออุโมงค์จากปากหลุมไปให้ถึงหีบสมบัติ (1 ใน 3 ป้ายหลุมปลายทาง)
+// เกม "ขุดสมบัติป่าช้า" ⛏️🪦 — นักล่าสมบัติต่อทางเดินฝ่าป่าช้า บทบาทลับ (ต้นฉบับของเว็บนี้)
+//   👷 นักขุด   ต่อทางเดินจากประตูป่าช้าไปให้ถึงหีบสมบัติ (1 ใน 3 ป้ายหลุมปลายทาง)
 //   😈 ตัวป่วน  แอบขวาง — ถ้านักขุดขุดไปเจอหลุมศพที่มีแต่กระดูก หรือการ์ดหมดกองและหมดมือก่อนถึงสมบัติ ตัวป่วนชนะ
 // ตาของคุณทำ 1 อย่าง: วางการ์ดทางเดิน / เล่นการ์ดพิเศษ / ทิ้ง 1 ใบ แล้วจั่ว
 // กระดาน: board["x_y"] = { m: ขอบที่เปิด (N1 E2 S4 W8), d: 1 = ทางตัน (ตรงกลางมีหินกั้น), s: 1 = ปากหลุม }
@@ -41,7 +41,7 @@ export const ACT = {
   fpl: { n: 'ซ่อมจอบ/ตะเกียง', e: '🔧', t: 'fix', tools: 'pl', img: 'dig_pick', x: 'fix', d: 'ซ่อมได้ 1 อย่าง: จอบ หรือ ตะเกียง' },
   fpc: { n: 'ซ่อมจอบ/รถเข็น', e: '🔧', t: 'fix', tools: 'pc', img: 'dig_cart', x: 'fix', d: 'ซ่อมได้ 1 อย่าง: จอบ หรือ รถเข็น' },
   flc: { n: 'ซ่อมตะเกียง/รถเข็น', e: '🔧', t: 'fix', tools: 'lc', img: 'dig_lamp', x: 'fix', d: 'ซ่อมได้ 1 อย่าง: ตะเกียง หรือ รถเข็น' },
-  fall: { n: 'ดินถล่ม', e: '💣', t: 'fall', img: 'dig_fall', d: 'ถล่มทางเดิน 1 ช่องบนกระดาน (ยกเว้นปากหลุมกับปลายทาง)' },
+  fall: { n: 'ต้นไม้ล้ม', e: '🌳', t: 'fall', img: 'dig_fall', d: 'โค่นต้นไม้ขวางทางเดิน 1 ช่องบนกระดาน (ยกเว้นประตูป่าช้ากับหลุมปลายทาง)' },
   map: { n: 'แผนที่เก่า', e: '🗺️', t: 'map', img: 'dig_map', d: 'แอบดูป้ายหลุมปลายทาง 1 ใบ (เห็นคนเดียว)' },
   spy: { n: 'ส่องบทบาท', e: '🔍', t: 'spy', img: 'dig_spy', d: 'แอบดูบทบาทของเพื่อน 1 คน (เห็นคนเดียว)' },
   mask: { n: 'สลับหน้ากาก', e: '🎭', t: 'mask', img: 'dig_mask', d: 'เลือก 1 คน (รวมตัวเองได้) ทิ้งบทบาทเดิม แล้วจั่วบทบาทใหม่' },
@@ -137,7 +137,7 @@ function advance(cur, now) {
 function take(r, me, idx, card) { const h = [...handOf(r, me)]; if (h[idx] !== card) return false; h.splice(idx, 1); r.hands = { ...r.hands, [me]: h }; return true; }
 function draw(r, id) { if (!r.deck.length) return; r.hands = { ...r.hands, [id]: [...handOf(r, id), r.deck[0]] }; r.deck = r.deck.slice(1); }
 function remember(r, me, key, val) { r.seen = { ...r.seen, [me]: { ...(r.seen[me] || {}), [key]: val } }; }
-function check(r) { // ปลายทางที่อุโมงค์ชน → พลิก • คืน 'gold' (นักขุดชนะ) / 'rock' (ขุดเจอหิน = นักขุดแพ้ทันที) / null
+function check(r) { // ปลายทางที่ทางเดินชน → พลิก • คืน 'gold' (นักขุดชนะ) / 'rock' (ขุดเจอหิน = นักขุดแพ้ทันที) / null
   const { touched } = reach(r); let gold = false, rock = false;
   touched.forEach(g => { const G = r.goals[g]; if (G.open) return; G.open = 1; if (G.t === 'gold') gold = true; else rock = true; say(r, G.t === 'gold' ? '💰 ขุดทะลุถึงหีบสมบัติ!!' : `💀 พลิกปลายทางที่ ${g + 1} — เจอแต่กระดูก! นักขุดพลาด`); r.fx = { k: G.t === 'gold' ? 'gold' : 'rock', g, at: Date.now() }; });
   return gold ? 'gold' : rock ? 'rock' : null;
@@ -161,7 +161,7 @@ export function digPlay(cur, me, a, now) {
     const isP = id => r.roles[id] && !r.gone?.[id] && r.order.includes(id);
     if (A.t === 'brk') { if (!isP(t) || t === me || !canBreak(r, t, A.tool)) return; take(r, me, idx, card); r.broken = { ...r.broken, [t]: { ...(r.broken[t] || {}), [A.tool]: true } }; mark(r, me, card, `🔨 {${me}} ทุบ${TOOLS[A.tool].n}ของ {${t}}`); r.fx = { k: 'brk', id: t, tool: A.tool, at: now }; }
     else if (A.t === 'fix') { if (!isP(t)) return; const can = fixable(r, t, A.tools); const tool = can.includes(a.tool) ? a.tool : can[0]; if (!tool) return; take(r, me, idx, card); const bt = { ...(r.broken[t] || {}) }; delete bt[tool]; r.broken = { ...r.broken, [t]: bt }; mark(r, me, card, `🔧 {${me}} ซ่อม${TOOLS[tool].n}ให้ {${t}}`); }
-    else if (A.t === 'fall') { const k = K(a.x, a.y); const c = r.board[k]; if (!c || c.s) return; take(r, me, idx, card); const b = { ...r.board }; delete b[k]; r.board = b; mark(r, me, card, `💣 {${me}} ถล่มดินทับทางเดิน 1 ช่อง`); r.fx = { k: 'fall', x: a.x, y: a.y, at: now }; }
+    else if (A.t === 'fall') { const k = K(a.x, a.y); const c = r.board[k]; if (!c || c.s) return; take(r, me, idx, card); const b = { ...r.board }; delete b[k]; r.board = b; mark(r, me, card, `🌳 {${me}} โค่นต้นไม้ขวางทางเดิน 1 ช่อง`); r.fx = { k: 'fall', x: a.x, y: a.y, at: now }; }
     else if (A.t === 'map') { const g = +a.goal; if (!(g >= 0 && g < 3) || r.goals[g].open) return; take(r, me, idx, card); remember(r, me, 'g' + g, r.goals[g].t); r.peek = { ...(r.peek || {}), [me]: { k: 'map', g, v: r.goals[g].t, at: now } }; mark(r, me, card, `🗺️ {${me}} แอบส่องแผนที่ ดูปลายทางที่ ${g + 1}`); }
     else if (A.t === 'spy') { if (!isP(t) || t === me) return; take(r, me, idx, card); remember(r, me, 'r_' + t, r.roles[t]); r.peek = { ...(r.peek || {}), [me]: { k: 'spy', id: t, v: r.roles[t], at: now } }; mark(r, me, card, `🔍 {${me}} แอบส่องบทบาทของ {${t}}`); }
     else if (A.t === 'mask') { if (!isP(t)) return; take(r, me, idx, card); const old = r.roles[t]; let rd = [...r.roleDeck]; if (!rd.length) rd = shuffle(r.roleDiscard || ['dig', 'sab']); const nr = rd.shift(); r.roleDeck = rd; r.roleDiscard = [...(r.roleDiscard || []), old]; r.roles = { ...r.roles, [t]: nr }; r.masked = { ...(r.masked || {}), [t]: (r.masked?.[t] || 0) + 1 }; mark(r, me, card, `🎭 {${me}} สลับหน้ากากให้ {${t}} — จั่วบทบาทใหม่!`); r.fx = { k: 'mask', id: t, at: now }; }
@@ -212,37 +212,120 @@ const Skull = ({ x, y, s = 1 }) => <g transform={`translate(${x} ${y}) scale(${s
 const Root = ({ d }) => <path d={d} fill="none" stroke="#5a3f28" strokeWidth="2.2" strokeLinecap="round" />;
 // มุมทั้งสี่: [x, y] กลางมุม • สุ่มแบบคงที่ตามรูปทาง (การ์ดแบบเดียวกันหน้าตาเหมือนกัน)
 const CORNERS = [[17, 26], [83, 26], [17, 124], [83, 124]];
+// ไล่สี/ลายที่ใช้ร่วมกันทุกช่อง (id ซ้ำในหลาย svg ได้ — หน้าตาเหมือนกันหมด)
+// ธีม: ป่าช้ายามค่ำบนดิน — พื้นหญ้า ทางดินมีหินวางเป็นทางเดิน
+const TileDefs = () => <defs>
+  <linearGradient id="dg-grass" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stopColor="#34502e" /><stop offset=".55" stopColor="#2a4326" /><stop offset="1" stopColor="#1d301b" /></linearGradient>
+  <linearGradient id="dg-path" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#b08a5a" /><stop offset=".5" stopColor="#9c784a" /><stop offset="1" stopColor="#84633c" /></linearGradient>
+  <radialGradient id="dg-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffcf6a" stopOpacity=".55" /><stop offset="1" stopColor="#ffcf6a" stopOpacity="0" /></radialGradient>
+  <linearGradient id="dg-stone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#b4aea6" /><stop offset=".6" stopColor="#8a847c" /><stop offset="1" stopColor="#625d57" /></linearGradient>
+  <linearGradient id="dg-grave" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#a4a0aa" /><stop offset="1" stopColor="#6c6874" /></linearGradient>
+</defs>;
+// ก้อนหินมีแสงเงา
+const Stone = ({ x, y, r, a = 0 }) => <g transform={`translate(${x} ${y}) rotate(${a})`}>
+  <path d={`M${-r} ${r * .3} Q${-r * 1.05} ${-r * .6} ${-r * .3} ${-r * .85} Q${r * .5} ${-r * 1.05} ${r * .95} ${-r * .2} Q${r * 1.1} ${r * .55} ${r * .4} ${r * .75} Q${-r * .4} ${r * .95} ${-r} ${r * .3}Z`} fill="url(#dg-stone)" stroke="#2a2522" strokeWidth="1.4" strokeLinejoin="round" />
+  <path d={`M${-r * .55} ${-r * .35} Q${-r * .1} ${-r * .75} ${r * .45} ${-r * .45}`} stroke="#ddd8d0" strokeWidth={Math.max(.8, r * .16)} fill="none" strokeLinecap="round" opacity=".75" /></g>;
+// ป้ายหลุมเล็ก ๆ / ไม้กางเขน ประดับมุม
+const MiniGrave = ({ x, y, s = 1, tilt = 0 }) => <g transform={`translate(${x} ${y}) rotate(${tilt}) scale(${s})`}>
+  <ellipse cx="0" cy="9" rx="10" ry="3" fill="#0f1a0e" opacity=".5" />
+  <path d="M-7 9 V-4 Q-7 -11 0 -11 Q7 -11 7 -4 V9Z" fill="url(#dg-grave)" stroke="#2e2a34" strokeWidth="1.4" />
+  <path d="M-4.5 7 V-4 Q-4.5 -8 0 -8.5" stroke="#cfcbd4" strokeWidth="1.1" fill="none" opacity=".7" />
+  <path d="M-1.4 -6 h2.8 v2.4 h2.4 v2.6 h-2.4 v5 h-2.8 v-5 h-2.4 v-2.6 h2.4Z" fill="#55515c" />
+  <path d="M-7 7 q3 -3 5 0 q2 -2 4 1" fill="#4f6a34" /></g>;
+const MiniCross = ({ x, y, s = 1, tilt = 0 }) => <g transform={`translate(${x} ${y}) rotate(${tilt}) scale(${s})`}>
+  <ellipse cx="0" cy="10" rx="7" ry="2.4" fill="#0f1a0e" opacity=".5" />
+  <path d="M-1.8 10 V-10 M-8 -4 H5" stroke="#2a1a0e" strokeWidth="5" strokeLinecap="round" /><path d="M-1.8 10 V-10 M-8 -4 H5" stroke="#8a5e36" strokeWidth="3" strokeLinecap="round" /></g>;
+const Tuft = ({ x, y, c = '#4f7a3a' }) => <path d={`M${x - 3} ${y} q1 -5 0 -7 M${x} ${y} q0 -6 1 -9 M${x + 3} ${y} q0 -4 2 -6`} stroke={c} strokeWidth="1.2" fill="none" strokeLinecap="round" />;
+// พื้นหญ้ารอบทางเดิน: หญ้า ดอกไม้ป่า หมอก ป้ายหลุม กระดูก
 const Deco = ({ v }) => <g>
-  <g stroke="#2e2118" strokeWidth="2" fill="none" opacity=".8"><path d="M0 44 Q25 40 50 45 T100 42" /><path d="M0 112 Q30 116 55 110 T100 114" /></g>
-  <g fill="#4a382a"><circle cx="8" cy="64" r="2.5" /><circle cx="92" cy="98" r="3" /><circle cx="30" cy="6" r="2" /><circle cx="70" cy="146" r="2.5" /><ellipse cx="92" cy="60" rx="3.5" ry="2.5" /></g>
+  <g opacity=".9">{[[10, 12], [40, 6], [88, 14], [6, 70], [94, 84], [30, 140], [74, 146], [92, 46], [12, 100], [60, 6], [92, 120], [6, 40]].map(([x, y], i) => <Tuft key={i} x={x} y={y} c={i % 3 ? '#4f7a3a' : '#5f8a44'} />)}</g>
+  <g>{[[24, 58, '#d8c8f0'], [80, 100, '#f0e0a0'], [64, 140, '#d8c8f0'], [36, 10, '#f0e0a0']].map(([x, y, c], i) => <g key={i}><circle cx={x} cy={y} r="1.6" fill={c} /><circle cx={x + 3} cy={y + 1.5} r="1.2" fill={c} opacity=".8" /></g>)}</g>
+  <g fill="#e8ecf4" opacity=".07"><ellipse cx="30" cy="48" rx="26" ry="5" /><ellipse cx="74" cy="104" rx="28" ry="5" /></g>
   {CORNERS.map(([x, y], i) => { const k = (v + i) % 4;
-    return <g key={i}>{k === 0 ? <Bone x={x} y={y} a={i * 50 - 30} s=".85" /> : k === 1 ? <Skull x={x} y={y} s=".8" />
-      : k === 2 ? <Root d={`M${x - 14} ${y - 18} q6 10 2 18 t8 16 M${x - 6} ${y} q8 2 12 -6`} />
-      : <g fill="#5e4a38" stroke="#2a1d15" strokeWidth="1"><ellipse cx={x - 4} cy={y + 2} rx="6" ry="4.5" /><ellipse cx={x + 6} cy={y - 4} rx="4" ry="3" /></g>}</g>; })}
+    return <g key={i}>{k === 0 ? <MiniGrave x={x} y={y} s={1.05} tilt={i % 2 ? 6 : -5} /> : k === 1 ? <MiniCross x={x} y={y} tilt={i % 2 ? -8 : 7} />
+      : k === 2 ? <g><Bone x={x} y={y + 2} a={i * 50 - 30} s=".8" /><Tuft x={x + 8} y={y + 8} /></g>
+      : <g><Skull x={x - 2} y={y} s=".75" /><g fill="#c8584a"><ellipse cx={x + 9} cy={y + 6} rx="3.4" ry="2" /></g><path d={`M${x + 9} ${y + 6} v4`} stroke="#e8dcc0" strokeWidth="1.4" /></g>}</g>; })}
 </g>;
 export function Tile({ m, d, s, size = 40 }) {
-  const arms = DIRS.filter(([bit]) => m & bit); const cx = TW / 2, cy = TH / 2, w = 34;
+  const arms = DIRS.filter(([bit]) => m & bit); const cx = TW / 2, cy = TH / 2, w = 30;
   const h = typeof size === 'number' ? size * TH / TW : size;
+  // สี่เหลี่ยมของแต่ละแขน (ทางตันสั้นกว่า)
+  const R = arms.map(([bit, dx, dy]) => { const len = dx ? (d ? 34 : cx) : (d ? 50 : cy);
+    const x = dx === 0 ? cx - w / 2 : dx > 0 ? TW - len : 0; const y = dy === 0 ? cy - w / 2 : dy > 0 ? TH - len : 0;
+    return { bit, dx, dy, len, x, y, W: dx === 0 ? w : len, H: dy === 0 ? w : len }; });
+  const hub = !d && arms.length > 0;
+  const shape = (pad, fill, rx = 0) => <g fill={fill}>{hub && <rect x={cx - w / 2 - pad} y={cy - w / 2 - pad} width={w + pad * 2} height={w + pad * 2} rx={6 + pad} />}
+    {R.map(a => <rect key={a.bit} x={a.x - (a.dx ? 0 : pad)} y={a.y - (a.dy ? 0 : pad)} width={a.W + (a.dx ? 0 : pad * 2)} height={a.H + (a.dy ? 0 : pad * 2)} rx={rx} />)}</g>;
+  // หินวางเป็นทางเดินตามแขน
+  const steps = R.flatMap(a => { const L = a.dx ? a.W : a.H; const n = Math.max(1, Math.floor((L - (hub ? 14 : 4)) / 14));
+    return Array.from({ length: n }, (_, i) => { const t = 7 + i * 14; const j = ((i + a.bit) % 2 ? 3 : -3);
+      return a.dx === 0 ? { k: a.bit + '-' + i, x: cx + j, y: a.dy < 0 ? t : TH - t, rot: 0 } : { k: a.bit + '-' + i, x: a.dx < 0 ? t : TW - t, y: cy + j, rot: 90 }; }); });
   return <svg width={size} height={h} viewBox={`0 0 ${TW} ${TH}`} className="dig-tile" aria-hidden="true">
-    <rect width={TW} height={TH} fill={EARTH} />{!s && <Deco v={(m * 5 + (d ? 2 : 0)) % 4} />}
-    {[0, 1, 2].map(layer => <g key={layer}>{!d && arms.length > 0 && layer < 2 && <rect x={cx - w / 2 + (layer ? 1.5 : 0)} y={cy - w / 2 + (layer ? 1.5 : 0)} width={w - (layer ? 3 : 0)} height={w - (layer ? 3 : 0)} fill={DIRT} {...(layer ? {} : { stroke: DIRT2, strokeWidth: 3 })} />}{arms.map(([bit, dx, dy]) => { const len = dx ? (d ? 34 : cx) : (d ? 50 : cy);
-      const x = dx === 0 ? cx - w / 2 : dx > 0 ? TW - len : 0; const y = dy === 0 ? cy - w / 2 : dy > 0 ? TH - len : 0;
-      const W = dx === 0 ? w : len, H = dy === 0 ? w : len;
-      if (layer === 0) return <rect key={bit} x={x} y={y} width={W} height={H} fill={DIRT} stroke={DIRT2} strokeWidth="3" />;
-      // ชั้นที่ 2 ทับเส้นขอบตรงรอยต่อกลางการ์ด ไม่ให้เห็นตะเข็บ
-      if (layer === 1) return <rect key={bit} x={x + (dx > 0 ? -2 : 1.5)} y={y + (dy > 0 ? -2 : 1.5)} width={W - (dx ? 1.5 - 2 : 3)} height={H - (dy ? 1.5 - 2 : 3)} fill={DIRT} />;
-      // รอยล้อรถเข็น: จากขอบการ์ดถึงกลางทาง
-      const a = d ? len - 4 : len - w / 2 - 2;
-      return <path key={bit} d={dx === 0 ? (dy < 0 ? `M${cx - 7} 4 V${a} M${cx + 7} 4 V${a}` : `M${cx - 7} ${TH - 4} V${TH - a} M${cx + 7} ${TH - 4} V${TH - a}`)
-        : (dx < 0 ? `M4 ${cy - 7} H${a} M4 ${cy + 7} H${a}` : `M${TW - 4} ${cy - 7} H${TW - a} M${TW - 4} ${cy + 7} H${TW - a}`)} stroke="#a77c48" strokeWidth="1.6" strokeDasharray="5 4" opacity=".7" />; })}</g>)}
-    {!d && arms.length > 0 && <g fill="#a77c48" opacity=".75"><circle cx={cx - 6} cy={cy - 5} r="1.8" /><circle cx={cx + 7} cy={cy + 4} r="1.4" /><circle cx={cx + 2} cy={cy - 9} r="1.2" /></g>}
-    {/* ทางตัน: ก้อนหินขวางทาง */}
-    {d ? <g><ellipse cx={cx} cy={cy + 12} rx="20" ry="5" fill="#1a110b" opacity=".5" /><path d={`M${cx - 18} ${cy + 10} Q${cx - 20} ${cy - 8} ${cx - 6} ${cy - 15} Q${cx + 10} ${cy - 18} ${cx + 17} ${cy - 4} Q${cx + 21} ${cy + 8} ${cx + 12} ${cy + 13} Z`} fill="#6d6a66" stroke="#2a2522" strokeWidth="3" />
-      <path d={`M${cx - 11} ${cy - 6} q6 -6 14 -5`} stroke="#9a9590" strokeWidth="3" fill="none" strokeLinecap="round" /><path d={`M${cx + 2} ${cy + 1} l5 6 l-3 5`} stroke="#3e3a36" strokeWidth="1.8" fill="none" /></g> : null}
-    {s ? <g><ellipse cx={cx} cy={cy + 2} rx="26" ry="30" fill="#1a110b" stroke="#6b4a2a" strokeWidth="4" /><g stroke="#a0763f" strokeWidth="4"><path d="M40 52 V98 M60 52 V98" /><path d="M40 62 H60 M40 75 H60 M40 88 H60" strokeWidth="3" /></g></g> : null}
+    <TileDefs />
+    <rect width={TW} height={TH} fill="url(#dg-grass)" />{!s && <Deco v={(m * 5 + (d ? 2 : 0)) % 4} />}
+    {/* ทางดิน: ขอบหญ้าเข้ม + ดิน + รอยเท้า */}
+    {shape(3.5, '#1a2a16')}{shape(1.2, '#5a4128')}{shape(0, 'url(#dg-path)')}
+    <g stroke="#3f6a30" strokeWidth="1.3" strokeLinecap="round" fill="none">{R.map(a => { const L = a.dx ? a.W : a.H; return Array.from({ length: Math.floor(L / 7) }, (_, i) => { const t = 3 + i * 7;
+      return a.dx === 0 ? <path key={a.bit + '-' + i} d={`M${cx - w / 2} ${a.y + t} l2.5 -2 M${cx + w / 2} ${a.y + t + 3} l-2.5 -2`} />
+        : <path key={a.bit + '-' + i} d={`M${a.x + t} ${cy - w / 2} l-2 2.5 M${a.x + t + 3} ${cy + w / 2} l-2 -2.5`} />; }); })}</g>
+    <g fill="#6e5234" opacity=".8">{R.map(a => [.3, .7].map((t, i) => { const px = a.dx === 0 ? cx - 9 + i * 18 : a.x + a.W * t, py = a.dx === 0 ? a.y + a.H * t : cy - 9 + i * 18;
+      return <circle key={a.bit + '-' + i} cx={px} cy={py} r="1.3" />; }))}</g>
+    {steps.map(p => <g key={p.k} transform={`translate(${p.x} ${p.y}) rotate(${p.rot})`}><ellipse rx="7.5" ry="4.6" fill="#3a2c1c" opacity=".5" transform="translate(.8 1.2)" />
+      <ellipse rx="7.5" ry="4.6" fill="url(#dg-stone)" stroke="#3a3530" strokeWidth=".9" /><path d="M-4.5 -1.6 Q0 -3.6 4 -1.8" stroke="#e0dad2" strokeWidth=".9" fill="none" opacity=".7" /></g>)}
+    {hub && <g><circle cx={cx} cy={cy} r="11" fill="#3a2c1c" opacity=".45" transform="translate(1 1.5)" /><circle cx={cx} cy={cy} r="11" fill="url(#dg-stone)" stroke="#3a3530" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r="6.5" fill="none" stroke="#6a655e" strokeWidth=".9" strokeDasharray="2 2" /><path d={`M${cx - 6} ${cy - 5} Q${cx} ${cy - 9} ${cx + 5} ${cy - 6}`} stroke="#e0dad2" strokeWidth="1" fill="none" opacity=".7" /></g>}
+    {/* ทางตัน: ต้นไม้ตายล้มขวาง + หิน */}
+    {d ? <g><ellipse cx={cx} cy={cy + 10} rx="30" ry="7" fill="#0d160c" opacity=".55" />
+      <g transform={`rotate(-18 ${cx} ${cy})`}>
+        <rect x={cx - 30} y={cy - 7} width="60" height="14" rx="6" fill="#5a3c22" stroke="#24150b" strokeWidth="1.8" />
+        <path d={`M${cx - 26} ${cy - 3} H${cx + 18} M${cx - 20} ${cy + 3} H${cx + 24}`} stroke="#3a2412" strokeWidth="1.2" />
+        <path d={`M${cx - 24} ${cy - 5} H${cx + 10}`} stroke="#8a6440" strokeWidth="1.4" strokeLinecap="round" />
+        <ellipse cx={cx + 30} cy={cy} rx="4" ry="7" fill="#c8a070" stroke="#24150b" strokeWidth="1.4" /><ellipse cx={cx + 30} cy={cy} rx="2" ry="3.6" fill="none" stroke="#8a6440" strokeWidth=".9" />
+        <path d={`M${cx - 10} ${cy - 7} l-6 -12 l-4 2 M${cx - 13} ${cy - 13} l6 -5 M${cx + 8} ${cy + 7} l5 10 l4 -1`} stroke="#4a3018" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      </g>
+      <Stone x={cx - 18} y={cy + 12} r={6} a={-12} /><Stone x={cx + 16} y={cy - 14} r={5} a={20} />
+      <g fill="#6f8a48">{[[cx - 4, cy - 10], [cx + 6, cy + 9]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="2" />)}</g></g> : null}
+    {/* ประตูป่าช้า: เสาหิน 2 ต้น ประตูเหล็กโค้ง ตะเกียง */}
+    {s ? <g><circle cx={cx} cy={cy - 4} r="44" fill="url(#dg-glow)" />
+      <ellipse cx={cx} cy={cy + 28} rx="34" ry="6" fill="#0d160c" opacity=".5" />
+      <path d={`M${cx - 20} ${cy + 26} V${cy - 14} Q${cx} ${cy - 40} ${cx + 20} ${cy - 14} V${cy + 26}`} fill="none" stroke="#1a1a20" strokeWidth="4.5" />
+      <path d={`M${cx - 20} ${cy + 26} V${cy - 14} Q${cx} ${cy - 40} ${cx + 20} ${cy - 14} V${cy + 26}`} fill="none" stroke="#4a4a56" strokeWidth="2.2" />
+      <g stroke="#2e2e36" strokeWidth="1.8">{[-13, -6.5, 0, 6.5, 13].map(x => <path key={x} d={`M${cx + x} ${cy + 26} V${cy - 22 + Math.abs(x) * .7}`} />)}</g>
+      <g fill="#4a4a56">{[-13, -6.5, 0, 6.5, 13].map(x => <path key={x} d={`M${cx + x - 2} ${cy - 22 + Math.abs(x) * .7} l2 -4 l2 4Z`} />)}</g>
+      <path d={`M${cx - 18} ${cy + 4} H${cx + 18}`} stroke="#3a3a44" strokeWidth="2" />
+      <circle cx={cx} cy={cy - 24} r="4" fill="none" stroke="#5a5a66" strokeWidth="1.6" />
+      {[-1, 1].map(sd => <g key={sd}><rect x={cx + sd * 27 - 6} y={cy - 24} width="12" height="52" rx="1.5" fill="url(#dg-grave)" stroke="#2e2a34" strokeWidth="1.6" />
+        <rect x={cx + sd * 27 - 8} y={cy - 28} width="16" height="6" rx="1.5" fill="#8a8692" stroke="#2e2a34" strokeWidth="1.4" />
+        <path d={`M${cx + sd * 27 - 6} ${cy - 10} H${cx + sd * 27 + 6} M${cx + sd * 27 - 6} ${cy + 6} H${cx + sd * 27 + 6}`} stroke="#5a5662" strokeWidth=".9" />
+        <path d={`M${cx + sd * 27 - 6} ${cy + 18} q4 -4 7 0 q3 -3 5 1`} fill="#4f6a34" /></g>)}
+      <g transform={`translate(${cx + 27} ${cy - 36})`}><path d="M0 4 V-2" stroke="#2e2e36" strokeWidth="1.4" /><rect x="-4" y="-1" width="8" height="10" rx="2" fill="#ffdc7a" stroke="#24150b" strokeWidth="1.2" /><rect x="-5" y="-3" width="10" height="3" rx="1" fill="#3a3a44" /><circle cy="4" r="2" fill="#fff6c8" /></g>
+    </g> : null}
   </svg>;
 }
-const GoalBack = ({ i }) => <svg viewBox={`0 0 ${TW} ${TH}`} className="dig-tile" aria-hidden="true"><rect width={TW} height={TH} fill="#2b2230" /><path d="M20 136 V50 Q20 16 50 16 Q80 16 80 50 V136 Z" fill="#8e8a94" stroke="#4a4552" strokeWidth="4" /><path d="M27 136 V52 Q27 25 50 25" stroke="#b3afba" strokeWidth="3" fill="none" /><text x="50" y="90" textAnchor="middle" fontSize="34" fontWeight="900" fill="#3a3540" fontFamily="sans-serif">{i + 1}</text><rect x="10" y="132" width="80" height="10" fill="#3a5a2a" /></svg>;
+const GoalBack = ({ i }) => <svg viewBox={`0 0 ${TW} ${TH}`} className="dig-tile" aria-hidden="true">
+  <defs><linearGradient id="gb-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1e1826" /><stop offset="1" stopColor="#3a2e3a" /></linearGradient>
+    <linearGradient id="gb-stone" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#a8a4ae" /><stop offset=".55" stopColor="#8e8a94" /><stop offset="1" stopColor="#6a6672" /></linearGradient>
+    <radialGradient id="gb-candle" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffcf6a" stopOpacity=".6" /><stop offset="1" stopColor="#ffcf6a" stopOpacity="0" /></radialGradient></defs>
+  <rect width={TW} height={TH} fill="url(#gb-sky)" />
+  <g fill="#e8e4f0" opacity=".5">{[[12, 10], [86, 18], [70, 6], [24, 26]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r=".9" />)}</g>
+  <circle cx="82" cy="12" r="6" fill="#f3ecd2" opacity=".85" /><circle cx="84" cy="10.5" r="6" fill="#1e1826" />
+  {/* ป้ายหลุม */}
+  <path d="M18 132 V54 Q18 18 50 18 Q82 18 82 54 V132 Z" fill="#3e3a44" />
+  <path d="M21 132 V54 Q21 21 50 21 Q79 21 79 54 V132 Z" fill="url(#gb-stone)" stroke="#2e2a34" strokeWidth="2.5" />
+  <path d="M27 130 V56 Q27 28 50 28" stroke="#c4c0ca" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".8" />
+  <path d="M28 60 Q50 54 72 60" stroke="#5a5662" strokeWidth="1.4" fill="none" />
+  <path d="M46 34 H54 V40 H60 V46 H54 V58 H46 V46 H40 V40 H46Z" fill="#6a6672" stroke="#4a4652" strokeWidth="1" />
+  <path d="M66 70 l-5 9 l4 6 l-6 10" stroke="#3e3a44" strokeWidth="1.6" fill="none" strokeLinejoin="round" />
+  <path d="M21 108 Q30 100 36 110 Q42 104 46 114 L21 120Z" fill="#4f6a34" opacity=".85" /><path d="M79 96 Q72 92 70 100 Q66 98 64 106 L79 110Z" fill="#4f6a34" opacity=".75" />
+  <g fill="#6f8a48">{[[26, 106], [33, 108], [74, 99]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r="1.6" />)}</g>
+  <circle cx="50" cy="86" r="14" fill="#5a5662" opacity=".5" /><text x="50" y="96" textAnchor="middle" fontSize="28" fontWeight="900" fill="#2e2a34" fontFamily="sans-serif">{i + 1}</text>
+  <text x="50" y="95" textAnchor="middle" fontSize="28" fontWeight="900" fill="#d8d4de" opacity=".35" fontFamily="sans-serif">{i + 1}</text>
+  {/* เนินดิน หญ้า เทียน */}
+  <path d="M0 150 V134 Q20 126 50 128 Q80 126 100 134 V150Z" fill="#3b2a1c" /><path d="M0 138 Q24 131 50 133 Q78 131 100 138" stroke="#5a4028" strokeWidth="2" fill="none" />
+  <g stroke="#5e7a3a" strokeWidth="1.6" strokeLinecap="round" fill="none"><path d="M8 136 q1 -7 3 -9 M11 136 q0 -5 -3 -8 M90 136 q-1 -7 -4 -9 M93 137 q1 -6 3 -8 M30 131 q1 -5 3 -6 M68 131 q0 -5 -2 -7" /></g>
+  {[[12, 128], [88, 128]].map(([x, y], k) => <g key={k}><circle cx={x} cy={y - 4} r="12" fill="url(#gb-candle)" /><rect x={x - 2.5} y={y - 4} width="5" height="10" rx="1" fill="#efe4c6" stroke="#5a4a3a" strokeWidth=".8" />
+    <path d={`M${x} ${y - 11} q3 3 0 6 q-3 -3 0 -6Z`} fill="#ffb347" /><circle cx={x} cy={y - 7} r="1" fill="#fff3c0" /></g>)}
+</svg>;
 const ActFace = ({ c, size = 64 }) => { const A = ACT[c]; return <span className={'dig-act' + (A.x ? ' ' + A.x : '')} style={{ width: size, height: size * TH / TW }}>
   <ArtSvg k={A.img} className="dig-act-img" />{A.x === 'brk' && <i className="dig-ov brk">✖</i>}{A.x === 'fix' && <i className="dig-ov fix">🔧</i>}</span>; };
 export function CardView({ c, size = 64, rot }) {
@@ -251,7 +334,7 @@ export function CardView({ c, size = 64, rot }) {
 }
 const RoleFace = ({ role, size = 72 }) => <span className={'dig-role ' + role} style={{ width: size, height: size }}><ArtSvg k={ROLE[role].img} className="dig-act-img" /></span>;
 
-// อนิเมชันสั้น ๆ: ดินถล่ม / เปิดหีบ / หิน / สลับหน้ากาก
+// อนิเมชันสั้น ๆ: ต้นไม้ล้ม / เปิดหีบ / หิน / สลับหน้ากาก
 // ป๊อปอัปเล็ก ๆ บอกทุกคนว่าตาที่แล้วใครลงการ์ดอะไร (ไม่บังจอ หายเองใน 3.5 วิ แตะเพื่อปิด)
 function LastToast({ last, myId, av, nameOf }) {
   const [show, setShow] = useState(null); const seen = useRef(last?.at || 0);
@@ -268,7 +351,7 @@ function Fx({ fx }) {
   if (!show) return null;
   if (typeof document === 'undefined') return null;
   return createPortal(<div className={'dig-fx ' + show.k} onClick={() => setShow(null)} aria-hidden="true">
-    {show.k === 'fall' && <>{Array.from({ length: 14 }, (_, i) => <i key={i} className="rock" style={{ '--x': (8 + (i * 37) % 84) + '%', '--dl': (i % 5) * 0.07 + 's', '--s': 0.6 + (i % 3) * 0.3 }} />)}<b>💣 ดินถล่ม!</b></>}
+    {show.k === 'fall' && <>{Array.from({ length: 14 }, (_, i) => <i key={i} className="rock" style={{ '--x': (8 + (i * 37) % 84) + '%', '--dl': (i % 5) * 0.07 + 's', '--s': 0.6 + (i % 3) * 0.3 }} />)}<b>🌳 ต้นไม้ล้มขวางทาง!</b></>}
     {show.k === 'gold' && <><span className="chest"><ArtSvg k="dig_gold" className="dig-fx-img" /></span>{Array.from({ length: 18 }, (_, i) => <i key={i} className="coin" style={{ '--a': (i * 20) + 'deg', '--dl': (i % 6) * 0.06 + 's' }} />)}<b>💰 เจอสมบัติ!</b></>}
     {show.k === 'rock' && <><span className="chest"><ArtSvg k="dig_rock" className="dig-fx-img" /></span><b>💀 เจอแต่กระดูก…</b></>}
     {show.k === 'mask' && <b className="maskfx">🎭</b>}
@@ -342,7 +425,7 @@ export function DigGame({ db, room, roomCode, myId, players, isHost, scores, sou
     <div className="gcols dig-cols"><div className="gmain">{board}</div><div className="gside">
     <div className="round-top"><span className="eyebrow">รอบที่ {r.number}</span><span className="cat-tag">🃏 กองเหลือ {r.deck.length}</span></div>
     {myRole && <div className={'uc-card dig-me' + (peekRole ? ' open' : '')} onClick={() => setPeekRole(p => !p)}>
-      {peekRole ? <><RoleFace role={myRole} size={64} /><div><small>บทบาทของคุณ{r.masked?.[myId] ? ' (โดนสลับหน้ากากแล้ว!)' : ''}</small><b>{ROLE[myRole].e} {ROLE[myRole].n}</b><small>{myRole === 'dig' ? 'ขุดอุโมงค์ให้ถึงหีบสมบัติ ระวังตัวป่วน' : 'แอบขวางทางอย่างเนียน ๆ อย่าให้ใครถึงสมบัติ'}</small></div></>
+      {peekRole ? <><RoleFace role={myRole} size={64} /><div><small>บทบาทของคุณ{r.masked?.[myId] ? ' (โดนสลับหน้ากากแล้ว!)' : ''}</small><b>{ROLE[myRole].e} {ROLE[myRole].n}</b><small>{myRole === 'dig' ? 'ต่อทางเดินฝ่าป่าช้าให้ถึงหีบสมบัติ ระวังตัวป่วน' : 'แอบขวางทางอย่างเนียน ๆ อย่าให้ใครถึงสมบัติ'}</small></div></>
         : <><span className="uc-ico">🙈</span><div><b>แตะเพื่อดูบทบาทของคุณ</b><small>ดูคนเดียว ระวังคนแอบมอง</small></div></>}
     </div>}
     <div className="dig-seats">{ids.map(seat)}</div>
