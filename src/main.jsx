@@ -33,6 +33,7 @@ import { InsGame, InsLobby, makeInsRound, INS_MIN, INS_MAX, INS_SCORE } from './
 import { DigGame, DigLobby, makeDigRound, DIG_MIN, DIG_MAX, DIG_SCORE } from './dig.jsx';
 import { AniGame, AniLobby, makeAniRound, ANI_MIN, ANI_MAX, ANI_SCORE } from './animal.jsx';
 import { YdGame, YdLobby, makeYdRound, YD_MIN, YD_MAX, YD_SCORE } from './yadong.jsx';
+import { GbGame, GbLobby, makeGbRound, GB_MIN, GB_MAX, GB_SCORE, GB_WIN } from './gold.jsx';
 import { SnakeGame, SnakeLobby, makeSnakeRound, SN_MIN, SN_MAX, SN_SCORE } from './snake.jsx';
 import { PicGame, PicLobby, makePicRound, PIC_MIN, PIC_MAX, PIC_SCORE } from './pics.jsx';
 import { SpyStage, HeadStage, LobbyStage } from './stages.jsx';
@@ -42,7 +43,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.61';
+const APP_VERSION = '1.62';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -155,6 +156,11 @@ const GAMES = {
     lead:'ไพ่สัตว์ 6 ชนิด หมู ไก่ ควาย ช้าง แมว กบ แจกจนหมดสำรับ ผลัดกันส่งไพ่คว่ำพร้อมบอกว่าเป็นตัวอะไร จะพูดจริงหรือโกหกก็ได้ ขอแค่หน้านิ่ง',
     pills:['🂠 ส่งไพ่คว่ำ','😐 โกหกหน้าตาย','👀 แอบดูแล้วส่งต่อ'],
     how:[['ส่งไพ่คว่ำ','ตาคุณ เลือกไพ่ 1 ใบจากมือ ส่งคว่ำให้เพื่อนคนไหนก็ได้ แล้วบอกว่า “นี่คือ…” จะตรงกับไพ่จริงหรือโกหกก็ได้'],['จริงหรือไม่จริง','คนรับตอบ “จริง” หรือ “ไม่จริง” ถ้าตอบถูก คนส่งรับไพ่ไปหงาย ถ้าตอบผิด คนรับเก็บเอง • หรือแอบดูแล้วส่งต่อให้คนที่ยังไม่เห็น (บอกใหม่ได้) คนสุดท้ายต้องตอบ'],['ใครหน้าแตก','คนที่รับไพ่ไปเป็นคนส่งตาถัดไป • มีสัตว์ชนิดเดียวกันหงายครบ 4 ตัว (โหมดเร็ว 3 ตัว) หรือถึงตาส่งแต่ไม่มีไพ่ในมือ = แพ้ คนอื่นได้คนละ 1 แต้ม']] },
+  gold: { id:'gold', type:'gb', name:'ขุดทองหรือตูม', emoji:'💰', packs:[], item:'ห่อ', unit:'ห่อ', roles:false, min:GB_MIN, max:GB_MAX, h1:['ขุดทอง','หรือตูม'], art:'💰', float:'เปิด 4 ห่อ ทองล้วน!',
+    blurb:'นักขุดในเหมืองร้างซ่อนห่อแร่คว่ำไว้ ห่อทองหรือห่อระเบิด ใครกล้าท้าว่าเปิดเจอทองได้กี่ห่อ? เจอระเบิดเมื่อไหร่ ตูม!',
+    lead:'ทุกคนมีห่อทอง 3 ห่อกับห่อระเบิด 1 ห่อ ผลัดกันซ่อนห่อคว่ำ แล้วประมูลท้ากันว่าจะเปิดเจอทองติดกันกี่ห่อ ใครท้าสูงสุดต้องเปิดจริง เปิดของตัวเองก่อน แล้วค่อยเลือกกองเพื่อน',
+    pills:['🎒 ซ่อนห่อ','📣 ท้าเปิด','💥 ตูม!'],
+    how:[['ซ่อนห่อ','ทุกคนมี 4 ห่อ (ทอง 3 ระเบิด 1) • เริ่มรอบ ทุกคนวางห่อคว่ำ 1 ห่อพร้อมกัน • จากนั้นเวียนตา จะวางห่อเพิ่มบนกองตัวเอง หรือเริ่มท้าก็ได้'],['ท้าเปิด','ท้า = บอกว่าจะเปิดเจอทองติดกันกี่ห่อ • คนอื่นเวียนกันสู้ (ท้าสูงกว่า) หรือผ่าน • คนท้าสูงสุดต้องเปิดกองตัวเองทั้งหมดก่อน แล้วเลือกเปิดห่อบนสุดของกองคนอื่น'],['ทองหรือตูม','เปิดทองครบ = ได้ดาว ⭐ ครบ 2 ดาวชนะ • เจอระเบิด = เสียห่อ 1 ห่อแบบสุ่ม (คนอื่นไม่รู้ว่าเสียอะไร) เจ้าของระเบิดเริ่มรอบใหม่ • ห่อหมด = ออกจากเหมือง • เหลือคนสุดท้ายก็ชนะ']] },
   yadong: { id:'yadong', type:'yd', name:'ไพ่เนียนยาดอง', emoji:'🥃', packs:[], item:'ไพ่', unit:'ใบ', roles:false, min:YD_MIN, max:YD_MAX, h1:['ไพ่เนียน','ยาดอง'], art:'🥃', float:'คิง 3 ใบจ้า…เนียน ๆ',
     blurb:'วงไพ่ในร้านยาดองป้าแป๋ว ลงไพ่คว่ำแล้วบอกว่าเป็นไพ่ประจำวง ใครจับโกหกได้ คนผิดต้องกระดกแก้วลุ้น ยิ่งดื่มยิ่งเสี่ยงฟุบ!',
     lead:'ทุกตาป้าแป๋วประกาศไพ่ประจำวง แจ๊ค แหม่ม คิง หรือเอซ ลงไพ่คว่ำ 1–3 ใบแล้วบอกหน้าเนียนว่า “ใช่ทั้งหมด” คนถัดไปจะเชื่อ หรือจะตะโกนว่าโกหก?',
@@ -179,6 +185,7 @@ const COPY = {
   boom:{stamp:'ห้ามจั่วมั่ว!',floatSub:'มีที่หนีบจมูกหรือยัง?',joinH:'ชวนแก๊งมาลุ้นทุเรียน',howH:'กติกาแผงทุเรียน'},
   deal:{stamp:'ดีลนี้ต้องปิด!',floatSub:'แบ่งเงินให้ถูกใจทุกคน',joinH:'นัดหุ้นส่วนมาเจรจา',howH:'กติกาห้องประชุม'},
   pics:{stamp:'ห้ามเดามั่ว!',floatSub:'ลงภาพให้เข้ากับคำ',joinH:'ชวนแก๊งมาดูภาพ',howH:'กติกาภาพนี้มีพิรุธ'},
+  gold:{stamp:'ระวังตูม!',floatSub:'ทองหรือระเบิด กล้าเปิดไหม?',joinH:'รวมแก๊งนักขุดเข้าเหมือง',howH:'กติกาขุดทองหรือตูม'},
   yadong:{stamp:'เนียนไว้ก่อน!',floatSub:'จะเชื่อ หรือจะเรียกโกหก?',joinH:'ชวนแก๊งมาตั้งวงร้านป้าแป๋ว',howH:'กติกาไพ่เนียนยาดอง'},
   animal:{stamp:'ห้ามหลุดยิ้ม!',floatSub:'จริงหรือไม่จริง?',joinH:'ชวนแก๊งมาตั้งวงไพ่สัตว์',howH:'กติกาสัตว์หน้านิ่ง'},
   snake:{stamp:'ระวังงูพิษ!',floatSub:'ภาพจริงมีแค่ใบเดียว',joinH:'เชิญแขกเข้าคฤหาสน์',howH:'กติกาคฤหาสน์งูพิษ'},
@@ -352,6 +359,8 @@ function App() {
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='killer')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='dig'){const rd=makeDigRound(ids,room.settings?.dig||{},(room.round?.number||0)+1,Date.now()+skew,hist);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist(ids.filter(id=>rd.roles[id]==='sab')),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='gb'){const rd=makeGbRound(ids,room.settings?.gb||{},(room.round?.number||0)+1,Date.now()+skew,hist);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='yd'){const rd=makeYdRound(ids,room.settings?.yd||{},(room.round?.number||0)+1,Date.now()+skew,hist);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='ani'){const rd=makeAniRound(ids,room.settings?.ani||{},(room.round?.number||0)+1,Date.now()+skew,hist);
@@ -664,6 +673,14 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🐷 แจกไพ่สัตว์ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
       {G.type==='ani'&&room.status!=='lobby'&&room.round?.kind==='ani'&&<AniGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='gb'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=GB_MIN&&n<=GB_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ทองหรือระเบิด กล้าเปิดไหม?</h2>
+        <p className="hint">เล่นได้ {GB_MIN}–{GB_MAX} คน • คนละ 4 ห่อ: ทอง 3 ระเบิด 1 • เปิดห้องเสียงไว้ จะได้ข่มขวัญกันตอนท้า</p>
+        {n>GB_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {GB_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <GbLobby/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>เปิดทองสำเร็จ {GB_WIN} ครั้ง หรือรอดคนสุดท้าย +{GB_SCORE}</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>⛏️ เข้าเหมือง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='gb'&&room.status!=='lobby'&&room.round?.kind==='gb'&&<GbGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby} srvNow={srvNow}/>}
       {G.type==='yd'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=YD_MIN&&n<=YD_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ใครคอแข็ง ใครหน้าเนียน?</h2>
         <p className="hint">เล่นได้ {YD_MIN}–{YD_MAX} คน • ไพ่ J Q K A + โจ๊กเกอร์แทนอะไรก็ได้ • เปิดห้องเสียงไว้ จะได้ตะโกน “โกหก!” ใส่กัน</p>
         {n>YD_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {YD_MAX} คน — ตอนนี้มี {n} คน</div>}
@@ -729,8 +746,8 @@ function App() {
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>

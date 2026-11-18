@@ -296,6 +296,7 @@ function sync() {
   if (!cur || cur.id !== want) start(c, want);
 }
 TRACKS.animal = { ...TRACKS.deal, name: 'วงไพ่ใต้ถุนบ้าน' }; // สัตว์หน้านิ่ง
+TRACKS.gold = { ...TRACKS.boom, name: 'เหมืองทองร้าง' }; // ขุดทองหรือตูม
 TRACKS.yadong = { ...TRACKS.deal, name: 'ร้านยาดองป้าแป๋ว' }; // ไพ่เนียนยาดอง
 TRACKS.snake = { ...TRACKS.werewolf, name: 'คฤหาสน์ยามดึก' }; // อีนังงูพิษ ใช้ทำนองกลางคืนเดียวกับแวร์วูฟ
 export const setMusic = id => { want = TRACKS[id] ? id : 'hub'; sync(); };

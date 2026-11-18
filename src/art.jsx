@@ -3,6 +3,7 @@
 import React from 'react';
 import { AniArt } from './animal.jsx';
 import { RankArt, ShotGlass, Paew } from './yadong.jsx';
+import { GoldArt, BombArt, Thongdee } from './gold.jsx';
 
 const S = ({ id, children, label }) => <svg className="scene" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label={label} data-scene={id}>{children}</svg>;
 
@@ -532,5 +533,22 @@ function YadongScene() {
     <g transform="translate(200 244)"><rect x="-78" y="-12" width="156" height="22" rx="4" fill="#22100e" stroke="#f0a24a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffcf8a" fontFamily="Mitr,sans-serif">คิง 3 ใบจ้า…จริงนะ</text></g>
   </S>;
 }
-const SCENES = { yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+// ---------- 💰 ขุดทองหรือตูม: อุโมงค์เหมือง เสาไม้ค้ำ รถเข็นแร่ทอง ระเบิดชนวนติดไฟ กองห่อคว่ำ ----------
+function GoldScene() {
+  const sack = (x, y, s = 1) => <g key={x + '-' + y} transform={`translate(${x} ${y}) scale(${s})`}><path d="M-14 16 C-20 6 -16 -6 -6 -10 L-8 -16 C-2 -14 2 -14 8 -16 L6 -10 C16 -6 20 6 14 16Z" fill="#a8783e" stroke="#2a1a0a" strokeWidth="2.5" strokeLinejoin="round" /><path d="M-6 -10 C-2 -8 2 -8 6 -10" fill="none" stroke="#5a3a18" strokeWidth="3" /></g>;
+  return <S id="gold" label="อุโมงค์เหมืองทองร้าง เสาไม้ค้ำ นายเหมืองสวมหมวกไฟฉาย รถเข็นแร่ทอง ระเบิดชนวนติดไฟ และกองห่อแร่คว่ำ">
+    <defs><radialGradient id="gb-lamp" cx=".55" cy=".35" r=".6"><stop offset="0" stopColor="#ffc83a" stopOpacity=".45" /><stop offset="1" stopColor="#ffc83a" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="#1d150e" /><path d="M60 260 V70 C60 20 340 20 340 70 V260Z" fill="#3a2a1a" /><path d="M110 260 V96 C110 60 290 60 290 96 V260Z" fill="#120c08" />
+    <rect width="400" height="260" fill="url(#gb-lamp)" />
+    <g fill="#7a5426" stroke="#2a1a0a" strokeWidth="3"><rect x="70" y="60" width="18" height="200" /><rect x="312" y="60" width="18" height="200" /><rect x="60" y="48" width="280" height="18" /></g>
+    <g transform="translate(200 66)"><path d="M0 0 V14" stroke="#2a1a0a" strokeWidth="2" /><rect x="-9" y="14" width="18" height="20" rx="4" fill="#e8a81a" stroke="#2a1a0a" strokeWidth="2" /><circle cy="24" r="5" fill="#fff6c0" className="pulse" /></g>
+    <path d="M0 214 H400 V260 H0Z" fill="#4a3420" /><g stroke="#8a8494" strokeWidth="4"><path d="M100 236 H300" /><path d="M110 250 H290" /></g><g stroke="#5a3a18" strokeWidth="6">{[120, 160, 200, 240, 280].map(x => <path key={x} d={`M${x} 230 V256`} />)}</g>
+    <g transform="translate(150 168)"><path d="M0 0 H90 L80 50 H10Z" fill="#6a6470" stroke="#2a1a0a" strokeWidth="3" strokeLinejoin="round" /><circle cx="22" cy="56" r="9" fill="#3a3640" stroke="#2a1a0a" strokeWidth="3" /><circle cx="68" cy="56" r="9" fill="#3a3640" stroke="#2a1a0a" strokeWidth="3" /><GoldArt size={80} x={5} y={-50} /></g>
+    <Thongdee size={96} x={14} y={120} />
+    <g className="bob"><BombArt size={78} x={290} y={140} /></g>
+    {sack(120, 150, .9)}{sack(120, 128, .9)}{sack(270, 206, .8)}
+    <g transform="translate(200 30)"><g className="pulse"><path d="M-70 -18 H70 a10 10 0 0 1 10 10 V10 a10 10 0 0 1 -10 10 H-70 a10 10 0 0 1 -10 -10 V-8 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2a1a0a" strokeWidth="2.5" /><text y="8" textAnchor="middle" fontSize="18" fontWeight="800" fill="#c88a12" fontFamily="Mitr,sans-serif">ทอง…หรือตูม!?</text></g></g>
+  </S>;
+}
+const SCENES = { gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

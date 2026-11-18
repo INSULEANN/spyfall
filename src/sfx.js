@@ -302,6 +302,7 @@ THEMES.yadong = { ...(THEMES.deal || {}),
   survive: () => { noise(0.3, { gain: 0.05, freq: 600, to: 200 }); arp([523, 659, 784], 0.1, { type: 'triangle', gain: 0.07, at: 0.2 }); },
   knock: () => { tone(400, 1.4, { type: 'sawtooth', gain: 0.05, to: 60, lp: 1200, vib: 20, vibRate: 7 }); thump(1.1, 0.55); noise(0.4, { at: 1.1, gain: 0.12, freq: 500 }); arp([1568, 1319, 1568, 1319], 0.12, { gain: 0.03, at: 1.4 }); },
 };
+THEMES.gold = THEMES.boom; // ขุดทองหรือตูม
 THEMES.snake = THEMES.werewolf; // อีนังงูพิษ ใช้ชุดเสียงกลางคืน/โหวตเดียวกับแวร์วูฟ
 let theme = 'hub';
 export const setSfxTheme = t => { theme = t || 'hub'; };
