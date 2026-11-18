@@ -13,6 +13,7 @@ export const CARD_SETS = {
   curse: [],
   deal: [],   // ปิดดีลกลับไปใช้ภาพ SVG (ภาพเจนหลุดธีม)
   dig: [],
+  animal: ['ani_0', 'ani_1', 'ani_2', 'ani_3', 'ani_4', 'ani_5'],
   checkpoint: ['cp_pork', 'cp_ball', 'cp_tea', 'cp_shirt', 'cp_lamp', 'cp_spk', 'cp_pipe', 'cp_fire'],
 };
 const IMG_KEYS = new Set(Object.values(CARD_SETS).flat());

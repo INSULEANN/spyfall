@@ -10,6 +10,7 @@ import { play as sfx } from './sfx.js';
 import { shuffle, rint } from './rand.js';
 import { Avatar, PlayerGrid, Outcome, Leaderboard, HostBar, SecH, TimerRing, ActionSheet } from './ui.jsx';
 import './animal.css';
+import { cardImg } from './cards.jsx';
 
 export const ANI_MIN = 3, ANI_MAX = 8;
 export const ANI_SCORE = 1;
@@ -237,14 +238,13 @@ const SCENE = [
     <g transform="translate(82 24)"><path d="M0 6 Q-8 -2 -2 -10 Q0 -2 0 6 Q0 -2 2 -10 Q8 -2 0 6Z" fill="#ffb3c8" stroke="#c9607e" strokeWidth="1" /></g></g>,
 ];
 const SCENE_BG = [['#ffd9c4', '#f6b49a'], ['#cfe9ff', '#fff3cf'], ['#bfe3f7', '#e9f6ff'], ['#2e6a3a', '#1e4a2a'], ['#6a3a7a', '#4a2458'], ['#7fc6e6', '#4a9ac4']];
-const CardFace = ({ k }) => { const a = ANIMALS[k]; return <svg viewBox="0 0 100 140" width="100%" height="100%" role="img" aria-label={a.n}>
-  <defs><LG id={'ans-' + k} c={SCENE_BG[k]} /><LG id="anf-frame" c={['#fffaf0', '#f1e3c2']} /><clipPath id="anf-clip"><rect x="6" y="6" width="88" height="100" rx="7" /></clipPath></defs>
+const CardFace = ({ k }) => { const a = ANIMALS[k]; const [bad, setBad] = useState(false); const img = bad ? null : cardImg('ani_' + k);
+  return <svg viewBox="0 0 100 140" width="100%" height="100%" role="img" aria-label={a.n}>
+  <defs><LG id={'ans-' + k} c={SCENE_BG[k]} /><LG id="anf-frame" c={['#fffaf0', '#f1e3c2']} /><clipPath id="anf-clip"><rect x="6" y="6" width="88" height="128" rx="7" /></clipPath></defs>
   <rect x="1.5" y="1.5" width="97" height="137" rx="10" fill="url(#anf-frame)" stroke={INK} strokeWidth="3" />
-  <g clipPath="url(#anf-clip)">{SCENE[k]}<g transform="translate(5 16) scale(.9)">{ART[k]}</g></g>
-  <rect x="6" y="6" width="88" height="100" rx="7" fill="none" stroke={INK} strokeWidth="2" />
-  {[[11, 11], [89, 11]].map(([x, y], i) => <g key={i} transform={`translate(${x} ${y}) rotate(45)`}><rect x="-4" y="-4" width="8" height="8" fill={a.c} stroke={INK} strokeWidth="1.6" /><rect x="-2" y="-2" width="2.5" height="2.5" fill="#fff" opacity=".7" /></g>)}
-  <path d="M10 112 H90 L86 122 L90 132 H10 L14 122Z" fill={a.c} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
-  <text x="50" y="127" textAnchor="middle" fontFamily="Mitr,sans-serif" fontWeight="600" fontSize="15" fill={INK}>{a.n}</text>
+  {img ? <image href={img} x="6" y="6" width="88" height="128" preserveAspectRatio="xMidYMid slice" clipPath="url(#anf-clip)" onError={() => setBad(true)} />
+    : <g clipPath="url(#anf-clip)">{SCENE[k]}<g transform="translate(5 30) scale(.9)">{ART[k]}</g></g>}
+  <rect x="6" y="6" width="88" height="128" rx="7" fill="none" stroke={INK} strokeWidth="2" />
 </svg>; };
 const Back = () => <svg viewBox="0 0 100 140" width="100%" height="100%" aria-hidden="true">
   <defs><RG id="anb-bg" c={['#4a8a56', '#2f5a3a', '#1c3a24']} cx=".5" cy=".45" r=".8" />
