@@ -1,6 +1,7 @@
 // ภาพประกอบของแต่ละเกม วาดด้วย SVG ล้วน (คมทุกขนาดจอ ไม่ต้องโหลดไฟล์รูป)
 // viewBox 400×260 ทุกฉาก — ของสำคัญอยู่แถบกลาง เพราะการ์ดเกมจะครอปบน-ล่าง
 import React from 'react';
+import { AniArt } from './animal.jsx';
 
 const S = ({ id, children, label }) => <svg className="scene" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label={label} data-scene={id}>{children}</svg>;
 
@@ -494,5 +495,23 @@ function SnakeScene() {
     <g transform="translate(200 236)"><rect x="-70" y="-12" width="140" height="22" rx="4" fill="#0e1a14" stroke="#7fd07a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#9ae07a" fontFamily="Mitr,sans-serif">ภาพไหนคือภาพจริง?</text></g>
   </S>;
 }
-const SCENES = { spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+// ---------- 🐷 สัตว์หน้านิ่ง: วงไพ่ใต้ถุนบ้าน เสื่อเขียว หมูยื่นไพ่คว่ำ แมวลังเล กบลุ้น ----------
+function AnimalScene() {
+  return <S id="animal" label="วงไพ่ใต้ถุนบ้าน หมูยื่นไพ่คว่ำให้แมวพร้อมบอกว่านี่คือหมู กบแอบมอง ไพ่สัตว์หงายวางบนเสื่อ">
+    <defs><linearGradient id="an-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a2414" /><stop offset="1" stopColor="#6a3a1e" /></linearGradient>
+      <radialGradient id="an-lamp" cx=".5" cy=".15" r=".6"><stop offset="0" stopColor="#ffcf7a" stopOpacity=".5" /><stop offset="1" stopColor="#ffcf7a" stopOpacity="0" /></radialGradient></defs>
+    <rect width="400" height="260" fill="url(#an-sky)" /><g stroke="#2a180c" strokeWidth="3">{[20, 100, 300, 380].map(x => <path key={x} d={`M${x} 0 V150`} />)}</g><rect width="400" height="16" fill="#2a180c" />
+    <rect width="400" height="260" fill="url(#an-lamp)" /><g transform="translate(200 16)"><path d="M0 0 V14" stroke="#2a180c" strokeWidth="2" /><path d="M-12 14 H12 L8 26 H-8Z" fill="#f3d27a" stroke="#2a180c" strokeWidth="2" /><circle cy="30" r="5" fill="#fff2b0" className="pulse" /></g>
+    <path d="M0 150 H400 V260 H0Z" fill="#2f5a3a" /><g stroke="#3f7a4a" strokeWidth="2" opacity=".6">{[170, 190, 210, 230, 250].map(y => <path key={y} d={`M0 ${y} H400`} />)}</g>
+    <AniArt k={0} size={96} x={34} y={86} />
+    <AniArt k={4} size={96} x={270} y={86} />
+    <g className="bob"><AniArt k={5} size={64} x={168} y={92} /></g>
+    <g transform="translate(150 150) rotate(-12)"><rect width="40" height="56" rx="6" fill="#2f5a3a" stroke="#f3d27a" strokeWidth="3" /><g fill="#f3d27a"><ellipse cx="20" cy="32" rx="7" ry="6" /><circle cx="12" cy="22" r="3" /><circle cx="18" cy="18" r="3" /><circle cx="24" cy="18" r="3" /><circle cx="29" cy="22" r="3" /></g></g>
+    <g transform="translate(70 40)"><path d="M0 0 H104 a10 10 0 0 1 10 10 V30 a10 10 0 0 1 -10 10 H34 L20 54 L22 40 H0 a10 10 0 0 1 -10 -10 V10 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2b1d16" strokeWidth="2.5" /><text x="52" y="26" textAnchor="middle" fontSize="16" fontWeight="700" fill="#2b1d16" fontFamily="Mitr,sans-serif">นี่คือ…หมู</text></g>
+    <g transform="translate(300 52)"><circle r="18" fill="#fffdf4" stroke="#2b1d16" strokeWidth="2.5" /><text y="8" textAnchor="middle" fontSize="24" fontWeight="700" fill="#e8424a" fontFamily="Mitr,sans-serif">?</text></g>
+    {[[40, 200, 1, -8], [86, 206, 2, 6], [300, 202, 3, -4], [340, 198, 3, 10]].map(([x, y, k, a], i) => <g key={i} transform={`translate(${x} ${y}) rotate(${a})`}><rect x="-17" y="-22" width="34" height="44" rx="5" fill={['#f6a5b8', '#fff1cf', '#b9bdc6', '#b8cbe0'][k]} stroke="#2b1d16" strokeWidth="2.5" /><AniArt k={k} size={30} x={-15} y={-15} /></g>)}
+    <g transform="translate(200 238)"><rect x="-74" y="-12" width="148" height="22" rx="4" fill="#21170f" stroke="#f6a5b8" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffc7d4" fontFamily="Mitr,sans-serif">จริง…หรือไม่จริง?</text></g>
+  </S>;
+}
+const SCENES = { animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

@@ -295,6 +295,7 @@ function sync() {
   if (!active) { if (cur) stop(c); return; }
   if (!cur || cur.id !== want) start(c, want);
 }
+TRACKS.animal = { ...TRACKS.deal, name: 'วงไพ่ใต้ถุนบ้าน' }; // สัตว์หน้านิ่ง
 TRACKS.snake = { ...TRACKS.werewolf, name: 'คฤหาสน์ยามดึก' }; // อีนังงูพิษ ใช้ทำนองกลางคืนเดียวกับแวร์วูฟ
 export const setMusic = id => { want = TRACKS[id] ? id : 'hub'; sync(); };
 export const setMusicVolume = v => { vol = Math.max(0, Math.min(1, v)); sync(); };

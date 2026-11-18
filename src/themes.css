@@ -171,6 +171,17 @@
 }
 [data-theme="snake"] .hero h1 em{color:#c4f0a0;text-shadow:0 0 22px #9ae07a66}
 
+/* 🐷 สัตว์หน้านิ่ง — วงไพ่ใต้ถุนบ้าน ไม้เก่า เสื่อเขียว ไฟส้มอุ่น */
+[data-theme="animal"]{
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:18px;
+  --bg:#1a120c;--panel:#2a1d13;--inset:#21170f;--chip:#3a2a1c;--glow:#3a5a2a;
+  --text:#fbf3e4;--soft:#e8dcc4;--muted:#b9a88c;--dim:#7a6a52;
+  --accent:#f6a5b8;--accent-hi:#ffc7d4;--accent-2:#f3d27a;--on-accent:#3a1420;
+  --hero-1:#1a120c;--hero-2:#2f5a3a;--hero-3:#6a3a1e;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='%23f3d27a' fill-opacity='.06'%3E%3Cellipse cx='30' cy='36' rx='8' ry='7'/%3E%3Ccircle cx='21' cy='26' r='3.5'/%3E%3Ccircle cx='27' cy='21' r='3.5'/%3E%3Ccircle cx='34' cy='21' r='3.5'/%3E%3Ccircle cx='40' cy='26' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
+}
+[data-theme="animal"] .hero h1 em{color:#ffc7d4;text-shadow:0 0 22px #f6a5b866}
+
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}
 body{background:radial-gradient(ellipse at 80% -5%,var(--glow) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--glow) 55%,transparent) 0,transparent 40%),var(--pattern),var(--bg);background-attachment:fixed;color:var(--text);transition:background-color .4s}

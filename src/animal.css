@@ -1,0 +1,48 @@
+/* 🐾 สัตว์หน้านิ่ง */
+.ani-game{display:grid;gap:4px}
+.ani-card{position:relative;display:inline-grid;justify-items:center;align-content:center;gap:2px;width:78px;height:106px;padding:6px 4px;border-radius:12px;border:3px solid #2b1d16;background:radial-gradient(circle at 50% 35%,#fff8 0,transparent 60%),var(--c,#eee);color:#2b1d16;box-shadow:0 4px 0 #0004;font:inherit;cursor:default;transition:transform .15s}
+.ani-card b{font-family:var(--display);font-size:15px;line-height:1}
+.ani-card em{position:absolute;top:-8px;right:-8px;min-width:26px;padding:2px 6px;border-radius:99px;background:var(--accent);color:var(--on-accent);font:700 13px/1.3 var(--display);font-style:normal;border:2px solid #2b1d16}
+.ani-card.back{padding:0;background:none;border:none;box-shadow:0 4px 0 #0004}
+.ani-card.sm{width:40px;height:56px;border-width:2px;border-radius:8px}
+button.ani-card{cursor:pointer}button.ani-card:hover{transform:translateY(-3px)}
+.ani-card.sel{transform:translateY(-6px);outline:4px solid var(--accent);outline-offset:2px}
+.ani-hand{display:flex;flex-wrap:wrap;gap:12px 10px;padding:10px 4px 4px}
+.ani-hand.lobby .ani-card{width:64px;height:88px}
+.ani-claim{display:inline-flex;align-items:center;gap:3px;font-weight:700;vertical-align:middle}
+.ani-stage{padding:14px;border-radius:18px;background:var(--inset);border:2px solid color-mix(in srgb,var(--accent) 30%,transparent);margin:8px 0}
+.ani-stage.me{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.ani-flight{display:flex;align-items:center;gap:10px}
+.ani-ft{flex:1;display:grid;gap:2px}.ani-ft h2{margin:0;font-size:20px}.ani-ft small{color:var(--muted)}
+.ani-fly{flex:1;display:grid;justify-items:center;gap:6px;animation:ani-slide 1s ease}
+@keyframes ani-slide{from{transform:translateX(-40%);opacity:.2}to{transform:none;opacity:1}}
+.ani-bubble{padding:5px 12px;border-radius:14px;background:#fffdf4;color:#2b1d16;font-size:14px;box-shadow:0 2px 0 #0003}
+.ani-bubble.big{font-size:18px;padding:8px 16px}
+.ani-path{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.ani-table{display:grid;gap:8px}
+.ani-seat{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:14px;background:var(--panel);border:2px solid transparent}
+.ani-seat.me{background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.ani-seat.now{border-color:var(--accent)}
+.ani-seat.gone{opacity:.45}
+.ani-seat.ani-warn .ani-seat-tt b::after{content:' ⚠️'}
+.ani-seat.ani-lost{border-color:#e8424a;background:color-mix(in srgb,#e8424a 14%,var(--panel))}
+.ani-seat-tt{display:grid;min-width:96px}.ani-seat-tt small{color:var(--muted);font-size:12px}
+.ani-face{flex:1;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.ani-face i{font-size:12px;color:var(--dim)}
+.ani-fc{display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 3px;border-radius:99px;background:var(--chip);font-weight:700}
+.ani-fc.hot{background:#e8424a;color:#fff;animation:ani-pulse 1s infinite alternate}
+@keyframes ani-pulse{to{box-shadow:0 0 0 4px #e8424a55}}
+.ani-last{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:16px;margin:6px 0;animation:ani-pop .5s ease}
+.ani-last.ok{background:color-mix(in srgb,#3cbf6a 18%,var(--inset))}.ani-last.no{background:color-mix(in srgb,#e8424a 18%,var(--inset))}
+.ani-last div{display:grid;gap:4px}.ani-last small{color:var(--soft)}.ani-last b{font-size:17px}
+.ani-last .ani-card{animation:ani-flip .6s ease}
+@keyframes ani-flip{from{transform:rotateY(90deg)}to{transform:none}}
+@keyframes ani-pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.ani-step{display:block;margin:10px 0 2px;color:var(--muted);font-weight:700}
+.ani-claims{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ani-cbtn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--chip);color:var(--text);border:2px solid transparent;font:inherit;cursor:pointer}
+.ani-cbtn.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 20%,var(--chip))}
+.ani-recv{display:grid;justify-items:center;gap:10px;margin:6px 0 12px}
+.ani-calls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ani-calls button{font-size:20px;padding:14px}
+.ani-lie{background:linear-gradient(135deg,#ff8a8a,#e8424a)!important;color:#fff!important}

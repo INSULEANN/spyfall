@@ -294,6 +294,7 @@ export const FILMS = {
 };
 export const playFilm = (on, id) => { if (!on) return; try { FILMS[id]?.(); } catch { /* ignore */ } };
 
+THEMES.animal = THEMES.deal || THEMES.boom; // สัตว์หน้านิ่ง
 THEMES.snake = THEMES.werewolf; // อีนังงูพิษ ใช้ชุดเสียงกลางคืน/โหวตเดียวกับแวร์วูฟ
 let theme = 'hub';
 export const setSfxTheme = t => { theme = t || 'hub'; };
