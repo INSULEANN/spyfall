@@ -44,7 +44,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.69';
+const APP_VERSION = '1.70';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -60,12 +60,20 @@ let db;
 if (configured) { try { db = getDatabase(initializeApp(firebaseConfig)); } catch (e) { console.error(e); } }
 // มือถือ (โดยเฉพาะ iPhone/Safari): พับจอ/สลับแอป/ล็อกจอ แล้วกลับมา ท่อเชื่อม Firebase มักตายเงียบ ๆ แต่ยังคิดว่าต่ออยู่ → ข้อมูลเกมไม่อัปเดต
 // กลับมาที่หน้าเว็บเมื่อไร (ซ่อนไปเกิน 3 วิ / กู้หน้าจาก back-forward cache / เน็ตกลับมา) → ตัดแล้วต่อใหม่ทันที listener ทั้งหมดดึงข้อมูลล่าสุดเอง
+let pingPath = null; // ที่เขียนสัญญาณชีพตอนอยู่ในห้อง (ตั้งค่าใน App)
 if (db && typeof document !== 'undefined') {
   let hiddenAt = 0, last = 0;
   const kick = () => { const t = Date.now(); if (t - last < 1500) return; last = t; try { goOffline(db); goOnline(db); } catch {} };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 3000) { hiddenAt = 0; kick(); } });
   window.addEventListener('pageshow', e => { if (e.persisted) kick(); });
   window.addEventListener('online', kick);
+  // ตัวเฝ้าท่อ: ไวไฟบางที่ (เราเตอร์/ผู้ให้บริการ) ตัดท่อ websocket เงียบ ๆ ทั้งที่ .info/connected ยังเป็น true
+  // → ทุก 10 วิ เขียนค่าเล็ก ๆ ไปที่ rooms/<รหัส>_ping/<ไอดี> (ไม่มีใครฟัง ไม่ทำให้ห้องโหลดใหม่) ถ้าเซิร์ฟเวอร์ไม่ตอบใน 8 วิ = ท่อตาย → ต่อใหม่
+  setInterval(() => {
+    if (!pingPath || document.visibilityState !== 'visible' || navigator.onLine === false) return;
+    let ok = false; set(ref(db, pingPath), serverTimestamp()).then(() => { ok = true; }).catch(() => { ok = true; });
+    setTimeout(() => { if (!ok) { console.warn('[net] ท่อ Firebase ไม่ตอบ — ต่อใหม่'); kick(); } }, 8000);
+  }, 10000);
 }
 
 const DEFAULT_PACKS = [
@@ -259,6 +267,7 @@ function App() {
     const check=async()=>{try{const h=await (await fetch('/?_='+Date.now(),{cache:'no-store'})).text();const m=h.match(/\/assets\/index-[^"']+\.js/);if(m&&!mine.endsWith(m[0])&&!mine.includes(m[0]))setNewBuild(true)}catch{}};
     check();const t=setInterval(check,60000);const vis=()=>document.visibilityState==='visible'&&check();document.addEventListener('visibilitychange',vis);return()=>{clearInterval(t);document.removeEventListener('visibilitychange',vis)}},[]);
   useEffect(()=>{sessionStorage.setItem('sf-player',myId);},[myId]);
+  useEffect(()=>{if(!db||!roomCode)return;const p=`rooms/${roomCode}_ping/${myId}`;pingPath=p;return()=>{if(pingPath===p)pingPath=null;remove(ref(db,p)).catch(()=>{})}},[roomCode,myId]);
   useEffect(()=>{try{roomCode?sessionStorage.setItem('sf-room',roomCode):sessionStorage.removeItem('sf-room')}catch{}},[roomCode]);
   // สถานะเน็ต: หลุดเกิน 2 วิ → แถบเตือนบนจอ (ที่กดไว้ระหว่างหลุดจะส่งเองเมื่อกลับมา)
   const [netDown,setNetDown]=useState(false);

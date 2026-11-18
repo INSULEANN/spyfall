@@ -232,7 +232,7 @@ function TamTable({ r, room, myId, av, nameOf, res, canDraw, onDraw, pick, onPic
   const fl = FLAVORS[r.color] || FLAVORS.r;
   return <div className={'rt tam-rt' + (n > 6 ? ' crowd' : '')}>
     <div className="rt-felt" />
-    {!res && <div className={'tam-dir' + (r.dir < 0 ? ' ccw' : '')}><i>➜</i><i>➜</i></div>}
+    {!res && <div className={'tam-dir' + (r.dir < 0 ? ' ccw' : '')}><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="50" cy="50" rx="49" ry="49" /></svg><i>➜</i><i>➜</i></div>}
     {!res && <div className="rt-pointer" style={{ transform: `translate(-50%,-50%) rotate(${ang}deg)` }}><i /></div>}
     <div className="rt-info tam-info"><span className={'fl-chip fl-' + r.color}>{fl.e} รส{fl.n}</span><span>{r.dir < 0 ? '↺ ทวนเข็ม' : '↻ ตามเข็ม'}</span></div>
     <button type="button" className={'rt-deck' + (canDraw ? ' can' : '')} style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }} onClick={canDraw ? onDraw : undefined} disabled={!canDraw} aria-label="กองจั่ว">
