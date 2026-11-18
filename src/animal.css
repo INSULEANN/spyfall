@@ -19,18 +19,28 @@ button.ani-card{cursor:pointer}button.ani-card:hover{transform:translateY(-3px)}
 .ani-bubble{padding:5px 12px;border-radius:14px;background:#fffdf4;color:#2b1d16;font-size:14px;box-shadow:0 2px 0 #0003}
 .ani-bubble.big{font-size:18px;padding:8px 16px}
 .ani-path{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
-.ani-table{display:grid;gap:8px}
-.ani-seat{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:14px;background:var(--panel);border:2px solid transparent}
+/* ระหว่างเล่น: เกมเต็มความกว้าง รายชื่อห้อง/ห้องเสียงย้ายลงล่าง */
+.room-grid.playing:has(.ani-game){grid-template-columns:minmax(0,1fr)}
+.room-grid.playing:has(.ani-game) .game-panel{order:-1}
+.room-grid.playing:has(.ani-game) .players-panel{order:3;position:static;max-height:none;overflow:visible}
+.ani-table{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.ani-seat{display:grid;gap:8px;padding:10px 12px;border-radius:16px;background:var(--panel);border:2px solid transparent;align-content:start}
+.ani-seat-hd{display:flex;align-items:center;gap:10px}
+.ani-seat-hd .ani-seat-tt{flex:1}
+.ani-inhand{padding:3px 10px;border-radius:99px;background:var(--chip);font-weight:700;font-size:14px;white-space:nowrap}
+.ani-seat .ani-face{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;min-height:84px;align-items:flex-start;padding:8px;border-radius:12px;background:#2f5a3a;box-shadow:inset 0 2px 6px #0006}
+.ani-seat .ani-fc{position:relative;display:grid;justify-items:center;gap:2px;width:62px;padding:5px 4px 6px;border-radius:10px;border:2.5px solid #2b1d16;background:var(--c);color:#2b1d16;box-shadow:0 3px 0 #0005}
+.ani-seat .ani-fc b{position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;display:grid;place-items:center;border-radius:99px;background:#fffdf4;border:2px solid #2b1d16;font:700 14px/1 var(--display)}
+.ani-pips{display:flex;gap:3px}.ani-pips i{width:8px;height:8px;border-radius:50%;background:#2b1d1633;border:1px solid #2b1d1666}.ani-pips i.on{background:#2b1d16}
+.ani-seat .ani-fc.hot{animation:ani-pulse 1s infinite alternate}.ani-seat .ani-fc.hot b{background:#e8424a;color:#fff}
+.ani-seat .ani-fc.dead{outline:3px solid #e8424a}
+.ani-none{align-self:center;color:#cfe8cf;font-size:13px;opacity:.7}
 .ani-seat.me{background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
 .ani-seat.now{border-color:var(--accent)}
 .ani-seat.gone{opacity:.45}
 .ani-seat.ani-warn .ani-seat-tt b::after{content:' ⚠️'}
 .ani-seat.ani-lost{border-color:#e8424a;background:color-mix(in srgb,#e8424a 14%,var(--panel))}
-.ani-seat-tt{display:grid;min-width:96px}.ani-seat-tt small{color:var(--muted);font-size:12px}
-.ani-face{flex:1;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-.ani-face i{font-size:12px;color:var(--dim)}
-.ani-fc{display:inline-flex;align-items:center;gap:2px;padding:2px 7px 2px 3px;border-radius:99px;background:var(--chip);font-weight:700}
-.ani-fc.hot{background:#e8424a;color:#fff;animation:ani-pulse 1s infinite alternate}
+.ani-seat-tt{display:grid;min-width:0}.ani-seat-tt small{color:var(--muted);font-size:12px}
 @keyframes ani-pulse{to{box-shadow:0 0 0 4px #e8424a55}}
 .ani-last{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:16px;margin:6px 0;animation:ani-pop .5s ease}
 .ani-last.ok{background:color-mix(in srgb,#3cbf6a 18%,var(--inset))}.ani-last.no{background:color-mix(in srgb,#e8424a 18%,var(--inset))}

@@ -190,8 +190,11 @@ export function AniGame({ db, room, roomCode, myId, players, isHost, scores, sou
   const Seat = ({ id }) => {
     const f = r.face[id]; const danger = f.some(n => n >= r.limit - 1);
     return <div className={'ani-seat' + (id === myId ? ' me' : '') + ((r.phase === 'pass' && r.turn === id) || c?.to === id ? ' now' : '') + (r.gone[id] ? ' gone' : '') + (res && r.loser === id ? ' ani-lost' : '') + (danger ? ' ani-warn' : '')}>
-      <Avatar id={id} av={av} size={38} /><div className="ani-seat-tt"><b>{name(id)}</b><small>🂠 {total(r.hands[id])} ใบในมือ{r.gone[id] ? ' • ออกแล้ว' : ''}</small></div>
-      <div className="ani-face">{f.map((n, k) => n > 0 && <span key={k} className={'ani-fc' + (n >= r.limit - 1 ? ' hot' : '')}><AniArt k={k} size={24} /><b>{n}</b></span>)}{!total(f) && <i>ยังไม่มีไพ่หงาย</i>}</div>
+      <div className="ani-seat-hd"><Avatar id={id} av={av} size={38} /><div className="ani-seat-tt"><b>{name(id)}</b><small>{r.gone[id] ? 'ออกแล้ว' : `ไพ่หงาย ${total(f)} ใบ`}</small></div><span className="ani-inhand" title="ไพ่ในมือ">🂠 {total(r.hands[id])}</span></div>
+      <div className="ani-face">{f.map((n, k) => [n, k]).filter(([n]) => n > 0).sort((a, b) => b[0] - a[0]).map(([n, k]) =>
+        <div key={k} className={'ani-fc' + (n >= r.limit - 1 ? ' hot' : '') + (n >= r.limit ? ' dead' : '')} style={{ '--c': ANIMALS[k].c }} title={`${ANIMALS[k].n} ${n}/${r.limit}`}>
+          <AniArt k={k} size={40} /><b>{n}</b><span className="ani-pips">{Array.from({ length: r.limit }, (_, i) => <i key={i} className={i < n ? 'on' : ''} />)}</span>
+        </div>)}{!total(f) && <i className="ani-none">ยังไม่มีไพ่หงาย 😇</i>}</div>
     </div>;
   };
 
