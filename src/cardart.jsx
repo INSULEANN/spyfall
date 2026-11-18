@@ -38,9 +38,9 @@ const Fr = ({ x, y, r, c, sh }) => <g><circle cx={x} cy={y} r={r} fill={c} {...O
 
 const BOOM = {
   bomb: () => <g><Sun bg="#ffb36b" ray="#ffd08f" />
-    <path d={spiky(50, 56, 40, 40, 11, .32)} fill="#ff5a2a" opacity=".9" />
-    <path d={spiky(50, 56, 31, 31, 11, .3, -1.2)} fill="#ffd34d" />
-    <Durian y={60} s={.95} face="angry" />
+    <path d={spiky(50, 54, 34, 34, 11, .3)} fill="#ff5a2a" opacity=".9" />
+    <path d={spiky(50, 54, 27, 27, 11, .28, -1.2)} fill="#ffd34d" />
+    <Durian y={58} s={.9} face="angry" />
     <path d="M57 26q8 -6 6 -14" stroke={INK} strokeWidth="2.6" fill="none" strokeLinecap="round" />
     <circle cx="63" cy="11" r="6" fill="#ff7a2e" opacity=".6" /><Sparks pts={[[63, 11, 7]]} fill="#fff6c0" />
     <g stroke="#7a9228" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".8"><path d="M18 30q-4 -5 0 -10q4 -5 0 -10" /><path d="M84 36q-4 -5 0 -10q4 -5 0 -10" /></g>
