@@ -39,7 +39,7 @@ export const talkerOf = r => (r.phase === 'talk' ? talkers(r)[r.talk] || null : 
 const voters = r => live(r).filter(id => id !== r.informant);
 
 function toPlay(r, now) { r.phase = 'play'; r.turn = 0; r.at = now; say(r, `🗝️ {${r.informant}} ตั้งคำแล้ว — ไล่ลงภาพคนละ 2 ใบ`); }
-function endPlay(r, now) { if (r.phase === 'play' && playLap(r) >= 2) { r.phase = 'talk'; r.talk = 0; r.at = now; say(r, '🎙️ ลงภาพครบแล้ว — อธิบายทีละคนว่าทำไมเลือกภาพนี้'); } }
+function endPlay(r, now) { if (r.phase === 'play' && playLap(r) >= 2) { r.phase = 'talk'; r.talk = 0; r.at = now; say(r, `🔓 เฉลยคำ “${r.word}”`); say(r, '🎙️ ลงภาพครบแล้ว — อธิบายทีละคนว่าทำไมเลือกภาพนี้'); } }
 function toVote(r, now) { r.phase = 'vote'; r.at = now; r.votes = {}; say(r, '🗳️ อธิบายครบแล้ว — โหวตหาคนไม่รู้คำ'); }
 function finish(cur, now) {
   const r = cur.round; const v = r.votes || {}; const c = {};
@@ -164,7 +164,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
     {meIn && <div className={'uc-card' + (peek ? ' open' : '')} onClick={() => setPeek(p => !p)}>
       {!peek ? <><span className="uc-ico">🙈</span><div><b>แตะเพื่อดูคำ</b><small>ดูคนเดียว ระวังคนแอบมอง</small></div></>
         : isInf ? <><span className="uc-ico">🗝️</span><div><small>คุณคือคนบอกคำ {r.word ? '• คำคือ' : ''}</small><b className="uc-word">{r.word || 'ตั้งคำลับก่อน'}</b><small>🕵️ คนไม่รู้คำคือ <b>{nameOf(r.conspirator)}</b> — อย่าให้ใครรู้! ลงภาพให้พวกเดียวกันเข้าใจ</small></div></>
-          : isCon ? <><span className="uc-ico">🕵️</span><div><b>คุณคือคนไม่รู้คำ!</b><small>ดูภาพที่เพื่อนลงแล้วเดาคำ ลงภาพให้กลมกลืน อย่าให้โดนโหวต</small></div></>
+          : isCon ? <><span className="uc-ico">🕵️</span><div><b>คุณคือคนไม่รู้คำ!</b>{(r.phase === 'talk' || r.phase === 'vote') ? <><small>เฉลยแล้ว คำคือ</small><b className="uc-word">{r.word}</b><small>อธิบายภาพให้เนียน อย่าให้โดนโหวต</small></> : <small>ดูภาพที่เพื่อนลงแล้วเดาคำ ลงภาพให้กลมกลืน อย่าให้โดนโหวต</small>}</div></>
             : <><span className="uc-ico">🔑</span><div><small>คำลับคือ</small><b className="uc-word">{r.word || 'รอคนบอกคำตั้งคำ…'}</b><small>ลงภาพที่เข้ากับคำ แต่อย่าชัดเกินจนคนไม่รู้คำเดาได้</small></div></>}
     </div>}
 
@@ -176,9 +176,10 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
     </ActionSheet>
 
     {r.phase === 'play' && <Phase art="bubble" tone={cur === myId ? 'me' : ''} kicker={`🖼️ ลงภาพรอบที่ ${playLap(r) + 1}/2`} title={cur === myId ? 'ตาคุณ! เลือกภาพ 1 ใบ' : `ตาของ ${nameOf(cur)}`} aside={<TimerRing secs={left} total={PLAY_MS / 1000} label="วิ" />}>{isCon ? 'ดูภาพที่เพื่อนลงก่อนหน้า แล้วเดาว่าคำคืออะไร' : 'เลือกภาพที่เข้ากับคำ • แตะภาพเพื่อขยายดู'}</Phase>}
+    {(r.phase === 'talk' || r.phase === 'vote') && r.word && <div className="pic-reveal" key={'rv' + r.number}><small>🔓 เฉลยคำลับ</small><b>“{r.word}”</b></div>}
     {r.phase === 'talk' && <section className={'clue-turn' + (tk === myId ? ' me' : '')}><div className="ct-main">
       <div className="ct-av" key={tk}>{tk && <Avatar id={tk} av={av} size={70} />}</div>
-      <div className="ct-text"><span className="ct-kicker">🎙️ อธิบายภาพ • เหลืออีก {talkers(r).length - r.talk} คน</span><h2>{tk === myId ? 'ตาคุณอธิบาย!' : `ตาของ ${nameOf(tk)}`}</h2><small>{tk === myId ? 'บอกว่าทำไมลง 2 ภาพนี้ (ห้ามพูดคำตรง ๆ) • จบแล้วกดปุ่ม' : 'ฟังให้ดี ใครอธิบายแปลก ๆ?'}</small></div>
+      <div className="ct-text"><span className="ct-kicker">🎙️ อธิบายภาพ • เหลืออีก {talkers(r).length - r.talk} คน</span><h2>{tk === myId ? 'ตาคุณอธิบาย!' : `ตาของ ${nameOf(tk)}`}</h2><small>{tk === myId ? 'บอกว่าทำไมลง 2 ภาพนี้เข้ากับคำ • จบแล้วกดปุ่ม' : 'ฟังให้ดี ใครอธิบายแปลก ๆ?'}</small></div>
       <TimerRing secs={left} total={TALK_MS / 1000} size={56} label="วิ" /></div>
       {(tk === myId || isInf || isHost) && <button className={tk === myId ? 'primary wide' : 'secondary wide'} onClick={() => { sfx(sound, 'click'); tx(c => picDoneTalk(c, myId, srvNow, isHost)); }}>{tk === myId ? '✅ อธิบายเสร็จ' : `⏭️ ข้าม ${nameOf(tk)}`}</button>}
     </section>}
