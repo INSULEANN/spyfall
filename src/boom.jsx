@@ -230,8 +230,8 @@ function HandFan({ ids, selected = [], onTap }) {
   const pad = 16; const step = n > 1 ? Math.max(cw * 0.42, Math.min(cw + 8, (w - pad * 2 - cw) / (n - 1))) : 0; const total = cw + step * Math.max(0, n - 1); const x0 = Math.max(pad, (w - total) / 2);
   return <div className="fan" ref={ref} style={{ '--fcw': cw + 'px', height: Math.round(cw * 1.4) + 50 }}>
     <div className="fan-in" style={{ width: Math.max(w, total + pad * 2) }}>
-      {ids.map((c, i) => { const off = i - (n - 1) / 2; const up = selected.includes(c); const rot = n > 1 ? off * Math.min(3, 20 / n) : 0; const dy = Math.round(off * off * Math.min(1.4, 9 / n));
-        return <div key={c} className={'fan-card' + (up ? ' up' : '')} style={{ left: x0 + i * step, zIndex: up ? 40 + i : i + 1, transform: `translateY(${up ? dy - 22 : dy}px) rotate(${up ? 0 : rot}deg)` }}>
+      {ids.map((c, i) => { const off = i - (n - 1) / 2; const up = selected.includes(c); const dy = 0;
+        return <div key={c} className={'fan-card' + (up ? ' up' : '')} style={{ left: x0 + i * step, zIndex: up ? 40 + i : i + 1, transform: `translateY(${up ? dy - 22 : dy}px)` }}>
           <Card id={c} size="md" corner selected={up} onClick={onTap ? () => onTap(c) : undefined} /></div>; })}
       {!n && <p className="hint fan-empty">ไม่มีไพ่ในมือ</p>}
     </div>
