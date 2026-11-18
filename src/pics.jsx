@@ -8,7 +8,8 @@ import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { shuffle, rint, pickBad } from './rand.js';
 import { Avatar, Phase, PlayerGrid, WhoDone, Outcome, Leaderboard, HostBar, SecH, TimerRing, ActionSheet, Voters } from './ui.jsx';
-import { PICS, PIC_N, picUrl } from './picsMeta.js';
+import { PIC_N } from './picsMeta.js';
+import { PicSvg } from './picart.jsx';
 import { CODE_WORDS } from './codeWords.js';
 
 export const PIC_MIN = 4, PIC_MAX = 8, HAND = 6;
@@ -107,16 +108,14 @@ export function kickPic(cur, id, now) {
 
 // ---------- ภาพ ----------
 export function PicCard({ n, onClick, sel, small, dim, label }) {
-  const [bad, setBad] = useState(false);
   const cls = 'pic-card' + (small ? ' sm' : '') + (sel ? ' sel' : '') + (dim ? ' dim' : '') + (onClick ? ' tap' : '');
-  const inner = <>{bad ? <span className="pic-miss">🖼️</span> : <img src={picUrl(n)} alt="" decoding="async" draggable={false} onError={() => setBad(true)} />}{label && <span className="pic-lb">{label}</span>}</>;
+  const inner = <><PicSvg n={n} />{label && <span className="pic-lb">{label}</span>}</>;
   return onClick ? <button type="button" className={cls} onClick={onClick}>{inner}</button> : <div className={cls}>{inner}</div>;
 }
 function Zoom({ n, onClose, action }) {
   useEffect(() => { const k = e => e.key === 'Escape' && onClose(); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
-  const m = PICS[n - 1] || [];
   return <div className="pic-zoom" onClick={onClose}><div className="pic-zoom-in" onClick={e => e.stopPropagation()}>
-    <img src={picUrl(n)} alt={m[0] || ''} /><small>“{m[0]}” — {m[1]}</small>
+    <div className="pic-big"><PicSvg n={n} /></div><small>ภาพที่ {n}</small>
     <div className="pic-zoom-act">{action}<button className="secondary" onClick={onClose}>ปิด</button></div></div></div>;
 }
 
@@ -207,7 +206,7 @@ export function PicGame({ db, room, roomCode, myId, players, isHost, scores, sou
       <div className="pic-hand in-sheet">{hand.map(n => <PicCard key={n} n={n} onClick={() => setZoom({ n, mine: true })} />)}</div>
     </ActionSheet>
     <ActionSheet open={r.phase === 'vote' && voters(r).includes(myId) && !r.votes[myId]} k={'v' + r.number} icon="🗳️" title="ใครไม่รู้คำ?" sub="แตะคนที่น่าสงสัย (เปลี่ยนใจทีหลังได้) • ย่อหน้าต่างนี้เพื่อดูภาพบนโต๊ะได้" secs={left} total={VOTE_MS / 1000}>
-      <PlayerGrid ids={voters(r).filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => { sfx(sound, 'vote'); tx(c => picVote(c, myId, t, srvNow)); }} badge={id => <span className="pic-mini">{(r.played[id] || []).map(n => <img key={n} src={picUrl(n)} alt="" />)}</span>} />
+      <PlayerGrid ids={voters(r).filter(id => id !== myId)} av={av} nameOf={nameOf} onPick={t => { sfx(sound, 'vote'); tx(c => picVote(c, myId, t, srvNow)); }} badge={id => <span className="pic-mini">{(r.played[id] || []).map(n => <i key={n}><PicSvg n={n} /></i>)}</span>} />
     </ActionSheet>
   </div>;
 }
