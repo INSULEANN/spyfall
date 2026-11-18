@@ -1,7 +1,8 @@
 /* 🥃 ไพ่เนียนยาดอง */
 .yd-game{display:grid;gap:4px}
-.yd-card{position:relative;display:inline-grid;justify-items:center;align-content:center;gap:2px;width:72px;height:100px;padding:6px 4px;border-radius:12px;border:3px solid #2b1608;background:radial-gradient(circle at 50% 35%,#fff8 0,transparent 60%),var(--c,#eee);color:#2b1608;box-shadow:0 4px 0 #0004;font:inherit;cursor:default;transition:transform .15s,opacity .15s}
-.yd-card b{font-family:var(--display);font-size:13px;line-height:1.1}
+.yd-card{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:0;flex:none;width:72px;height:100px;padding:4px;overflow:hidden;border-radius:12px;border:3px solid #2b1608;background:radial-gradient(circle at 50% 35%,#fff8 0,transparent 60%),var(--c,#eee);color:#2b1608;box-shadow:0 4px 0 #0004;font:inherit;cursor:default;transition:transform .15s,opacity .15s}
+.yd-card svg{width:84%;height:auto;flex:none}.yd-card.sm svg{width:92%}
+.yd-card b{font-family:var(--display);font-size:11px;line-height:1.1;white-space:nowrap}
 .yd-card.wild{box-shadow:0 4px 0 #0004,0 0 0 3px #ffd27a88}
 .yd-card.back{padding:0;background:none;border:none}
 .yd-card.sm{width:38px;height:54px;border-width:2px;border-radius:8px}
@@ -9,7 +10,6 @@
 button.yd-card{cursor:pointer}button.yd-card:hover{transform:translateY(-3px)}
 .yd-card.sel{transform:translateY(-8px);outline:4px solid var(--accent);outline-offset:2px;opacity:1}
 .yd-hand{display:flex;flex-wrap:wrap;gap:10px;padding:10px 4px 4px}
-.yd-hand.lobby .yd-card{width:62px;height:88px}
 .yd-snack{display:inline-flex;align-items:center;gap:3px;font-weight:700;vertical-align:middle;color:var(--accent-hi)}
 .yd-banner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:18px;background:linear-gradient(135deg,var(--chip),var(--inset));border:2px solid color-mix(in srgb,var(--accent) 35%,transparent)}
 .yd-banner>div{flex:1;display:grid;gap:2px}.yd-banner h2{margin:0;font-size:20px}.yd-banner small{color:var(--muted)}

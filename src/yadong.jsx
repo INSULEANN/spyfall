@@ -266,7 +266,7 @@ export function YdLobby({ db, roomCode, room, isHost, sound }) {
   const save = patch => runTransaction(ref(db, `rooms/${roomCode}/settings/yd`), c => ({ ...(c || {}), ...patch })).catch(() => {});
   return <div className="uc-lobby">
     <label>🥃 แก้วลุ้นต่อคน {isHost ? '' : '(หัวหน้าห้องตั้ง)'}</label>
-    <select value={+set.glasses === 4 ? 4 : 6} disabled={!isHost} onChange={e => { sfx(sound, 'select'); save({ glasses: +e.target.value }); }}><option value={6}>6 แก้ว (แก้วแรกฟุบ 1/6)</option><option value={4}>4 แก้ว (เกมเร็ว แก้วแรก 1/4)</option></select>
+    <select value={+set.glasses === 4 ? 4 : 6} disabled={!isHost} onChange={e => { sfx(sound, 'select'); save({ glasses: +e.target.value }); }}><option value={6}>6 แก้ว (ปกติ)</option><option value={4}>4 แก้ว (เกมเร็ว)</option></select>
     <div className="yd-hand lobby">{[0, 1, 2, 3, WILD].map(k => <YdCard key={k} k={k} />)}</div>
   </div>;
 }
