@@ -356,8 +356,8 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .pic-card.empty{border-style:dashed;border-color:#ffffff30;background:#ffffff08;box-shadow:none}
 .pic-miss{display:grid;place-items:center;height:100%;font-size:28px}
 .pic-lb{position:absolute;left:0;right:0;bottom:0;padding:10px 3px 3px;background:linear-gradient(transparent,#000c);color:#fff;font-size:11px;font-weight:700}
-.pic-hand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 10px}
-.pic-hand.in-sheet .pic-card{width:clamp(78px,26vw,104px)}
+.pic-hand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 10px}.pic-hand .pic-card:not(.sm){width:clamp(70px,20vw,120px)}
+.pic-hand.in-sheet{gap:6px}.pic-hand.in-sheet .pic-card{width:clamp(64px,20vw,96px)}
 .pic-hand.demo{gap:6px;margin-bottom:6px}
 .pic-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,226px),1fr));gap:8px;margin:6px 0 10px}
 .pic-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;background:var(--inset);border:1px solid #ffffff12}

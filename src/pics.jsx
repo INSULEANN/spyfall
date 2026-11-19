@@ -12,7 +12,7 @@ import { PIC_N } from './picsMeta.js';
 import { PicSvg } from './picart.jsx';
 import { CODE_WORDS } from './codeWords.js';
 
-export const PIC_MIN = 4, PIC_MAX = 8, HAND = 6;
+export const PIC_MIN = 4, PIC_MAX = 8, HAND = 10;
 export const PIC_SCORE = { caught: 2, informant: 2, escape: 4, near: 1 };
 const WORD_MS = 90000, PLAY_MS = 45000, TALK_MS = 40000, VOTE_MS = 75000;
 const norm = s => String(s || '').trim().replace(/\s+/g, ' ').slice(0, 30);
