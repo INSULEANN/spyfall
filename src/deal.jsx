@@ -404,7 +404,7 @@ function Board({ r, res, myId, av, nameOf, center }) {
       </div>;
     })}
     <div className="db-mid"><Sky />{center}</div>
-    {!res && <div className="db-pawn" style={{ left: `${2 + pc * (96 / GRID) + (96 / GRID) * 0.8}%`, top: `${2 + pr * (96 / GRID) + (96 / GRID) * 0.24}%` }}>🎩</div>}
+    {!res && <div className="db-pawn" style={{ left: `${2 + pc * (96 / GRID) + (96 / GRID) * 0.99}%`, top: `${2 + pr * (96 / GRID) + (96 / GRID) * 0.99}%` }}>🎩</div>}
   </div>;
 }
 
