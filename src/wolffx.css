@@ -18,24 +18,12 @@
 @keyframes wfx-bob{50%{transform:translateY(-4px)}}
 
 /* หมาป่า */
-.wfx-wolf{position:absolute;bottom:50px;left:-40%;width:150px}
+.wfx-wolf{--ww:150px;position:absolute;bottom:50px;left:-40%;width:var(--ww)}
 .wfx-wolf-svg{width:100%;display:block;overflow:visible}
 .wfx-leg{animation:wfx-run .18s linear infinite alternate}.wfx-leg.l1{animation-direction:alternate-reverse}
 @keyframes wfx-run{from{transform:translateY(0)}to{transform:translateY(-4px)}}
 .wfx-head{transform-origin:88px 36px}
 .wfx-teeth{opacity:0}
-
-/* กัด: 0–1.2 วิ วิ่งเข้า • 1.2–1.6 พุ่งกัด • 1.6–2.3 ตัวสั่น • 2.4–2.9 ล้ม • 2.7–3.5 หมาป่าวิ่งหนี */
-.bite .wfx-wolf{animation:wfx-runin 1.2s ease-out forwards,wfx-lunge .4s 1.2s ease-in forwards,wfx-runaway .8s 2.7s ease-in forwards}
-.bite .wfx-head{animation:wfx-bitehead .5s 1.2s ease-in-out 2 alternate}
-.bite .wfx-teeth{animation:wfx-in .1s 1.25s forwards}
-.bite .victim{animation:wfx-bob 1s ease-in-out infinite,wfx-shake .7s 1.6s ease-in-out,wfx-fall .5s 2.4s ease-in forwards}
-.bite .chomp{left:44%;top:70px;animation:wfx-pop .5s 1.45s forwards}
-.bite .wfx-cap{animation-delay:2.8s}
-@keyframes wfx-runin{from{left:-40%}to{left:18%}}
-@keyframes wfx-lunge{from{left:18%}to{left:33%;transform:translateY(-14px) rotate(-6deg)}}
-@keyframes wfx-runaway{from{left:33%;transform:scaleX(-1)}to{left:-50%;transform:scaleX(-1)}}
-@keyframes wfx-bitehead{to{transform:rotate(14deg)}}
 
 /* หมอช่วย: 0–1.2 หมาป่าวิ่งเข้า • 1.2 พุ่ง • 1.3–2.3 หมอวิ่งเข้า • 2.3–2.8 ฉีด • 2.8–3.5 หมาป่าหนี • 3.2 วิ้งๆ */
 .save .wfx-wolf{animation:wfx-runin 1.2s ease-out forwards,wfx-lunge .4s 1.2s ease-in forwards,wfx-runaway .8s 2.8s ease-in forwards}
@@ -52,25 +40,150 @@
 @keyframes wfx-spark{0%{opacity:0;transform:scale(.4)}40%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1.6) translateY(-30px)}}
 .save .wfx-cap{animation-delay:3.2s}
 
-/* โหวตประหาร: ค้อนลง 0.6–1.0 • บี้ 1.0 • ล้ม 1.7 */
-.vote .wfx-actor{left:calc(50% - 46px)}
-.wfx-gv{position:absolute;left:calc(50% - 44px);top:-120px;width:110px;transform-origin:20% 80%}
-.vote .wfx-gv{animation:wfx-gdrop .45s .6s cubic-bezier(.5,0,.9,.4) forwards,wfx-gup .5s 1.3s ease-out forwards}
-@keyframes wfx-gdrop{to{top:96px;transform:rotate(-20deg)}}
-@keyframes wfx-gup{from{top:96px;transform:rotate(-20deg)}to{top:-150px;transform:rotate(10deg)}}
-.vote .victim{animation:wfx-squash .5s 1.02s ease-out forwards,wfx-fall .5s 1.7s ease-in forwards}
-@keyframes wfx-squash{0%{transform:scale(1.25,.55)}100%{transform:scale(1,1)}}
-.vote .bonk{left:calc(50% + 40px);top:80px;animation:wfx-pop .5s 1s forwards}
-.vote .wfx-cap{animation-delay:2s}
+/* ===== ฉากแบบมีกล้อง (กัด / โหวต / ธนู) — ขยับด้วย transform/opacity เป็นหลักให้ลื่นบนมือถือ ===== */
+.wfx-cam,.wfx-shk{position:absolute;inset:0}
+.wfx-cam{transform-origin:60% 62%}
+.wfx-back{position:absolute;inset:0;width:100%;height:100%;display:block}
+.wfx-actor .wfx-body{position:absolute;inset:0;transform-origin:50% 100%}
+.wfx-shadow{position:absolute;left:14px;right:14px;bottom:-5px;height:12px;border-radius:50%;background:#0006}
+.wfx-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.wfx-vignette{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,#c0102a99 100%)}
+.wfx-star{animation:wfx-twinkle 1.6s ease-in-out infinite alternate}
+@keyframes wfx-twinkle{from{opacity:.25}to{opacity:1}}
+.wfx-win{animation:wfx-twinkle 2.4s ease-in-out infinite alternate}.wfx-win.d{animation-delay:1.1s}
+@keyframes wfx-shk{0%,100%{transform:none}15%{transform:translate(-9px,4px) rotate(-1deg)}35%{transform:translate(8px,-5px) rotate(1deg)}55%{transform:translate(-6px,3px)}75%{transform:translate(4px,-2px)}}
+@keyframes wfx-flashk{0%{opacity:.85}100%{opacity:0}}
+@keyframes wfx-fall2{0%{transform:none}65%{transform:rotate(-94deg) translate(-4px,4px)}82%{transform:rotate(-80deg) translate(-4px,4px)}100%{transform:rotate(-87deg) translate(-4px,4px);filter:grayscale(1) brightness(.75)}}
+@keyframes wfx-fallback{0%{transform:translateX(12px) rotate(8deg)}65%{transform:translateX(16px) rotate(94deg)}82%{transform:translateX(16px) rotate(80deg)}100%{transform:translateX(16px) rotate(87deg);filter:grayscale(1) brightness(.75)}}
+.wfx-shadow{transition:none}
+/* วิญญาณลอยขึ้น */
+.wfx-soul{position:absolute;bottom:70px;width:40px;margin-left:-20px;opacity:0;pointer-events:none}
+.wfx-soul svg{display:block;width:100%;overflow:visible}
+@keyframes wfx-soul{0%{opacity:0;transform:translateY(10px) scale(.6)}15%{opacity:.95;transform:translateY(-10px) scale(1)}40%{transform:translate(8px,-55px) rotate(6deg)}65%{transform:translate(-8px,-100px) rotate(-6deg);opacity:.9}100%{opacity:0;transform:translate(4px,-160px) rotate(4deg)}}
+/* ตกใจ ! / เหงื่อ / ดาวหมุน / ฝุ่น / รอยข่วน */
+.wfx-alert{position:absolute;left:62px;top:-34px;width:34px;opacity:0;transform-origin:30% 100%}
+@keyframes wfx-alert{0%{opacity:0;transform:scale(.2)}35%{opacity:1;transform:scale(1.25)}55%{transform:scale(.95)}75%{transform:scale(1.05)}88%{opacity:1}100%{opacity:0;transform:scale(1)}}
+.wfx-sweat{position:absolute;left:70px;top:14px;width:13px;opacity:0}
+@keyframes wfx-sweat{0%{opacity:0;transform:translateY(-4px)}20%{opacity:1}100%{opacity:0;transform:translateY(26px)}}
+.wfx-dizzy{position:absolute;left:6px;right:6px;top:-6px;height:30px;transform:scaleY(.38);opacity:0}
+.wfx-dizzy-ring{position:absolute;inset:0;animation:wfx-spin .7s linear infinite}
+.wfx-dizzy svg{position:absolute;left:50%;top:50%;width:18px;margin:-9px;transform:rotate(var(--a)) translateX(46px) rotate(calc(var(--a) * -1)) scaleY(2.6)}
+@keyframes wfx-spin{to{transform:rotate(360deg)}}
+.wfx-dust{position:absolute;bottom:46px;pointer-events:none}
+.wfx-dust i{position:absolute;width:22px;height:22px;border-radius:50%;background:#d9cfc0;opacity:0}
+.wfx-dust.run{left:8%;width:30%}
+.wfx-dust.run i{left:calc(var(--i) * 20%);bottom:0;animation:wfx-puff .6s calc(.95s + var(--i) * .1s) ease-out forwards}
+@keyframes wfx-puff{0%{opacity:.8;transform:scale(.3)}100%{opacity:0;transform:translate(-14px,-16px) scale(1.5)}}
+.wfx-dust.ring{left:50%;width:0}
+.wfx-dust.ring i{left:-11px;bottom:-4px;animation:wfx-ring .55s 1.15s ease-out forwards}
+.wfx-dust.ring i:nth-child(1){--dx:-80px}.wfx-dust.ring i:nth-child(2){--dx:-45px}.wfx-dust.ring i:nth-child(3){--dx:0px}.wfx-dust.ring i:nth-child(4){--dx:45px}.wfx-dust.ring i:nth-child(5){--dx:80px}
+@keyframes wfx-ring{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:translate(var(--dx),-18px) scale(1.7)}}
+.wfx-claws{position:absolute;left:8px;top:36px;width:76px;opacity:0}
+.wfx-claw{stroke-dasharray:1;stroke-dashoffset:1}
 
-/* ธนู: บิน 0.3–0.9 • ล้ม 1.1 */
-.shot .wfx-actor{left:calc(55% - 46px)}
-.wfx-arrow{position:absolute;left:-20%;top:150px;width:90px}
+/* ----- กัด (4.7 วิ): 0.1 ตาเรืองในพุ่ม • 0.8 สะดุ้ง ! • 0.9–1.5 หมาป่าวิ่ง • 1.5–1.85 กระโจน (กล้องดันเข้า) • 1.85 งับ! • 2.5 ล้ม • 2.7 กล้องถอย • 2.95 วิญญาณ • 3.2 หมาป่าหนี ----- */
+.bite .wfx-actor{left:58%}
+.bite .wfx-soul{left:calc(58% + 46px)}
+.wfx-eyes{opacity:0;animation:wfx-eyes .9s .1s forwards}
+@keyframes wfx-eyes{0%,100%{opacity:0}15%,45%{opacity:1}50%{opacity:0}58%,90%{opacity:1}}
+.bite .wfx-body{animation:wfx-bob 1s ease-in-out,wfx-jump .35s .8s ease-out,wfx-shake .6s 1.85s ease-in-out}
+@keyframes wfx-jump{40%{transform:translateY(-16px) scale(.95,1.06)}100%{transform:none}}
+.bite .wfx-alert{animation:wfx-alert .9s .8s forwards}
+.bite .wfx-actor.victim{animation:wfx-fall2 .6s 2.5s ease-in forwards}
+.bite .wfx-shadow{animation:wfx-in .01s 2.6s reverse forwards}
+.bite .wfx-wolf{animation:wfx-runin .6s .9s ease-out forwards,wfx-leap .35s 1.5s ease-in forwards,wfx-runaway .7s 3.2s ease-in forwards}
+@keyframes wfx-runin{from{left:-40%}to{left:14%}}
+@keyframes wfx-leap{0%{left:14%;transform:none}50%{transform:translateY(-46px) rotate(-14deg)}100%{left:calc(58% - var(--ww) + 10px);transform:translateY(-14px) rotate(6deg)}}
+@keyframes wfx-runaway{from{left:calc(58% - var(--ww) + 10px);transform:scaleX(-1)}to{left:-50%;transform:scaleX(-1)}}
+.bite .wfx-head{animation:wfx-bitehead .2s 1.75s ease-in-out 4 alternate}
+@keyframes wfx-bitehead{to{transform:rotate(16deg)}}
+.bite .wfx-teeth{animation:wfx-in .1s 1.6s forwards}
+.bite .wfx-cam{animation:wfx-zoomin .35s 1.45s ease-out forwards,wfx-zoomout .5s 2.7s ease-in-out forwards}
+@keyframes wfx-zoomin{from{transform:none}to{transform:scale(1.28)}}
+@keyframes wfx-zoomout{from{transform:scale(1.28)}to{transform:none}}
+.bite .wfx-shk{animation:wfx-shk .4s 1.85s}
+.bite .wfx-flash{animation:wfx-flashk .3s 1.85s}
+.bite .wfx-vignette{animation:wfx-vig 1.4s 1.85s ease-out}
+@keyframes wfx-vig{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.bite .wfx-claws{animation:wfx-in .05s 1.85s forwards,wfx-out .4s 2.6s forwards}
+.bite .wfx-claw{animation:wfx-draw .14s ease-out forwards}.bite .c0{animation-delay:1.87s}.bite .c1{animation-delay:1.93s}.bite .c2{animation-delay:1.99s}
+@keyframes wfx-draw{to{stroke-dashoffset:0}}
+@keyframes wfx-out{to{opacity:0}}
+.bite .chomp{left:40%;top:56px;animation:wfx-pop .5s 1.85s forwards,wfx-out .4s 2.9s forwards}
+.bite .wfx-soul{animation:wfx-soul 1.6s 2.95s ease-out forwards}
+.bite .wfx-cap{animation-delay:3.1s}
+
+/* ----- โหวต (3.9 วิ): ฝูงชนโห่ • 0.3 เหงื่อ • 0.3–0.85 ง้างค้อน • 0.85–1.15 เหวี่ยง • 1.15 โป๊ก! • 1.5 ดาวหมุน • 2.4 ล้ม • 2.8 วิญญาณ ----- */
+.vote .wfx-actor{left:calc(50% - 46px)}
+.vote .wfx-soul{left:50%}
+.wfx-mob{animation:wfx-mob .5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes wfx-mob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-7px) rotate(2deg)}}
+.wfx-flame{animation:wfx-flame .25s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes wfx-flame{to{transform:scale(1.15,.88)}}
+.wfx-sunrays{animation:wfx-spin 14s linear infinite}
+.wfx-cloud{animation:wfx-drift 6s linear infinite alternate}.wfx-cloud.s{animation-duration:8s}
+@keyframes wfx-drift{to{transform:translateX(26px)}}
+.wfx-shout{position:absolute;font-family:var(--display);font-size:20px;color:#fff;-webkit-text-stroke:1.6px #2a2340;paint-order:stroke;opacity:0}
+.wfx-shout.s1{left:14%;top:70px;animation:wfx-shout 1.4s .1s forwards}
+.wfx-shout.s2{right:14%;top:84px;animation:wfx-shout 1.4s .4s forwards}
+@keyframes wfx-shout{0%{opacity:0;transform:scale(.4) rotate(-8deg)}20%{opacity:1;transform:scale(1.15) rotate(4deg)}35%{transform:scale(1) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+.vote .wfx-sweat{animation:wfx-sweat .9s .3s 2}
+.vote .wfx-body{animation:wfx-tremble .12s .2s 8 alternate,wfx-squash .55s 1.15s ease-out}
+@keyframes wfx-tremble{from{transform:translateX(-1.5px)}to{transform:translateX(1.5px)}}
+@keyframes wfx-squash{0%{transform:scale(1.3,.5)}40%{transform:scale(.9,1.12)}70%{transform:scale(1.05,.95)}100%{transform:none}}
+.wfx-gvarm{position:absolute;left:50%;top:-134px;width:0;height:0;transform-origin:0 0;transform:rotate(-40deg)}
+.wfx-gavel{position:absolute;left:-50px;top:0;width:100px;height:290px;display:block}
+.vote .wfx-gvarm{animation:wfx-windup .55s .3s ease-out forwards,wfx-swing .3s .85s cubic-bezier(.55,0,1,.6) forwards,wfx-rebound .3s 1.15s ease-out forwards,wfx-lift .45s 1.9s ease-in forwards}
+@keyframes wfx-windup{from{transform:rotate(-40deg)}to{transform:rotate(-60deg)}}
+@keyframes wfx-swing{from{transform:rotate(-60deg)}to{transform:rotate(0)}}
+@keyframes wfx-rebound{0%{transform:rotate(0)}45%{transform:rotate(-9deg)}100%{transform:rotate(-2deg)}}
+@keyframes wfx-lift{from{transform:rotate(-2deg)}to{transform:rotate(-95deg)}}
+.vote .wfx-shk{animation:wfx-shk .45s 1.15s}
+.vote .wfx-flash{animation:wfx-flashk .2s 1.15s}
+.vote .wfx-dizzy{animation:wfx-in .2s 1.5s forwards,wfx-out .2s 2.35s forwards}
+.vote .wfx-actor.victim{animation:wfx-fall2 .6s 2.4s ease-in forwards}
+.vote .wfx-shadow{animation:wfx-in .01s 2.5s reverse forwards}
+.vote .bonk{left:calc(50% + 46px);top:70px;animation:wfx-pop .5s 1.15s forwards,wfx-out .4s 2.3s forwards}
+.vote .wfx-soul{animation:wfx-soul 1.4s 2.8s ease-out forwards}
+.vote .wfx-cap{animation-delay:2.5s}
+
+/* ----- ธนู (3.5 วิ): 0.1–0.6 ง้างสาย • 0.35 เหยื่อเห็น ! • 0.65 ตึ๋ง! ปล่อย • 0.65–0.95 ลูกธนูพุ่ง • 0.95 ฉึก! ปักติด เซถอย • 1.6 ล้มหงาย • 2.0 วิญญาณ ----- */
+.shot .wfx-actor{left:52%}
+.shot .wfx-soul{left:calc(52% + 70px)}
+.wfx-hunter{position:absolute;bottom:52px;left:7%;width:92px;height:129px}
+.wfx-hunter .char{display:block;overflow:visible}
+.wfx-hat{position:absolute;left:0;top:-6px;width:92px;height:129px;overflow:visible}
+.wfx-bow{position:absolute;left:74px;top:30px;width:28px;transform-origin:20% 50%}
+.wfx-nock{position:absolute;left:24px;top:60px;width:90px}
 .wfx-arrow-svg{width:100%;display:block}
-.shot .wfx-arrow{animation:wfx-fly .55s .3s ease-in forwards}
-@keyframes wfx-fly{to{left:calc(55% - 70px)}}
-.shot .victim{animation:wfx-shake .4s .85s,wfx-fall .5s 1.2s ease-in forwards}
-.shot .wfx-cap{animation-delay:1.5s}
+.shot .wfx-nock{animation:wfx-drawback .5s .1s ease-out forwards,wfx-out .01s .65s forwards}
+@keyframes wfx-drawback{to{transform:translateX(-14px)}}
+.shot .wfx-bow{animation:wfx-twangbow .25s .65s ease-out}
+@keyframes wfx-twangbow{30%{transform:scaleX(1.25) rotate(-4deg)}70%{transform:scaleX(.9) rotate(2deg)}}
+.wfx-twang{position:absolute;left:calc(7% + 70px);top:84px;font-family:var(--display);font-size:20px;color:#fff;-webkit-text-stroke:1.6px #2a2340;paint-order:stroke;opacity:0}
+.shot .wfx-twang{animation:wfx-shout .8s .65s forwards}
+.wfx-arrow{position:absolute;left:calc(7% + 86px);bottom:112px;width:96px;opacity:0}
+.wfx-trail{position:absolute;right:100%;top:5px;width:90px;height:6px;border-radius:3px;background:linear-gradient(90deg,transparent,#fff9);transform-origin:100% 50%}
+.shot .wfx-arrow{animation:wfx-flyin .3s .65s cubic-bezier(.3,0,.9,.6) forwards}
+@keyframes wfx-flyin{0%{opacity:1;left:calc(7% + 86px)}99%{opacity:1;left:calc(52% - 66px)}100%{opacity:0;left:calc(52% - 66px)}}
+.wfx-stuck{position:absolute;left:-58px;top:54px;width:86px;opacity:0;transform:rotate(-4deg)}
+.shot .wfx-stuck{animation:wfx-in .01s .95s forwards,wfx-quiver .1s .96s 5 alternate}
+@keyframes wfx-quiver{from{transform:rotate(-7deg)}to{transform:rotate(-1deg)}}
+.shot .wfx-alert{animation:wfx-alert .7s .3s forwards}
+.shot .wfx-body{animation:wfx-bob 1s ease-in-out,wfx-knock .5s .95s ease-out forwards}
+@keyframes wfx-knock{0%{transform:none}30%{transform:translateX(14px) rotate(10deg)}100%{transform:translateX(6px) rotate(4deg)}}
+.shot .wfx-actor.victim{animation:wfx-fallback .6s 1.6s ease-in forwards}
+.shot .wfx-shadow{animation:wfx-in .01s 1.7s reverse forwards}
+.shot .wfx-cam{transform-origin:66% 62%;animation:wfx-zoomin2 .3s .9s ease-out forwards,wfx-zoomout2 .5s 2.3s ease-in-out forwards}
+@keyframes wfx-zoomin2{from{transform:none}to{transform:scale(1.18)}}
+@keyframes wfx-zoomout2{from{transform:scale(1.18)}to{transform:none}}
+.shot .wfx-shk{animation:wfx-shk .35s .95s}
+.shot .wfx-flash{animation:wfx-flashk .2s .95s}
+.shot .thwack{left:calc(52% - 80px);top:64px;animation:wfx-pop .5s .95s forwards,wfx-out .4s 2s forwards}
+.shot .wfx-soul{animation:wfx-soul 1.4s 2s ease-out forwards}
+.shot .wfx-cap{animation-delay:1.9s}
+
+@media(max-width:560px){.wfx-gvarm{top:-174px}.wfx-wolf{--ww:112px}}
 
 /* หัวใจแตก */
 .heart .wfx-actor{left:calc(50% - 46px)}
@@ -111,3 +224,4 @@
 .wtime-set select{padding:4px 8px;border-radius:10px;background:var(--inset);color:inherit;border:1px solid #ffffff22;font:inherit}
 .wtime-set small{flex-basis:100%;color:var(--muted);font-size:12px}
 @media(prefers-reduced-motion:reduce){.wtimer.low{animation:none}}
+@keyframes wfx-lunge{from{left:14%}to{left:calc(58% - var(--ww) + 10px);transform:translateY(-14px) rotate(-6deg)}}

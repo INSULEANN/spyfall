@@ -158,7 +158,7 @@ const fxText = (F, you) => {
   if (F.end === 'enemy' || F.end === 'gift') return { cls: 'enemy t-' + F.c, h: '😱 โดนของอีกทีม!', s: `“${F.w}” เป็นของ${O.n}${F.end === 'gift' ? ' — คำสุดท้าย ' + O.n + 'ชนะ!' : ' • หมดตา'}` };
   return { cls: 'neutral', h: '😶 คำเปล่า', s: `“${F.w}” ไม่ใช่ของใคร • หมดตา${T.n}` };
 };
-function BombFx({ F, you, onClose }) {
+export function BombFx({ F, you, onClose }) {
   return <div className="cw-bomb" onClick={onClose}>
     <i className="cw-flash" /><i className="cw-ring" /><i className="cw-ring r2" /><i className="cw-ring r3" />
     {Array.from({ length: 16 }, (_, i) => <i key={i} className="cw-shard" style={{ '--a': i * 22.5 + 'deg', '--d': 120 + (i % 4) * 55 + 'px' }} />)}

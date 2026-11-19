@@ -327,7 +327,7 @@ function Board({ r, res, myId, av, nameOf, secs, total, srvNow }) {
   </div>;
 }
 // ป๊อปอัปเปิดกระเป๋า: ไฟฉายส่อง กระเป๋าสั่น ซิปเปิด การ์ดเด้งออกทีละใบ แล้วประทับตรา
-function OpenFx({ fx, nameOf, myId, onClose }) {
+export function OpenFx({ fx, nameOf, myId, onClose }) {
   const you = id => (id === myId ? 'คุณ' : nameOf(id)); const D = GOODS[fx.d]; const lost = fx.lost || []; const n = (fx.c || []).length;
   const tStamp = 1.5 + n * 0.32;
   return <div className={'cp-ofx ' + (fx.ok ? 'clean' : 'caught')} onClick={onClose} style={{ '--ts': tStamp + 's' }}>
@@ -345,7 +345,7 @@ function OpenFx({ fx, nameOf, myId, onClose }) {
   </div>;
 }
 // ป๊อปอัปปล่อยผ่าน: มอเตอร์ไซค์ซิ่งผ่านด่าน + เงินใต้โต๊ะลอยไปหาจ่า
-function PassFx({ fx, nameOf, myId, onClose }) {
+export function PassFx({ fx, nameOf, myId, onClose }) {
   const you = id => (id === myId ? 'คุณ' : nameOf(id)); const bribe = fx.m > 0 || (fx.g || []).length > 0;
   return <div className="cp-pfx" onClick={onClose}>
     <div className="cp-pfx-road"><span className="cp-pfx-bike">🛵<i>🎒</i></span>{bribe && Array.from({ length: 6 }, (_, i) => <i key={i} className="cp-coin" style={{ '--i': i }}>💸</i>)}</div>

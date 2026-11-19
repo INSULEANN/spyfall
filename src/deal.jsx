@@ -9,6 +9,7 @@ import { play as sfx } from './sfx.js';
 import { shuffle, rint } from './rand.js';
 import { Avatar, HostBar, SecH, Outcome, Leaderboard, TimerRing } from './ui.jsx';
 import { CardImg } from './cards.jsx';
+import { FILM_MS } from './intro.jsx';
 import './deal.css';
 
 export const DEAL_MIN = 3, DEAL_MAX = 6;
@@ -437,7 +438,7 @@ export function DealGame({ db, room, roomCode, myId, players, isHost, scores, so
   const prev = useRef(null);
   useEffect(() => {
     const s = { ph: r.phase, turn: r.turn, closed: r.closed || 0, log: (r.log || []).length, res: !!res, boss: n?.boss || '' }; const p = prev.current; prev.current = s; if (!p) return;
-    if (s.res && !p.res) { sfx(sound, res.winner === myId ? 'win' : 'lose'); return; }
+    if (s.res && !p.res) { setTimeout(() => sfx(sound, res.winner === myId ? 'win' : 'lose'), FILM_MS); return; }
     if (s.closed > p.closed) sfx(sound, 'cash');
     else if (s.ph === 'nego' && p.ph !== 'nego') sfx(sound, 'roll');
     else if (s.log > p.log) sfx(sound, 'card');

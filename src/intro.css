@@ -1,7 +1,7 @@
 .intro-film{position:fixed;inset:0;z-index:9999;background:rgba(4,3,12,.94);display:flex;align-items:center;justify-content:center;animation:intro-in .25s ease-out;padding:16px}
 .intro-film.leaving{opacity:0;transition:opacity .45s ease-in;pointer-events:none}
 .if-frame{width:min(100%,820px);display:flex;flex-direction:column;align-items:center;gap:14px}
-.if-svg{width:100%;height:auto;max-height:72vh;border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.6);background:#000}
+.if-svg{width:100%;height:auto;max-height:72vh;border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.6);background:#000;overflow:hidden}
 .if-cap{display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;text-align:center;animation:if-cap .5s .3s both}
 .if-cap b{font-family:Kanit,sans-serif;font-size:clamp(24px,5vw,38px);font-weight:800}
 .if-cap span{font-size:clamp(15px,3vw,19px);opacity:.8}
@@ -10,48 +10,187 @@
 @keyframes intro-in{from{opacity:0}to{opacity:1}}
 @keyframes if-cap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-/* ชิ้นที่ขยับ (SVG) */
-.if-svg *{transform-box:fill-box}
-.if-tick{transform-origin:50% 88%;animation:if-tick 3s steps(6) infinite}
-.if-door{transform-origin:100% 50%;animation:if-door .7s 1.2s ease-in-out both}
-.if-glow{animation:if-fade .5s 1.2s both}
-.if-spill{opacity:0;animation:if-spill .6s 1.3s both}
-.if-sneak{animation:if-sneak 1.9s 1.6s ease-in-out both}
-.if-bob{animation:if-bob .35s infinite alternate ease-in-out}.if-bob.fast{animation-duration:.16s}
-.if-blink{transform-origin:50% 50%;animation:if-blink 2.2s infinite}
+/* ===== ชิ้นที่ขยับ (SVG) — transform/opacity เท่านั้น ===== */
+.if-svg [class]{transform-box:fill-box}   /* เฉพาะชิ้นที่ขยับด้วย CSS — ถ้าใส่ทุกชิ้น transform="scale/rotate" ในแอตทริบิวต์จะหมุนผิดจุด */
+.if-svg .if-cam,.if-svg .if-shk{transform-box:view-box;transform-origin:50% 50%}
+/* ทั่วไป */
 .if-pop{transform-origin:50% 50%;animation:if-pop .45s cubic-bezier(.3,1.6,.5,1) both}
-.if-dark{animation:if-dark .2s .3s both}
-.if-shake{animation:if-shake .12s .5s 8 alternate}
-.if-in-l{animation:if-in-l .45s cubic-bezier(.3,1.4,.5,1) both}
 .if-stamp{transform-origin:50% 50%;animation:if-stamp .4s cubic-bezier(.3,1.5,.5,1) both}
-.if-run{animation:if-run 1.3s .5s ease-in both}
-.if-puff{opacity:0;animation:if-puff .9s both}
-.if-road{animation:if-road .4s linear 5}
+.if-tick{transform-origin:50% 88%;animation:if-tick 3s steps(6) infinite}
+.if-twk{animation:if-twk 1.4s ease-in-out infinite alternate}.if-twk.b{animation-delay:.7s}
+.if-curtain{animation:if-sway 3s ease-in-out infinite alternate}.if-curtain.l{transform-origin:0 0}.if-curtain.r{transform-origin:100% 0;animation-delay:.4s}
+.if-door{transform-origin:100% 50%;animation:if-door .7s 1.2s cubic-bezier(.5,0,.3,1.3) both}
+.if-glow{animation:if-fade .4s 1.2s both}
+.if-flick{animation:if-flick .9s 1.2s steps(3) 2}
+.if-spill{opacity:0;animation:if-spill .6s 1.3s both}
+.if-door.now,.if-glow.now{animation-duration:.01s;animation-delay:0s}
+.if-sweat{opacity:0;animation:if-sweat .9s infinite}
 .if-red{opacity:0;animation:if-flash .7s infinite}.if-blue{opacity:0;animation:if-flash .7s .35s infinite}
 .if-lr{animation:if-lamp .7s infinite}.if-lb{animation:if-lamp .7s .35s infinite}
-.if-bike{transform-origin:50% 100%;animation:if-bike 1.9s cubic-bezier(.2,.7,.4,1) both,if-jolt .3s 1.9s}
-.if-wave{transform-origin:100% 100%;animation:if-wave .35s 2.4s 6 alternate ease-in-out}
-.if-door.now,.if-glow.now{animation-duration:.01s;animation-delay:0s}
-.d08{animation-delay:.8s}.d10{animation-delay:1s}.d12{animation-delay:1.2s}.d16{animation-delay:1.6s}.d24{animation-delay:2.4s}.d26{animation-delay:2.6s}.d35{animation-delay:3.5s}
+.if-conf{opacity:0;animation:if-conf 1.8s ease-in both}
+.if-bob{animation:if-bob .35s infinite alternate ease-in-out}.if-bob.fast2{animation-duration:.14s}
+.d04{animation-delay:.4s}.d055{animation-delay:.55s}.d06{animation-delay:.6s}.d07{animation-delay:.7s}.d075{animation-delay:.75s}.d16{animation-delay:1.6s}.d24{animation-delay:2.4s}.d26{animation-delay:2.6s}.d285{animation-delay:2.85s}.d30{animation-delay:3s}.d33{animation-delay:3.3s}.d34{animation-delay:3.4s}.d355{animation-delay:3.55s}.d36{animation-delay:3.6s}
 
+@keyframes if-pop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes if-stamp{from{transform:scale(3) rotate(-14deg);opacity:0}to{transform:scale(1) rotate(-6deg);opacity:1}}
 @keyframes if-tick{to{transform:rotate(36deg)}}
+@keyframes if-twk{from{opacity:.25}to{opacity:1}}
+@keyframes if-sway{from{transform:skewX(-2deg)}to{transform:skewX(3deg)}}
 @keyframes if-door{to{transform:scaleX(.12)}}
 @keyframes if-fade{from{opacity:0}to{opacity:1}}
+@keyframes if-flick{0%{opacity:.9}50%{opacity:0}100%{opacity:.5}}
 @keyframes if-spill{to{opacity:.3}}
-@keyframes if-sneak{from{transform:translateX(-60px)}to{transform:translateX(196px)}}
-@keyframes if-bob{to{transform:translateY(-6px)}}
-@keyframes if-blink{0%,90%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
-@keyframes if-pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes if-dark{to{opacity:0}}
-@keyframes if-shake{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
-@keyframes if-in-l{from{transform:translateX(-220px)}to{transform:none}}
-@keyframes if-stamp{from{transform:scale(3) rotate(-14deg);opacity:0}to{transform:scale(1) rotate(-8deg);opacity:1}}
-@keyframes if-run{from{transform:translateX(320px)}to{transform:translateX(-140px)}}
-@keyframes if-puff{0%{opacity:0}30%{opacity:.8}100%{opacity:0;transform:translateX(-30px)}}
-@keyframes if-road{to{stroke-dashoffset:-34}}
+@keyframes if-sweat{0%{opacity:0;transform:translateY(-3px)}20%{opacity:1}100%{opacity:0;transform:translateY(16px)}}
 @keyframes if-flash{0%,100%{opacity:0}50%{opacity:.16}}
 @keyframes if-lamp{0%,100%{opacity:.25}50%{opacity:1}}
-@keyframes if-bike{from{transform:translateY(-40px) scale(.22)}to{transform:none}}
-@keyframes if-jolt{50%{transform:translateY(4px) rotate(-2deg)}}
+@keyframes if-conf{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:1;transform:translate(var(--x),290px) rotate(var(--r))}}
+@keyframes if-bob{to{transform:translateY(-5px)}}
+@keyframes if-shk{0%,100%{transform:none}15%{transform:translate(-6px,3px) rotate(-.8deg)}35%{transform:translate(6px,-4px) rotate(.8deg)}55%{transform:translate(-4px,2px)}75%{transform:translate(3px,-1px)}}
+
+/* ----- 🍰 ฉากเปิดเค้ก ----- */
+.ci.if-cam{transform-origin:56% 60%;animation:if-push 3.4s ease-out both,if-zoomci .35s 3.55s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes if-push{from{transform:none}to{transform:scale(1.08)}}
+@keyframes if-zoomci{from{transform:scale(1.08)}to{transform:scale(1.34)}}
+.if-moonbeam{opacity:.1;animation:if-mb 2.5s ease-in-out infinite alternate}
+@keyframes if-mb{from{opacity:.07}to{opacity:.13}}
+.if-zz{opacity:0;animation:if-zz 1.5s ease-out infinite}
+@keyframes if-zz{0%{opacity:0;transform:translate(0,6px)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-16px)}}
+.if-sneak{animation:if-sneak 1.7s 1.6s cubic-bezier(.45,0,.55,1) both}
+@keyframes if-sneak{from{transform:translateX(-70px)}to{transform:translateX(226px)}}
+.if-tiptoe{animation:if-tiptoe .34s ease-in-out infinite alternate}
+@keyframes if-tiptoe{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-6px) rotate(3deg)}}
+.ci .if-foot.a{animation:if-step .34s ease-in-out infinite alternate}.ci .if-foot.b{animation:if-step .34s ease-in-out infinite alternate-reverse}
+@keyframes if-step{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.ci .if-pupil{animation:if-glance 1.4s 1.9s ease-in-out both}
+@keyframes if-glance{0%,100%{transform:none}25%,40%{transform:translateX(-4px)}60%,80%{transform:translateX(4px)}}
+.ci .if-eyes{transform-origin:50% 50%;animation:if-wide .3s 3.55s cubic-bezier(.3,1.8,.5,1) both}
+@keyframes if-wide{from{transform:none}to{transform:scale(1.45)}}
+.if-reach{opacity:0;transform-origin:0 50%;animation:if-reach .3s 3.25s ease-out both}
+@keyframes if-reach{from{opacity:1;transform:scaleX(0)}to{opacity:1;transform:scaleX(1)}}
+.if-iris{transform-origin:50% 50%;animation:if-iris .55s 4.15s cubic-bezier(.6,0,.9,.5) forwards}
+@keyframes if-iris{from{transform:scale(1)}to{transform:scale(.07)}}
+
+/* ----- 🚨 จับได้ ----- */
+.cc.if-cam{transform-origin:58% 72%;animation:if-zin .3s .4s ease-out forwards,if-zout .4s 1.1s ease-in-out forwards}
+@keyframes if-zin{from{transform:none}to{transform:scale(1.18)}}
+@keyframes if-zout{from{transform:scale(1.18)}to{transform:none}}
+.cc.if-shk{animation:if-shk .45s 1.6s}
+.if-dark{animation:if-dark .35s .3s both}
+@keyframes if-dark{0%{opacity:1}25%{opacity:.15}45%{opacity:.75}100%{opacity:0}}
+.if-chewing{transform-origin:50% 100%;animation:if-chew .16s ease-in-out 3 alternate}
+@keyframes if-chew{to{transform:scale(1.03,.97)}}
+.if-startle{transform-origin:50% 100%;animation:if-startle .35s .4s ease-out}
+@keyframes if-startle{40%{transform:translateY(-14px) scale(.94,1.08)}100%{transform:none}}
+.if-in-l{animation:if-in-l .4s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes if-in-l{from{transform:translateX(-220px)}to{transform:none}}
+.if-pounce.a{animation:if-pounce-a .28s 1.08s ease-in both}
+.if-pounce.b{animation:if-pounce-b .26s 1.12s ease-in both}
+@keyframes if-pounce-a{0%{transform:none}50%{transform:translate(70px,-40px) rotate(20deg)}100%{transform:translate(140px,-10px) rotate(40deg)}}
+@keyframes if-pounce-b{0%{transform:none}50%{transform:translate(40px,-34px) rotate(16deg)}100%{transform:translate(80px,-8px) rotate(30deg)}}
+.if-pre{animation:if-hide .01s 1.34s forwards}
+@keyframes if-hide{to{opacity:0}}
+.if-brawl{opacity:0;transform-origin:50% 50%;animation:if-brawlin .15s 1.3s forwards,if-wobble .16s 1.3s 7 alternate,if-brawlout .22s 2.36s forwards}
+@keyframes if-brawlin{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes if-wobble{from{transform:rotate(-3deg) translateX(-4px)}to{transform:rotate(3deg) translateX(4px)}}
+@keyframes if-brawlout{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(1.3)}}
+.if-puffy{transform-origin:50% 50%;animation:if-puffy .3s ease-in-out infinite alternate}
+@keyframes if-puffy{to{transform:scale(1.12)}}
+.if-limb{transform-origin:0 0;animation:if-limb .2s infinite alternate}.if-limb.b{animation-delay:.1s}.if-limb.c{animation-delay:.05s}
+@keyframes if-limb{to{transform:rotate(25deg)}}
+.if-bstar{transform-origin:50% 50%;animation:if-spin .5s linear infinite}
+@keyframes if-spin{to{transform:rotate(360deg)}}
+.if-post{opacity:0;animation:if-fade .2s 2.38s forwards}
+.if-boing{transform-origin:50% 100%;animation:if-boing .6s 2.6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes if-boing{0%{transform:scale(1.15,.8)}40%{transform:translateY(-22px) scale(.92,1.1)}70%{transform:scale(1.06,.94)}100%{transform:none}}
+.if-tear{opacity:0;animation:if-sweat .7s 2.5s infinite}.if-tear.b{animation-delay:2.85s}
+.if-cheer{animation:if-hop .4s 2.45s ease-in-out infinite alternate}.if-cheer.b{animation-delay:2.6s}
+@keyframes if-hop{to{transform:translateY(-10px)}}
+
+/* ----- 😋 หนีรอด ----- */
+.ce.if-cam{transform-origin:30% 70%;animation:if-shk .3s 2s,if-push2 2.2s 2.5s ease-out forwards}
+@keyframes if-push2{from{transform:none}to{transform:scale(1.08)}}
+.if-hall{opacity:0;animation:if-hallon .4s .6s steps(4) forwards}
+@keyframes if-hallon{0%{opacity:0}30%{opacity:1}55%{opacity:.3}100%{opacity:1}}
+.if-hallbeam{opacity:0;animation:if-beam .4s .6s forwards}
+@keyframes if-beam{to{opacity:.3}}
+.ce .if-chew{transform-origin:50% 50%;animation:if-chew .15s ease-in-out 5 alternate}
+.if-flee{animation:if-flee .9s .9s cubic-bezier(.5,0,.6,1) both}
+@keyframes if-flee{0%{transform:none}12%{transform:translate(8px,4px) scale(1.05,.9)}55%{transform:translate(-50px,-10px) rotate(-12deg)}80%{transform:translate(-78px,-80px) rotate(-30deg) scale(.6)}99%{opacity:1}100%{transform:translate(-80px,-96px) scale(.25);opacity:0}}
+.if-speed{opacity:0;animation:if-speed .5s 1.05s ease-out}
+@keyframes if-speed{0%{opacity:0;transform:none}30%{opacity:.9}100%{opacity:0;transform:translateX(30px)}}
+.ce .if-curtain{animation:if-sway 3s ease-in-out infinite alternate,if-flap .7s 1.65s ease-out}
+@keyframes if-flap{0%{transform:skewX(0)}25%{transform:skewX(-24deg) scaleX(.7)}55%{transform:skewX(14deg)}100%{transform:skewX(0)}}
+.if-roof{animation:if-roof 1.3s 2.6s linear both}
+@keyframes if-roof{0%{transform:translate(96px,0)}25%{transform:translate(118px,-6px)}50%{transform:translate(140px,0)}75%{transform:translate(162px,-6px)}100%{transform:translate(196px,0)}}
+.if-burst{animation:if-burst .25s 2s cubic-bezier(.2,1.5,.4,1) both,if-slump .6s 2.9s ease-in-out forwards}
+@keyframes if-burst{from{transform:translateX(-120px)}to{transform:none}}
+@keyframes if-slump{to{transform:translateY(5px) scale(1.03,.93)}}
+.if-look{transform-origin:50% 50%;animation:if-look .3s 2.25s steps(1) 4 alternate}
+@keyframes if-look{from{transform:scaleX(-1)}to{transform:none}}
+.if-qq{opacity:0;animation:if-fade .2s 2.2s forwards}
+.if-pop.eo{animation:if-pop .45s .7s cubic-bezier(.3,1.6,.5,1) both,if-hide .2s 1.05s forwards}
+.if-dust2{opacity:0;animation:if-speed .6s 2s ease-out}
+
+/* ----- 👮 ด่านตรวจ ----- */
+.cp.if-cam{transform-origin:56% 48%;animation:if-zcp .5s 3s cubic-bezier(.3,1.2,.5,1) forwards}
+@keyframes if-zcp{from{transform:none}to{transform:scale(1.42)}}
+.cp.if-shk{animation:if-shk .35s 1.9s}
+.if-bike{transform-origin:50% 100%;animation:if-bike 1.7s .2s cubic-bezier(.55,0,.85,.6) both}
+@keyframes if-bike{from{transform:translateY(-34px) scale(.15)}to{transform:none}}
+.if-vib{animation:if-vib .06s 30 alternate}
+@keyframes if-vib{to{transform:translateY(1.2px)}}
+.if-brake{transform-origin:50% 100%;animation:if-brake .7s 1.9s ease-out}
+@keyframes if-brake{0%{transform:none}25%{transform:translateX(-8px) rotate(-9deg)}55%{transform:translateX(4px) rotate(4deg)}80%{transform:rotate(-1.5deg)}100%{transform:none}}
+.if-exh{opacity:0;animation:if-exh .55s infinite}
+@keyframes if-exh{0%{opacity:.6;transform:scale(.4)}100%{opacity:0;transform:translate(-22px,-8px) scale(1.6)}}
+.if-skid{opacity:0;transform-origin:50% 100%;animation:if-skid .4s 1.9s ease-out forwards}
+@keyframes if-skid{from{opacity:0;transform:scaleY(0)}to{opacity:1;transform:none}}
+.if-spark{opacity:0;animation:if-sparkfx .45s 1.92s steps(3)}
+@keyframes if-sparkfx{0%,100%{opacity:0}30%,70%{opacity:1}}
+.if-smoke{opacity:0;transform-origin:50% 100%;animation:if-smoke .9s 1.95s ease-out}
+@keyframes if-smoke{0%{opacity:0;transform:scale(.4)}30%{opacity:1}100%{opacity:0;transform:translateY(-14px) scale(1.5)}}
+.if-wave{transform-origin:100% 100%;animation:if-wave .35s 2.3s 6 alternate ease-in-out}
 @keyframes if-wave{from{transform:rotate(-22deg)}to{transform:rotate(18deg)}}
+.if-torch{opacity:0;transform-origin:100% 0;animation:if-fade .3s 3s forwards,if-sweep .8s 3s ease-in-out infinite alternate}
+@keyframes if-sweep{from{transform:rotate(-8deg)}to{transform:rotate(5deg)}}
+.if-bag{transform-origin:50% 100%;animation:if-wiggle .12s 3.4s 8 alternate}
+@keyframes if-wiggle{from{transform:rotate(-9deg)}to{transform:rotate(9deg) scale(1.05)}}
+.if-peek{transform:translateY(16px);animation:if-peek .3s 3.6s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes if-peek{to{transform:none}}
+
 @media (prefers-reduced-motion:reduce){.intro-film,.if-svg *{animation-duration:.01s!important;animation-iteration-count:1!important}}
+
+/* ----- 💼 ปิดดีล: ผู้ชนะเป็นเจ้าสัว ----- */
+.dw.if-cam{transform-origin:50% 62%;animation:if-dwpush 3.8s 1s ease-out both}
+@keyframes if-dwpush{from{transform:none}to{transform:scale(1.07)}}
+.if-dwdark{opacity:.8;animation:if-hide .25s 1s forwards}
+.if-dwflash{opacity:0;animation:if-dwflash .5s 1s ease-out}
+@keyframes if-dwflash{0%{opacity:.75}100%{opacity:0}}
+.if-spotL{transform-origin:9% 0;animation:if-spotL 1s ease-in-out both}
+.if-spotR{transform-origin:91% 0;animation:if-spotR 1s ease-in-out both}
+@keyframes if-spotL{0%{transform:rotate(-30deg)}40%{transform:rotate(14deg)}70%{transform:rotate(-12deg)}100%{transform:rotate(0)}}
+@keyframes if-spotR{0%{transform:rotate(28deg)}40%{transform:rotate(-16deg)}70%{transform:rotate(10deg)}100%{transform:rotate(0)}}
+.if-rays{opacity:0;transform-origin:50% 50%;animation:if-fade .4s 1s forwards,if-spin 22s linear infinite}
+.if-rise{opacity:0;transform-origin:50% 100%;animation:if-rise .5s 1s cubic-bezier(.25,1.5,.45,1) forwards}
+@keyframes if-rise{0%{opacity:1;transform:translateY(90px) scale(.7,1.2)}60%{transform:translateY(-8px) scale(1.06,.95)}100%{opacity:1;transform:none}}
+.if-swag{transform-origin:50% 100%;animation:if-swag .6s 1.9s ease-in-out infinite alternate}
+@keyframes if-swag{from{transform:rotate(-2.5deg)}to{transform:translateY(-4px) rotate(2.5deg)}}
+.if-hatdrop{opacity:0;transform-origin:50% 100%;animation:if-hatdrop .55s 1.15s cubic-bezier(.5,0,.6,1) forwards}
+@keyframes if-hatdrop{0%{opacity:1;transform:translateY(-190px) rotate(-25deg)}55%{transform:translateY(0) rotate(4deg) scale(1.1,.85)}75%{transform:translateY(-10px) rotate(-3deg) scale(.96,1.05)}100%{opacity:1;transform:rotate(-6deg)}}
+.if-fan{opacity:0;transform-origin:50% 100%;animation:if-fade .2s 1.45s forwards,if-fanwave .28s 1.8s ease-in-out infinite alternate}
+@keyframes if-fanwave{from{transform:rotate(-14deg)}to{transform:rotate(12deg) translateY(-3px)}}
+.if-toss{opacity:0;animation:if-toss 1.5s ease-out forwards}
+@keyframes if-toss{0%{opacity:1;transform:translate(0,0) rotate(0) scale(.5)}40%{transform:translate(var(--dx),var(--dy)) rotate(calc(var(--r) * .4)) scale(1)}100%{opacity:1;transform:translate(calc(var(--dx) * 1.3),170px) rotate(var(--r)) scale(1)}}
+.if-rain{opacity:0;animation-name:if-rain;animation-timing-function:linear;animation-fill-mode:forwards}
+@keyframes if-rain{0%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(300px)}}
+.if-flutter{animation:if-flutter .55s ease-in-out infinite alternate}
+@keyframes if-flutter{from{transform:translateX(calc(var(--sw) * -1)) rotate(calc(var(--r) * -1)) scaleY(.8)}to{transform:translateX(var(--sw)) rotate(var(--r)) scaleY(1)}}
+.if-coinspin{transform-origin:50% 50%;animation:if-coinspin .22s linear infinite alternate}
+@keyframes if-coinspin{to{transform:scaleX(.15)}}
+.if-glint{opacity:0;transform-origin:50% 50%;animation:if-glint 1.1s ease-in-out infinite}
+@keyframes if-glint{0%,100%{opacity:0;transform:scale(0) rotate(0)}45%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+.if-title{opacity:0;transform-origin:50% 50%;animation:if-titlein .45s 1.6s cubic-bezier(.3,1.6,.5,1) forwards,if-titlepulse 1s 2.1s ease-in-out infinite alternate}
+@keyframes if-titlein{from{opacity:0;transform:scale(2.6) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes if-titlepulse{from{opacity:1;transform:scale(1)}to{opacity:1;transform:scale(1.06)}}
+.if-ribbon{opacity:0;transform-origin:50% 50%;animation:if-ribbon .4s 1.8s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes if-ribbon{from{opacity:1;transform:scaleX(0)}to{opacity:1;transform:none}}

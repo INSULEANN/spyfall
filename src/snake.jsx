@@ -167,7 +167,7 @@ export const EvCard = ({ id, size = 'm', sel, real, fake, dim, onClick, tag, fli
     <span className="ev-pic"><EvArt id={id} /></span><b className="ev-name">{e.n}</b>{tag && <span className="ev-tag">{tag}</span>}
   </C>;
 };
-function SnakeFx({ ev }) {   // อนิเมชันสั้น ๆ ตอนเปลี่ยนช่วง (ทุกเครื่องเห็นพร้อมกัน)
+export function SnakeFx({ ev }) {   // อนิเมชันสั้น ๆ ตอนเปลี่ยนช่วง (ทุกเครื่องเห็นพร้อมกัน)
   const [show, setShow] = useState(null); const last = useRef(ev?.key);
   useEffect(() => { if (!ev || ev.key === last.current) return; last.current = ev.key; setShow(ev); const t = setTimeout(() => setShow(null), 2600); return () => clearTimeout(t); }, [ev?.key]);
   if (!show) return null;

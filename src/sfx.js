@@ -287,6 +287,14 @@ export const FILMS = {
     noise(0.2, { at: 2.0, gain: 0.12, freq: 650 }); thump(2.02, 0.45);                     // ปึง!
     [784, 698, 587, 523, 392].forEach((f, i) => pluck(f, 2.5 + i * 0.16, 0.12)); tone(392, 0.7, { type: 'triangle', at: 3.4, gain: 0.06, vib: 8 });
   },
+  'deal-win': () => {
+    for (let i = 0; i < 18; i++) noise(0.04, { at: 0.05 + i * 0.05, gain: 0.03 + i * 0.004, freq: 900, type: 'bandpass', q: 1 });   // กลองรัว
+    thump(1.0, 0.45); noise(0.9, { at: 1.0, gain: 0.09, freq: 6000, type: 'highpass' });                                              // ฉาบ!
+    thump(1.4, 0.25); tone(900, 0.08, { type: 'triangle', at: 1.42, gain: 0.05 });                                                    // หมวกลงหัว ป๊อก
+    noise(0.05, { at: 1.6, gain: 0.1, freq: 3500, type: 'highpass' }); [1319, 1760].forEach((f, i) => box(f, 1.62 + i * 0.07, 0.06));  // ชิ้ง!
+    brass(523, 0.18, 1.7); brass(659, 0.18, 1.88); brass(784, 0.18, 2.06); brass(1047, 0.9, 2.24, 0.08); brass(659, 0.9, 2.24, 0.05);  // แตรเจ้าสัว
+    [2.4, 2.65, 2.85, 3.1, 3.3, 3.55, 3.8, 4.05].forEach((at, i) => box([2093, 2637, 2349, 3136][i % 4], at, 0.03));                 // เหรียญกรุ๊งกริ๊ง
+  },
   checkpoint: () => {
     siren(0.05, 3);
     tone(55, 1.6, { type: 'sawtooth', at: 0.2, gain: 0.03, to: 90, lp: 400, attack: 0.3 });                    // มอไซค์มาแต่ไกล

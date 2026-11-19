@@ -1,38 +1,62 @@
-/* ฉากห้องครัวเคลื่อนไหวของเกมเค้ก */
+/* ฉากห้องครัวเคลื่อนไหวของเกมเค้ก — transform/opacity เท่านั้น */
 .cake-stage{position:relative;margin:10px 0 12px;border-radius:20px;overflow:hidden;aspect-ratio:400/190;border:1px solid #ffffff1a;box-shadow:0 10px 28px #0008;background:#1d1640}
 .cake-stage svg{display:block;width:100%;height:100%}
+.cake-stage [class]{transform-box:fill-box}
 .cs-cap{position:absolute;left:10px;bottom:8px;padding:3px 10px;border-radius:20px;background:#000a;color:#fff;font-weight:800;font-size:12.5px}
 .cs-vanish .cs-cap,.cs-gone .cs-cap{background:#5a1f2acc}.cs-there .cs-cap{background:#1d4a33cc}
-/* ประตูตู้เย็นเปิด (บานพับซ้าย) */
-.cs-door{transform-box:fill-box;transform-origin:0 50%;transition:transform .8s cubic-bezier(.3,1.3,.5,1)}
+/* ห้อง */
+.cs-curt{animation:csSway 3.4s ease-in-out infinite alternate}.cs-curt.l{transform-origin:0 0}.cs-curt.r{transform-origin:100% 0;animation-delay:-1.2s}
+@keyframes csSway{from{transform:skewX(-2deg)}to{transform:skewX(3deg)}}
+.cs-tw circle{animation:csTw 2.5s ease-in-out infinite}.cs-tw circle:nth-child(2){animation-delay:-1s}.cs-tw circle:nth-child(4){animation-delay:-1.7s}@keyframes csTw{50%{opacity:.2}}
+.cs-cloud{animation:csCloud 9s ease-in-out infinite alternate}@keyframes csCloud{from{transform:translateX(-10px)}to{transform:translateX(14px)}}
+.cs-bird{animation:csBird 6s linear infinite}@keyframes csBird{0%{transform:translate(0,40px)}100%{transform:translate(110px,26px)}}
+.cs-bird path{animation:csFlap .3s ease-in-out infinite alternate;transform-origin:50% 100%}@keyframes csFlap{to{transform:scaleY(-.6)}}
+.cs-sun{transform-origin:50% 50%;animation:csSun 3s ease-out both}@keyframes csSun{from{transform:translateY(20px)}}
+.cs-sunbeam{animation:csBeamPulse 3s ease-in-out infinite alternate}@keyframes csBeamPulse{from{opacity:.7}to{opacity:1}}
+.cs-motes circle{animation:csMote 4s ease-in-out infinite}@keyframes csMote{0%{opacity:0;transform:translate(0,0)}30%,70%{opacity:.9}100%{opacity:0;transform:translate(14px,-16px)}}
+.cs-steam{animation:csSteam 1.8s ease-in-out infinite}@keyframes csSteam{0%{opacity:0;transform:translateY(4px)}40%{opacity:.8}100%{opacity:0;transform:translateY(-8px)}}
+.cs-min{transform-origin:0 50%;animation:csSpin 6s linear infinite}@keyframes csSpin{to{transform:rotate(360deg)}}
+/* ตู้เย็น: ประตูเปิด (บานพับซ้าย) ไฟกะพริบ ไอเย็น */
+.cs-door{transform-origin:0 50%;transition:transform .8s cubic-bezier(.3,1.3,.5,1)}
 .cs-door.open{animation:csDoor 1s cubic-bezier(.3,1.3,.5,1) both}
 @keyframes csDoor{from{transform:scaleX(1)}to{transform:scaleX(.16) skewY(-6deg)}}
 .cs-beam{animation:csBeam 1s ease-out both}@keyframes csBeam{from{opacity:0}}
+.cs-flick{animation:csFlick 3.2s steps(1) infinite}@keyframes csFlick{0%,100%{opacity:.3}46%{opacity:0}50%{opacity:.4}53%{opacity:0}}
+.cs-mist circle{opacity:0;animation:csMist 2.4s ease-out infinite}@keyframes csMist{0%{opacity:0;transform:translate(0,0) scale(.5)}30%{opacity:.5}100%{opacity:0;transform:translate(18px,8px) scale(2)}}
 .cs-cake-glow{animation:csGlow 1.6s ease-in-out infinite}@keyframes csGlow{50%{filter:drop-shadow(0 0 6px #fff4c9)}}
-.cs-q{animation:csQ 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes csQ{50%{transform:translateY(-4px)}}
-.cs-tw circle{animation:csTw 2.5s ease-in-out infinite}.cs-tw circle:nth-child(2){animation-delay:-1s}@keyframes csTw{50%{opacity:.2}}
-.cs-min{transform-origin:0 0;animation:csSpin 6s linear infinite}@keyframes csSpin{to{transform:rotate(360deg)}}
-.cs-sun{animation:csSun 3s ease-out both}@keyframes csSun{from{transform:translateY(20px)}}
-/* หลับ: Zzz ลอย */
+.cs-spark{opacity:0;transform-origin:50% 50%;animation:csSpark 1.5s ease-in-out infinite}@keyframes csSpark{0%,100%{opacity:0;transform:scale(0) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+.cs-q{animation:csQ 1.2s ease-in-out infinite;transform-origin:center}@keyframes csQ{50%{transform:translateY(-4px)}}
+.cs-qq{opacity:0;animation:csQQ 2.4s ease-out infinite}@keyframes csQQ{0%{opacity:0;transform:translateY(6px) scale(.6)}25%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-14px)}}
+.cs-q2{transform-origin:50% 100%;animation:csQ2 1.6s ease-in-out infinite}@keyframes csQ2{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-4px)}}
+/* หลับ: ผ้าห่มขยับตามลมหายใจ Zzz ลอย ฟองน้ำมูก */
+.cs-breath{transform-origin:50% 100%;animation:csBreath 2.4s ease-in-out infinite}@keyframes csBreath{50%{transform:scaleY(1.08)}}
+.cs-bubble{transform-origin:0 50%;animation:csBubble 2.4s ease-in-out infinite}@keyframes csBubble{0%,100%{transform:scale(.5)}50%{transform:scale(1.5)}}
 .cs-z text{animation:csZ 2.4s ease-in-out infinite;opacity:0}.cs-z text:nth-child(2){animation-delay:.6s}.cs-z text:nth-child(3){animation-delay:1.2s}
 @keyframes csZ{0%{opacity:0;transform:translate(0,6px)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-10px)}}
+/* หนู: ขา หาง หนวด กะพริบตา */
+.cs-leg{animation:csLeg .22s ease-in-out infinite alternate;transform-origin:center}.cs-leg.b{animation-delay:-.11s}
+@keyframes csLeg{from{transform:translateY(-2px)}to{transform:translateY(1px)}}
+.cs-tail{animation:csTail .6s ease-in-out infinite alternate;transform-origin:0 50%}@keyframes csTail{to{transform:rotate(-14deg)}}
+.cs-whisk{transform-origin:100% 50%;animation:csWhisk .25s ease-in-out infinite alternate}@keyframes csWhisk{to{transform:rotate(8deg)}}
+.cs-blink{transform-origin:50% 50%;animation:csBlink 3s infinite}@keyframes csBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.cs-mouse-body{animation:csBob .3s ease-in-out infinite alternate}@keyframes csBob{to{transform:translateY(-2px)}}
 /* หนูเดินเข้ามาหยิบเค้ก แล้ววิ่งหนี (วนทุก 5 วิ) */
 .cs-run{animation:csRun 5s ease-in-out infinite}
 @keyframes csRun{0%{transform:translate(440px,146px)}38%{transform:translate(268px,146px)}52%{transform:translate(268px,146px)}100%{transform:translate(460px,146px)}}
 .cs-flip{animation:csFlip 5s steps(1) infinite}@keyframes csFlip{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(-1)}}
 .cs-hold{animation:csHold 5s steps(1) infinite}@keyframes csHold{0%{opacity:0}44%{opacity:1}100%{opacity:1}}
 .cs-cake-in{animation:csCakeIn 5s steps(1) infinite}@keyframes csCakeIn{0%{opacity:1}44%{opacity:0}100%{opacity:0}}
-.cs-leg{animation:csLeg .22s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}.cs-leg.b{animation-delay:-.11s}
-@keyframes csLeg{from{transform:translateY(-2px)}to{transform:translateY(1px)}}
-.cs-tail{animation:csTail .6s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0 50%}@keyframes csTail{to{transform:rotate(-14deg)}}
-.cs-mouse-body{animation:csBob .3s ease-in-out infinite alternate}@keyframes csBob{to{transform:translateY(-2px)}}
+.cs-dust circle{opacity:0;animation:csDust 5s ease-out infinite}@keyframes csDust{0%,52%{opacity:0;transform:none}56%{opacity:.8;transform:scale(.6)}75%{opacity:0;transform:translate(-20px,-8px) scale(1.8)}100%{opacity:0}}
+.cs-dust.out circle{animation:csDust2 1.4s ease-out infinite}@keyframes csDust2{0%{opacity:.7;transform:scale(.5)}100%{opacity:0;transform:translate(10px,-10px) scale(1.8)}}
 .cs-steps g{animation:csStep 2.5s ease-in-out infinite;opacity:0}@keyframes csStep{20%,70%{opacity:1}100%{opacity:0}}
 .cs-tailout{animation:csTailOut 1.4s ease-in-out infinite alternate}@keyframes csTailOut{to{transform:translateX(10px)}}
 /* หนูกินเค้ก (ตัวเราเป็นขโมย) */
 .cs-eat .cs-mouse-body{animation:csChew .25s ease-in-out infinite alternate}@keyframes csChew{to{transform:translateY(-2px) rotate(-3deg)}}
-.cs-bite{animation:csBite 3s steps(4) infinite;transform-box:fill-box;transform-origin:100% 50%}@keyframes csBite{0%{transform:scaleX(1)}100%{transform:scaleX(.2)}}
+.cs-cheek{transform-origin:50% 50%;animation:csCheek .25s ease-in-out infinite alternate}@keyframes csCheek{to{transform:scale(1.12,1.04)}}
+.cs-bite{animation:csBite 3s steps(4) infinite;transform-origin:100% 50%}@keyframes csBite{0%{transform:scaleX(1)}100%{transform:scaleX(.2)}}
 .cs-crumbs circle{animation:csCrumb .5s ease-out infinite}.cs-crumbs circle:nth-child(2){animation-delay:.15s}.cs-crumbs circle:nth-child(3){animation-delay:.3s}
 @keyframes csCrumb{from{transform:translate(0,0);opacity:1}to{transform:translate(-8px,10px);opacity:0}}
+.cs-yum{transform-origin:50% 50%;animation:csYum .75s ease-out infinite}@keyframes csYum{0%{opacity:0;transform:scale(.5)}30%{opacity:1;transform:scale(1.1) rotate(-6deg)}100%{opacity:0;transform:translateY(-10px)}}
 @media (prefers-reduced-motion:reduce){.cake-stage *{animation-duration:0s!important;animation-iteration-count:1!important}}
 
 /* ลูกสมุน: แถบแดงค้าง + ป๊อปอัปตอนเช้า */
