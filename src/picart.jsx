@@ -35,10 +35,25 @@ import { HD23 } from './picartHD23.jsx';
 import { HD24 } from './picartHD24.jsx';
 import { HD25 } from './picartHD25.jsx';
 import { HD26 } from './picartHD26.jsx';
+// ภาพใหม่ 201+ (มีแต่แบบละเอียด)
+import { HD27 } from './picartHD27.jsx';
+import { HD28 } from './picartHD28.jsx';
+import { HD29 } from './picartHD29.jsx';
+import { HD30 } from './picartHD30.jsx';
+import { HD31 } from './picartHD31.jsx';
+import { HD32 } from './picartHD32.jsx';
+import { HD33 } from './picartHD33.jsx';
+import { HD34 } from './picartHD34.jsx';
+import { HD35 } from './picartHD35.jsx';
+import { HD36 } from './picartHD36.jsx';
+import { HD37 } from './picartHD37.jsx';
+import { HD38 } from './picartHD38.jsx';
+import { HD39 } from './picartHD39.jsx';
+const NEW = [...HD27, ...HD28, ...HD29, ...HD30, ...HD31, ...HD32, ...HD33, ...HD34, ...HD35, ...HD36, ...HD37, ...HD38, ...HD39].sort((a, b) => a[0] - b[0]);
 
-export const ART = [...ART1, ...ART2, ...ART3, ...ART4, ...ART5, ...ART6, ...ART7, ...ART8];
+export const ART = [...ART1, ...ART2, ...ART3, ...ART4, ...ART5, ...ART6, ...ART7, ...ART8, ...NEW.map(([, t]) => ['#000', '#000', t, null])];
 // ภาพแบบละเอียด (picartHD.jsx) ใช้แทนภาพเดิมเลขเดียวกัน
-const HD_MAP = Object.fromEntries([...HD, ...HD2, ...HD3, ...HD4, ...HD5, ...HD6, ...HD7, ...HD8, ...HD9, ...HD10, ...HD11, ...HD12, ...HD13, ...HD14, ...HD15, ...HD16, ...HD17, ...HD18, ...HD19, ...HD20, ...HD21, ...HD22, ...HD23, ...HD24, ...HD25, ...HD26].map(([n, , svg]) => [n, svg]));
+const HD_MAP = Object.fromEntries([...HD, ...HD2, ...HD3, ...HD4, ...HD5, ...HD6, ...HD7, ...HD8, ...HD9, ...HD10, ...HD11, ...HD12, ...HD13, ...HD14, ...HD15, ...HD16, ...HD17, ...HD18, ...HD19, ...HD20, ...HD21, ...HD22, ...HD23, ...HD24, ...HD25, ...HD26, ...NEW].map(([n, , svg]) => [n, svg]));
 
 export function PicSvg({ n }) {
   if (HD_MAP[n]) return HD_MAP[n];
