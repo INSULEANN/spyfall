@@ -44,6 +44,8 @@ const arp = (notes, step, opts) => notes.forEach((f, i) => tone(f, opts?.dur || 
 export const SFX = {
   // ทั่วไป
   click: () => tone(1200, 0.05, { type: 'square', gain: 0.025 }),
+  // แมวโมโหร้องเหมียวดัง ๆ (ตุ้งแช่) + เสียงขู่ฟ่อ
+  meow: () => { noise(0.25, { gain: 0.35, freq: 5000, type: 'highpass' }); tone(520, 0.16, { type: 'sawtooth', gain: 0.16, to: 980, lp: 2600 }); tone(980, 0.55, { type: 'sawtooth', gain: 0.16, at: 0.16, to: 430, vib: 9, vibRate: 11, lp: 2400 }); tone(1460, 0.5, { type: 'triangle', gain: 0.06, at: 0.16, to: 700, vib: 9, vibRate: 11 }); noise(0.5, { gain: 0.12, at: 0.72, freq: 4000, type: 'highpass' }); },
   count: () => tone(880, 0.12, { type: 'triangle', gain: 0.07 }),   // นับถอยหลังทีละวิ
   yourTurn: () => { tone(880, 0.25, { gain: 0.07 }); tone(1320, 0.35, { gain: 0.06, at: 0.12 }); },
   win: () => { arp([523, 659, 784, 1047], 0.12, { type: 'triangle', gain: 0.09 }); tone(1047, 0.9, { type: 'triangle', gain: 0.08, at: 0.5, vib: 6 }); },

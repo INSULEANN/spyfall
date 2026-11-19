@@ -10,193 +10,213 @@ const drop = (x, y, s) => `M${x} ${y - s}Q${x + s * .9} ${y + s * .2} ${x} ${y +
 const rock = (x, y, s) => `M${x - s} ${y}L${x - s * .6} ${y - s * .8}L${x + s * .4} ${y - s}L${x + s} ${y - s * .2}L${x + s * .7} ${y + s * .8}L${x - s * .5} ${y + s * .9}Z`;
 const Sparks = ({ pts, fill = '#fff' }) => <g fill={fill}>{pts.map(([x, y, r], i) => <path key={i} d={spark(x, y, r)} />)}</g>;
 
-// ===================== 💥 ทุเรียนตูม — ตลาดผลไม้แดดจ้า =====================
+// ===================== ค่าสีร่วม =====================
 const INK = '#3b2412', SKIN = '#f6c99a';
 const O = { stroke: INK, strokeWidth: 2.2, strokeLinejoin: 'round', strokeLinecap: 'round' };
 const BOT = 'V80Q98 98 80 98H20Q2 98 2 80Z';
-const Sun = ({ bg = '#ffe39a', ray = '#fff1c2', ground }) => <g>
-  <rect x="2" y="2" width="96" height="96" rx="18" fill={bg} />
-  <g fill={ray}>{P(12, i => <path key={i} d="M50 52L45 8H55Z" transform={`rotate(${i * 30} 50 52)`} />)}</g>
-  <circle cx="50" cy="52" r="20" fill={ray} opacity=".7" />
-  {ground && <path d={'M2 80Q50 70 98 80' + BOT} fill={ground} />}
+// ===================== 😾 กล่องแมวโมโห — ห้องพัสดุ กล่องกระดาษ แมวส้มขี้โมโห =====================
+// ฉากหลัง: ไล่สี + ลายจุด + แสงกระจาย
+const Bg = ({ id, a, b, dot = '#ffffff', rays }) => <g>
+  <defs><linearGradient id={id} x2="0" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient></defs>
+  <rect width="100" height="100" fill={`url(#${id})`} />
+  {rays && <g fill={rays} opacity=".35">{P(12, i => <path key={i} d="M50 50L46 -10H54Z" transform={`rotate(${i * 30} 50 50)`} />)}</g>}
+  <g fill={dot} opacity=".18">{P(16, i => <circle key={i} cx={(i * 37) % 100} cy={(i * 59) % 100} r={1.2 + (i % 3) * .5} />)}</g>
 </g>;
-const Durian = ({ x = 50, y = 56, s = 1, face }) => <g transform={`translate(${x} ${y}) scale(${s})`}>
-  <path d={spiky(0, 0, 27, 25, 16, .2)} fill="#8aa232" {...O} />
-  <ellipse rx="25" ry="23" fill="#a9c042" />
-  <path d="M18 -12Q28 8 6 22Q20 4 18 -12Z" fill="#8aa232" />
-  <ellipse cx="-10" cy="-11" rx="8" ry="4" fill="#d6e57a" transform="rotate(-30 -10 -11)" />
-  <g stroke="#7a9228" strokeWidth="1.6" fill="none">{[[-12, -2], [0, -7], [12, -2], [-6, 8], [6, 8], [-15, 12], [15, 11], [0, 16]].map(([a, b], i) => <path key={i} d={`M${a - 3} ${b + 2}L${a} ${b - 2}L${a + 3} ${b + 2}`} />)}</g>
-  <path d="M0 -24q1 -8 7 -11" stroke="#6b4a1e" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-  {face === 'angry' && <g>
-    <circle cx="-9" cy="0" r="5" fill="#fff" {...O} strokeWidth="1.6" /><circle cx="9" cy="0" r="5" fill="#fff" {...O} strokeWidth="1.6" />
-    <circle cx="-8" cy="1" r="2.4" fill={INK} /><circle cx="8" cy="1" r="2.4" fill={INK} />
-    <path d="M-15 -9L-4 -4M15 -9L4 -4" stroke={INK} strokeWidth="3.2" strokeLinecap="round" />
-    <path d="M-9 14Q0 6 9 14Z" fill="#5a1a0a" {...O} strokeWidth="1.6" />
+// กล่องพัสดุกระดาษลูกฟูก (มองเฉียง) • open = ฝาเปิด
+const Box = ({ x = 50, y = 70, s = 1, open, tape = true }) => <g transform={`translate(${x} ${y}) scale(${s})`}>
+  <ellipse cx="0" cy="22" rx="30" ry="5" fill="#000" opacity=".18" />
+  <path d="M-26 -6L0 -14L26 -6V18L0 26L-26 18Z" fill="#c8894e" {...O} />
+  <path d="M0 -14V26" stroke={INK} strokeWidth="1.4" opacity=".35" /><path d="M-26 -6L0 2L26 -6" fill="none" stroke={INK} strokeWidth="1.6" />
+  <path d="M-26 -6L0 2V26L-26 18Z" fill="#b5763d" />
+  <path d="M-22 2l8 2.4M-22 7l8 2.4" stroke="#8a5428" strokeWidth="1" opacity=".7" />
+  <rect x="5" y="6" width="14" height="9" rx="1" fill="#fff8e7" stroke="#8a5428" strokeWidth=".8" transform="skewY(-17)" /><path d="M8 10h8M8 12.6h5" stroke="#8a5428" strokeWidth=".7" transform="skewY(-17)" />
+  {open ? <g><path d="M-26 -6L-34 -24L-8 -32L0 -14Z" fill="#d99a5e" {...O} /><path d="M26 -6L34 -24L8 -32L0 -14Z" fill="#e2a86c" {...O} /><path d="M-26 -6L0 2L26 -6L0 -14Z" fill="#3b2412" opacity=".85" /></g>
+    : tape && <path d="M-13 -10L13 -2" stroke="#e8c27a" strokeWidth="4" />}
+</g>;
+// แมวส้ม (หน้า) • mood: mad / calm / happy
+const Cat = ({ x = 50, y = 50, s = 1, mood = 'calm' }) => <g transform={`translate(${x} ${y}) scale(${s})`}>
+  <path d="M-15 -8L-19 -28L-3 -17zM15 -8L19 -28L3 -17z" fill="#f28a2e" {...O} /><path d="M-14 -12L-16 -23L-7 -17zM14 -12L16 -23L7 -17z" fill="#ff9fb0" />
+  <ellipse cx="0" cy="0" rx="20" ry="17" fill="#f6a04a" {...O} />
+  <path d="M0 -17v7M-6 -16l2 6M6 -16l-2 6" stroke="#d26a1c" strokeWidth="2.2" strokeLinecap="round" />
+  <ellipse cx="0" cy="7" rx="10" ry="7" fill="#fff4e2" />
+  {mood === 'mad' ? <g>
+    <path d="M-13 -6l9 4M13 -6l-9 4" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+    <ellipse cx="-8" cy="1" rx="4.4" ry="3.6" fill="#ffd60a" stroke={INK} strokeWidth="1.4" /><ellipse cx="8" cy="1" rx="4.4" ry="3.6" fill="#ffd60a" stroke={INK} strokeWidth="1.4" />
+    <ellipse cx="-8" cy="1.4" rx="1" ry="3" fill={INK} /><ellipse cx="8" cy="1.4" rx="1" ry="3" fill={INK} />
+    <path d="M-7 10q7 -4 14 0q-2 7 -7 7t-7 -7z" fill="#9d0208" stroke={INK} strokeWidth="1.4" /><path d="M-5 10l1.6 4 1.4 -3.4M5 10l-1.6 4 -1.4 -3.4" fill="#fff" />
+  </g> : mood === 'happy' ? <g>
+    <path d="M-11 0q3 -4 6 0M5 0q3 -4 6 0" stroke={INK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+    <path d="M-4 9q4 4 8 0" stroke={INK} strokeWidth="1.6" fill="none" strokeLinecap="round" /><circle cx="-13" cy="6" r="2.6" fill="#ff8fa3" opacity=".7" /><circle cx="13" cy="6" r="2.6" fill="#ff8fa3" opacity=".7" />
+  </g> : <g>
+    <ellipse cx="-8" cy="0" rx="3.4" ry="4" fill={INK} /><ellipse cx="8" cy="0" rx="3.4" ry="4" fill={INK} /><circle cx="-9" cy="-1.4" r="1.2" fill="#fff" /><circle cx="7" cy="-1.4" r="1.2" fill="#fff" />
+    <path d="M-3 9q3 2 3 0q0 2 3 0" stroke={INK} strokeWidth="1.4" fill="none" strokeLinecap="round" />
   </g>}
+  <path d="M-1.6 5h3.2l-1.6 2z" fill="#ff6b81" />
+  <g stroke="#fff" strokeWidth="1" strokeLinecap="round" opacity=".9"><path d="M-10 7l-14 -2M-10 9.6l-14 3M10 7l14 -2M10 9.6l14 3" /></g>
 </g>;
-const Fr = ({ x, y, r, c, sh }) => <g><circle cx={x} cy={y} r={r} fill={c} {...O} /><path d={`M${x + r * .55} ${y - r * .6}Q${x + r * 1.05} ${y + r * .2} ${x + r * .1} ${y + r * .95}Q${x + r * .75} ${y + r * .2} ${x + r * .55} ${y - r * .6}Z`} fill={sh} /><ellipse cx={x - r * .38} cy={y - r * .38} rx={r * .3} ry={r * .18} fill="#fff" opacity=".55" transform={`rotate(-35 ${x - r * .38} ${y - r * .38})`} /></g>;
+// ไพ่ใบเล็ก
+const MiniCard = ({ x, y, a = 0, c = '#fff', mark, s = 1 }) => <g transform={`translate(${x} ${y}) rotate(${a}) scale(${s})`}>
+  <rect x="-10" y="-14" width="20" height="28" rx="3" fill={c} {...O} strokeWidth="1.8" /><rect x="-6.5" y="-10.5" width="13" height="21" rx="1.6" fill="none" stroke={INK} strokeWidth=".8" opacity=".35" />
+  {mark}
+</g>;
+const Hand = ({ x, y, a = 0, s = 1, sleeve = '#4361ee' }) => <g transform={`translate(${x} ${y}) rotate(${a}) scale(${s})`}>
+  <rect x="-22" y="-5" width="14" height="10" rx="2" fill={sleeve} {...O} strokeWidth="1.8" />
+  <path d="M-8 -5h12q5 0 5 3.4t-5 3.4h-4q6 0 6 3t-6 3h-8z" fill={SKIN} {...O} strokeWidth="1.8" />
+</g>;
+const Arc = ({ d, c = '#fff', w = 3.6 }) => <path d={d} fill="none" stroke={c} strokeWidth={w} strokeLinecap="round" />;
+const Tip = ({ x, y, a, c = '#fff', s = 1 }) => <path d="M0 -5L8 0L0 5Z" fill={c} transform={`translate(${x} ${y}) rotate(${a}) scale(${s})`} />;
 
 const BOOM = {
-  bomb: () => <g><Sun bg="#ffb36b" ray="#ffd08f" />
-    <path d={spiky(50, 54, 34, 34, 11, .3)} fill="#ff5a2a" opacity=".9" />
-    <path d={spiky(50, 54, 27, 27, 11, .28, -1.2)} fill="#ffd34d" />
-    <Durian y={58} s={.9} face="angry" />
-    <path d="M57 26q8 -6 6 -14" stroke={INK} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-    <circle cx="63" cy="11" r="6" fill="#ff7a2e" opacity=".6" /><Sparks pts={[[63, 11, 7]]} fill="#fff6c0" />
-    <g stroke="#7a9228" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".8"><path d="M18 30q-4 -5 0 -10q4 -5 0 -10" /><path d="M84 36q-4 -5 0 -10q4 -5 0 -10" /></g>
-  </g>,
-  clip: () => <g><Sun bg="#c9f0b0" ray="#e4fad4" />
-    <g transform="translate(18 82) scale(.32)"><Durian x={0} y={0} /></g>
-    <g stroke="#7aa83a" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".7"><path d="M22 66q-4 -5 0 -10q4 -5 0 -10" /></g>
-    <circle cx="54" cy="58" r="30" fill={SKIN} {...O} />
-    <ellipse cx="34" cy="68" rx="5" ry="3" fill="#ff9a8a" opacity=".7" /><ellipse cx="74" cy="68" rx="5" ry="3" fill="#ff9a8a" opacity=".7" />
-    <path d="M30 54q5 -5 10 0M68 54q5 -5 10 0" stroke={INK} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-    <path d="M46 78q8 6 16 0" stroke={INK} strokeWidth="2.4" fill="none" strokeLinecap="round" />
-    <ellipse cx="54" cy="64" rx="7" ry="8" fill="#eeb07e" {...O} />
-    <path d="M47 70h4l-2 -30h-6ZM61 70h-4l2 -30h6Z" fill="#e0a860" {...O} />
-    <path d="M44.5 44l1.5 22M63.5 44l-1.5 22" stroke="#f4c88a" strokeWidth="1.5" />
-    <path d="M45 52H63" stroke="#8d96a8" strokeWidth="2.5" /><circle cx="54" cy="52" r="4" fill="none" stroke="#8d96a8" strokeWidth="2.5" />
-    <Sparks pts={[[84, 24, 6], [20, 30, 4]]} />
-  </g>,
-  nope: () => <g><Sun bg="#ffc2c9" ray="#ffdfe3" />
-    <circle cx="50" cy="52" r="36" fill="#fff" stroke="#e8283c" strokeWidth="8" />
-    <path d="M25 27L75 77" stroke="#e8283c" strokeWidth="8" />
-    <g fill={SKIN} {...O}>
-      <rect x="21.5" y="50" width="9" height="23" rx="4.5" transform="rotate(-40 26 61)" />
-      <rect x="35" y="31" width="8.5" height="30" rx="4.25" /><rect x="43.5" y="24" width="8.5" height="34" rx="4.25" />
-      <rect x="52" y="26" width="8.5" height="32" rx="4.25" /><rect x="60.5" y="33" width="8" height="28" rx="4" />
+  // 😾 แมวโมโห — กล่องระเบิดเปิด แมวพุ่งออกมากางเล็บ
+  bomb: () => <g><Bg id="bx-bomb" a="#ffb347" b="#e63946" rays="#ffe08a" dot="#fff" />
+    <path d={spiky(50, 50, 40, 38, 13, .34)} fill="#ff5a36" opacity=".85" /><path d={spiky(50, 50, 30, 28, 13, .3, -1.3)} fill="#ffd166" />
+    <Box x={50} y={76} s={.9} open />
+    <g transform="translate(50 46)">
+      <path d="M-24 20q-14 -6 -18 -16M24 20q14 -6 18 -16" stroke="#f6a04a" strokeWidth="7" strokeLinecap="round" fill="none" /><path d="M-24 20q-14 -6 -18 -16M24 20q14 -6 18 -16" stroke={INK} strokeWidth="9.4" strokeLinecap="round" fill="none" opacity=".0" />
+      <g fill="#fff" stroke={INK} strokeWidth="1"><path d="M-44 4l-4 -4 5 1zM-42 1l-2 -6 4 4zM-39 -1l1 -6 2 5z" /><path d="M44 4l4 -4 -5 1zM42 1l2 -6 -4 4zM39 -1l-1 -6 -2 5z" /></g>
+      <Cat x={0} y={0} s={1.15} mood="mad" />
     </g>
-    <path d="M34.6 48H68.4V66Q68.4 83.9 52 83.9Q34.6 83.9 34.6 68Z" fill={SKIN} />
-    <path d="M34 50V68Q34 84.5 52 84.5Q69 84.5 69 66V54" fill="none" {...O} />
-    <path d="M42 70q8 4 16 0" stroke="#d9a070" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    <g stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity=".9"><path d="M8 18l7 5M6 30l8 2M92 18l-7 5M94 30l-8 2" /></g>
+    <Sparks pts={[[14, 46, 4], [86, 48, 4.4], [20, 12, 3], [80, 10, 3]]} fill="#fff6c0" />
   </g>,
-  skip: () => <g><Sun bg="#bfe3ff" ray="#dff1ff" ground="#9fcf6a" />
-    <g stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M6 50h12" /><path d="M4 60h14" /><path d="M8 70h10" /></g>
-    <path d="M10 22l7 6l-7 6M19 22l7 6l-7 6" stroke="#2f7ae0" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M27 38V56M66 38V56" stroke={INK} strokeWidth="3" />
-    <path d="M66 36L72 54" stroke="#9fd6ff" strokeWidth="4" strokeLinecap="round" />
-    <path d="M20 78V56H70L80 61Q87 63 87 71V78Z" fill="#2f7ae0" {...O} />
-    <rect x="20" y="63" width="67" height="4" fill="#ffd34d" />
-    <path d="M24 58h16v10h-16Z" fill="#1d5ab0" />
-    <circle cx="84" cy="66" r="3" fill="#ffe066" {...O} strokeWidth="1.5" />
-    {P(6, i => <circle key={i} cx={25 + i * 9} cy="35" r="4.5" fill="#ffd34d" {...O} strokeWidth="1.6" />)}
-    <path d="M20 35Q20 22 32 22H62Q72 22 74 35Z" fill="#e8402a" {...O} />
-    <path d="M28 27H60" stroke="#ff7a62" strokeWidth="2.5" strokeLinecap="round" />
-    <circle cx="32" cy="79" r="8.5" fill="#2b2f3a" {...O} /><circle cx="32" cy="79" r="3" fill="#c8ccd6" />
-    <circle cx="78" cy="79" r="7.5" fill="#2b2f3a" {...O} /><circle cx="78" cy="79" r="2.6" fill="#c8ccd6" />
-  </g>,
-  attack: () => <g><Sun bg="#ffd9a8" ray="#ffeccf" ground="#e9b36a" />
-    <path d="M14 74Q24 22 58 24" stroke="#ff7a2e" strokeWidth="3.5" fill="none" strokeDasharray="1 7" strokeLinecap="round" />
-    <g stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M42 18l-8 -2" /><path d="M44 28h-9" /></g>
-    <g transform="rotate(25 62 28)"><Durian x={62} y={28} s={.5} /></g>
-    <path d="M58 96Q58 85 72 85Q86 85 86 96Z" fill="#2f7ae0" {...O} />
-    <circle cx="72" cy="70" r="14" fill={SKIN} {...O} />
-    <path d="M59 66Q60 54 72 55Q84 54 85 66Q78 60 72 62Q66 60 59 66Z" fill="#3b2412" />
-    <circle cx="67" cy="69" r="4" fill="#fff" {...O} strokeWidth="1.4" /><circle cx="77" cy="69" r="4" fill="#fff" {...O} strokeWidth="1.4" />
-    <circle cx="66" cy="67.6" r="2" fill={INK} /><circle cx="76" cy="67.6" r="2" fill={INK} />
-    <ellipse cx="72" cy="78" rx="3.5" ry="4.2" fill="#5a1a0a" />
-    <path d={drop(88, 60, 4)} fill="#7cc8ff" {...O} strokeWidth="1.2" />
-  </g>,
-  future: () => <g><Sun bg="#d8ccff" ray="#ece6ff" />
-    <g {...O}>{[-22, 0, 22].map((a, i) => <g key={a} transform={`rotate(${a} 42 92)`}><rect x="29" y="36" width="26" height="38" rx="4" fill={['#ffd34d', '#7fe08a', '#ff8fa3'][i]} /><circle cx="42" cy="55" r="6" fill="#fff" opacity=".6" stroke="none" /></g>)}</g>
-    <path d="M71 71L86 89" stroke={INK} strokeWidth="11" strokeLinecap="round" /><path d="M71 71L86 89" stroke="#a8703c" strokeWidth="6.5" strokeLinecap="round" />
-    <circle cx="60" cy="56" r="19" fill="#e8f6ff" />
-    <Durian x={60} y={59} s={.42} />
-    <circle cx="60" cy="56" r="19" fill="#bfe6ff" opacity=".25" />
-    <circle cx="60" cy="56" r="19" fill="none" stroke="#5b6270" strokeWidth="5" /><circle cx="60" cy="56" r="21.5" fill="none" {...O} />
-    <path d="M48 50q3 -7 10 -9" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" />
-    <Sparks pts={[[18, 20, 6], [84, 22, 5], [86, 40, 3]]} />
-  </g>,
-  shuffle: () => <g><Sun bg="#ffe08a" ray="#fff0bf" ground="#e2b45a" />
-    <g stroke="#c0761a" strokeWidth="3" strokeLinecap="round" fill="none"><path d="M12 62q-4 6 0 12" /><path d="M6 59q-4 8 0 16" /><path d="M88 62q4 6 0 12" /><path d="M94 59q4 8 0 16" /></g>
-    <g stroke="#c0761a" strokeWidth="2" fill="none" strokeLinecap="round" opacity=".6"><path d="M28 46q-4 -6 -2 -12" /><path d="M76 40q4 -6 2 -12" /></g>
-    <Fr x={34} y={36} r={9} c="#5a2350" sh="#43183c" /><path d="M30 27h8" stroke="#5f9a3a" strokeWidth="4" strokeLinecap="round" />
-    <Fr x={52} y={24} r={9} c="#e0303a" sh="#b81e30" />
-    <g transform="rotate(-25 70 38)"><ellipse cx="70" cy="38" rx="10" ry="7.5" fill="#ffc22e" {...O} /><ellipse cx="66" cy="35" rx="3" ry="1.6" fill="#fff" opacity=".6" /></g>
-    <Fr x={44} y={50} r={6} c="#c9a064" sh="#a8824a" />
-    <g transform="rotate(-6 50 72)">
-      <path d="M18 60H82L74 86Q50 92 26 86Z" fill="#d49a4a" {...O} />
-      <g stroke="#a86e2a" strokeWidth="2" fill="none"><path d="M21 70H79M24 78H77" /><path d="M30 63L32 88M42 63L43 90M54 63L54 90M66 63L65 89" /></g>
-      <rect x="15" y="56" width="70" height="8" rx="4" fill="#b57a32" {...O} />
+  // 🐟 ปลาทูง้อแมว — ปลาทูในเข่ง แมวหายโกรธ
+  clip: () => <g><Bg id="bx-clip" a="#bdf0d2" b="#6cc79a" rays="#e9fff2" />
+    <g fill="#ff8fa3">{[[18, 22], [82, 18], [86, 40], [14, 42]].map(([x, y], i) => <path key={i} d={heart(x, y, 4 + (i % 2))} />)}</g>
+    <Cat x={50} y={38} s={1} mood="happy" />
+    <g transform="translate(50 76)">
+      <ellipse cx="0" cy="10" rx="32" ry="5" fill="#000" opacity=".15" />
+      <path d="M-30 -2q30 18 60 0l-4 12q-26 10 -52 0z" fill="#d9a15b" {...O} />
+      <g stroke="#9c6a32" strokeWidth="1">{P(9, i => <path key={i} d={`M${-26 + i * 6.5} 0l2 11`} />)}</g>
+      {[[-14, -4, -12], [0, -7, 4], [14, -3, 16]].map(([fx, fy, a], i) => <g key={i} transform={`translate(${fx} ${fy}) rotate(${a})`}>
+        <path d="M-12 0q6 -6 16 -4q6 2 8 4q-2 2 -8 4q-10 2 -16 -4z" fill="#9fb3c8" {...O} strokeWidth="1.6" /><path d="M-6 -2q6 -2 14 0" stroke="#e8eef4" strokeWidth="1.6" fill="none" />
+        <path d="M-12 0l-6 -5v10z" fill="#7d93aa" {...O} strokeWidth="1.4" /><circle cx="8" cy="-.6" r="1.4" fill={INK} /><path d="M4 -4v8" stroke="#6b7f95" strokeWidth=".8" />
+      </g>)}
     </g>
+    <g fill="#fff" opacity=".8"><path d="M30 60q-3 -6 1 -10M70 60q3 -6 -1 -10" stroke="#fff" strokeWidth="1.4" fill="none" /></g>
   </g>,
-  favor: () => <g><Sun bg="#ffd6e6" ray="#ffeaf2" />
-    <path d="M20 98Q20 68 50 66Q80 68 80 98Z" fill="#4fa3e0" {...O} />
-    <path d="M40 67L50 78L60 67" fill="#fff" {...O} strokeWidth="1.8" />
-    <circle cx="50" cy="40" r="18" fill={SKIN} {...O} />
-    <path d="M32 38Q32 20 50 21Q68 20 68 38Q60 30 50 31Q40 30 32 38Z" fill={INK} />
-    <path d="M40 42q3 -3 6 0M54 42q3 -3 6 0" stroke={INK} strokeWidth="2.4" fill="none" strokeLinecap="round" />
-    <ellipse cx="38" cy="48" rx="4" ry="2.4" fill="#ff9a8a" opacity=".75" /><ellipse cx="62" cy="48" rx="4" ry="2.4" fill="#ff9a8a" opacity=".75" />
-    <path d="M46 51q4 3 8 0" stroke={INK} strokeWidth="2" fill="none" strokeLinecap="round" />
-    <path d="M50 50Q57 58 58 70Q58 82 54 92H46Q42 82 42 70Q43 58 50 50Z" fill={SKIN} {...O} />
-    <path d="M50 53V91" stroke="#d99a68" strokeWidth="1.8" />
-    <path d="M34 96L42 84M66 96L58 84" stroke="#3a88c8" strokeWidth="5" strokeLinecap="round" />
-    <path d={heart(80, 24, 9)} fill="#ff5a8a" {...O} /><path d={heart(20, 30, 5.5)} fill="#ff8fb0" {...O} strokeWidth="1.6" />
-    <Sparks pts={[[18, 56, 4], [84, 52, 4.5]]} />
+  // ✋ ยกเลิก! — มือหยุดใหญ่ทับไพ่ที่ถูกขีดฆ่า
+  nope: () => <g><Bg id="bx-nope" a="#ffd6dc" b="#ff8fa3" rays="#fff0f3" />
+    <MiniCard x={30} y={64} a={-14} c="#fff3c4" mark={<path d="M-5 -5l10 10M5 -5l-10 10" stroke="#e63946" strokeWidth="2.6" strokeLinecap="round" />} />
+    <MiniCard x={70} y={64} a={12} c="#d7ecff" mark={<path d="M-5 -5l10 10M5 -5l-10 10" stroke="#e63946" strokeWidth="2.6" strokeLinecap="round" />} />
+    <circle cx="50" cy="46" r="33" fill="#fff" stroke="#e63946" strokeWidth="7" /><path d="M27 23L73 69" stroke="#e63946" strokeWidth="7" strokeLinecap="round" opacity=".9" />
+    <g transform="translate(50 50)">
+      <path d="M-14 22q-6 -10 -6 -20v-12q0 -4 3.6 -4t3.6 4v8v-20q0 -4 3.8 -4t3.8 4v18v-22q0 -4 3.8 -4t3.8 4v22v-18q0 -4 3.8 -4t3.6 4v26l3 -6q2 -4 5.4 -2.4t1.6 5.4l-6 14q-4 8 -12 8h-6q-7 0 -10 -4z" fill={SKIN} {...O} />
+      <path d="M-5 -24v18M3 -26v20M11 -22v16" stroke="#d99a6c" strokeWidth="1" opacity=".7" />
+    </g>
+    <Sparks pts={[[14, 18, 4], [88, 20, 3.4]]} fill="#fff" />
   </g>,
-  bottom: () => <g><Sun bg="#cdeec0" ray="#e6f8dc" />
-    <circle cx="30" cy="34" r="12" fill={SKIN} {...O} />
-    <path d="M18 33Q18 20 30 21Q42 20 42 33Q36 27 30 28Q24 27 18 33Z" fill={INK} />
-    <circle cx="27" cy="32" r="3.4" fill="#fff" {...O} strokeWidth="1.2" /><circle cx="35" cy="32" r="3.4" fill="#fff" {...O} strokeWidth="1.2" />
-    <circle cx="28.5" cy="32.6" r="1.7" fill={INK} /><circle cx="36.5" cy="32.6" r="1.7" fill={INK} />
-    {[0, 1, 2, 3].map(i => <rect key={i} x={36 + i * 2.5} y={30 - i * 4} width="36" height="48" rx="5" fill={i % 2 ? '#3f8a30' : '#4f9a3a'} {...O} />)}
-    <rect x="47" y="22" width="28" height="40" rx="3" fill="none" stroke="#8fd06a" strokeWidth="1.6" />
-    <path d="M61 32L68 42L61 52L54 42Z" fill="#8fd06a" />
-    <g transform="rotate(-12 50 80)"><rect x="22" y="66" width="36" height="26" rx="4" fill="#ffd34d" {...O} /><path d={heart(40, 79, 6)} fill="#ff8a3d" /></g>
-    <path d="M8 76H20Q26 76 26 82V84Q26 90 20 90H8Z" fill={SKIN} {...O} />
-    <path d="M12 80h8M12 85h8" stroke="#d99a68" strokeWidth="1.5" strokeLinecap="round" />
-    <g stroke="#3f8a30" strokeWidth="2.5" strokeLinecap="round"><path d="M64 88l8 2" /><path d="M66 94h8" /></g>
+  // ⏭️ ข้ามตา — กล่องกระโดดข้ามเก้าอี้ว่าง ลูกศรข้าม
+  skip: () => <g><Bg id="bx-skip" a="#cfe6ff" b="#7fb2ff" rays="#eef6ff" />
+    <path d="M0 84H100V100H0Z" fill="#5a78b8" /><path d="M0 84H100" stroke="#3b4f7a" strokeWidth="2" />
+    <g transform="translate(50 74)"><rect x="-12" y="-14" width="24" height="4" rx="1.6" fill="#9c6644" {...O} strokeWidth="1.6" /><path d="M-10 -10v20M10 -10v20M-10 -2h20" stroke="#7f5539" strokeWidth="3" strokeLinecap="round" /><path d="M-12 -14v-16h24v16" fill="#b08968" {...O} strokeWidth="1.6" /></g>
+    <Arc d="M14 64Q50 4 86 60" c="#fff" w="4.4" /><Tip x={86} y={60} a={62} s={1.3} />
+    <Box x={24} y={64} s={.42} />
+    <g transform="translate(78 70)"><circle r="11" fill="#ffd166" {...O} /><path d="M-5 -5l6 5 -6 5zM1 -5l6 5 -6 5z" fill={INK} /></g>
+    <g fill="#fff" opacity=".8"><circle cx="40" cy="20" r="1.4" /><circle cx="60" cy="16" r="1.2" /></g>
   </g>,
-  market: () => <g><Sun bg="#ffd0a0" ray="#ffe6c8" ground="#e09a5a" />
-    <path d="M22 40L28 88M78 30L70 60" stroke="#8a5a2a" strokeWidth="4" strokeLinecap="round" />
-    <g transform="rotate(-14 50 30)">{P(6, i => <path key={i} d={`M${14 + i * 12} 20h12v12q-6 6 -12 0Z`} fill={i % 2 ? '#fff' : '#e8402a'} {...O} />)}<rect x="12" y="16" width="76" height="6" rx="3" fill="#b8321e" {...O} /></g>
-    <g transform="rotate(18 50 78)"><rect x="30" y="66" width="36" height="22" rx="2" fill="#c8894a" {...O} /><path d="M30 77h36M42 66v22M54 66v22" stroke="#9a6430" strokeWidth="2" /></g>
-    <Fr x={74} y={56} r={7} c="#e0303a" sh="#b81e30" /><Fr x={86} y={42} r={7} c="#5a2350" sh="#43183c" />
-    <Fr x={62} y={44} r={6} c="#c9a064" sh="#a8824a" /><Fr x={84} y={66} r={6} c="#a8d45a" sh="#8ab83e" />
-    <g stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M70 36l-4 -6" /><path d="M92 54l5 -2" /><path d="M78 30l2 -6" /></g>
+  // 🎯 ส่งต่อ 2 ตา — มือผลักกล่องไปทางขวา ป้าย ×2
+  attack: () => <g><Bg id="bx-attack" a="#ffe5b4" b="#ff9e57" rays="#fff4dc" />
+    <path d="M0 82H100V100H0Z" fill="#d17b3f" /><g stroke="#b5652d" strokeWidth="1">{P(6, i => <path key={i} d={`M${i * 18 + 4} 86h10`} />)}</g>
+    <Hand x={22} y={60} s={1.25} sleeve="#2a9d8f" />
+    <Box x={56} y={62} s={.62} />
+    <g stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M74 50h10M76 58h12M74 66h10" /></g>
+    <Arc d="M60 28Q80 16 94 30" c="#e63946" w="4" /><Tip x={94} y={30} a={45} c="#e63946" s={1.2} />
+    <g transform="translate(78 22) rotate(10)"><rect x="-13" y="-9" width="26" height="18" rx="5" fill="#e63946" {...O} /><text y="5" textAnchor="middle" fontSize="13" fontWeight="900" fill="#fff" fontFamily="sans-serif">×2</text></g>
   </g>,
-  // ---- ผลไม้ไทย ----
-  f1: () => <g><Sun bg="#e6d2f0" ray="#f3e8f8" ground="#8fc46a" />
-    <path d="M42 30V19" stroke="#5a3a1a" strokeWidth="4" strokeLinecap="round" />
-    <Fr x={42} y={54} r={24} c="#5a2350" sh="#43183c" />
-    <g fill="#5f9a3a" {...O}><ellipse cx="34" cy="33" rx="7.5" ry="4" transform="rotate(-20 34 33)" /><ellipse cx="50" cy="33" rx="7.5" ry="4" transform="rotate(20 50 33)" /><ellipse cx="42" cy="31" rx="5" ry="4.5" /></g>
-    <circle cx="70" cy="74" r="16" fill="#5a2350" {...O} /><circle cx="70" cy="74" r="12.5" fill="#c0507e" />
-    <circle cx="70" cy="74" r="10" fill="#fff7f0" />
-    <g stroke="#e3cfc2" strokeWidth="1.4">{P(6, i => { const a = i / 6 * Math.PI * 2; return <path key={i} d={`M70 74L${(70 + Math.cos(a) * 10).toFixed(1)} ${(74 + Math.sin(a) * 10).toFixed(1)}`} />; })}</g>
-    <circle cx="70" cy="74" r="2" fill="#e3cfc2" />
+  // 🔍 ดู 3 ใบบน — แว่นขยายส่องไพ่ 3 ใบบนกอง
+  future: () => <g><Bg id="bx-future" a="#e2d7ff" b="#9d8cff" rays="#f4f0ff" />
+    <g>{[0, 1, 2, 3, 4].map(i => <rect key={i} x={22 - i * .6} y={74 - i * 3} width="40" height="10" rx="2" fill={i % 2 ? '#c8b6ff' : '#e9e1ff'} {...O} strokeWidth="1.4" />)}</g>
+    <MiniCard x={26} y={40} a={-16} c="#fff3c4" mark={<text y="5" textAnchor="middle" fontSize="13" fontWeight="900" fill={INK} fontFamily="sans-serif">1</text>} />
+    <MiniCard x={44} y={36} a={0} c="#d7ecff" mark={<text y="5" textAnchor="middle" fontSize="13" fontWeight="900" fill={INK} fontFamily="sans-serif">2</text>} />
+    <MiniCard x={62} y={40} a={16} c="#ffd6dc" mark={<text y="5" textAnchor="middle" fontSize="13" fontWeight="900" fill={INK} fontFamily="sans-serif">3</text>} />
+    <g transform="translate(70 62) rotate(-30)"><rect x="-4" y="12" width="8" height="24" rx="3" fill="#7f5539" {...O} /><circle r="16" fill="#cfefff" fillOpacity=".55" stroke="#ffd166" strokeWidth="5" /><circle r="16" fill="none" {...O} /><path d="M-9 -6q4 -6 11 -6" stroke="#fff" strokeWidth="2.4" fill="none" strokeLinecap="round" /></g>
+    <Sparks pts={[[86, 22, 4], [12, 18, 3]]} />
   </g>,
-  f2: () => <g><Sun bg="#ffd6d0" ray="#ffeae6" ground="#8fc46a" />
-    {P(22, i => { const a = i / 22 * Math.PI * 2, f = (r, d = 0) => [(44 + Math.cos(a + d) * r).toFixed(1), (52 + Math.sin(a + d) * r).toFixed(1)]; const [x0, y0] = f(19), [cx, cy] = f(27, .35), [x1, y1] = f(29, .1); return <g key={i}><path d={`M${x0} ${y0}Q${cx} ${cy} ${x1} ${y1}`} stroke="#d6283a" strokeWidth="2.6" fill="none" strokeLinecap="round" /><circle cx={x1} cy={y1} r="1.8" fill="#7cbf4a" /></g>; })}
-    <Fr x={44} y={52} r={20} c="#e0303a" sh="#b81e30" />
-    <path d="M56 78A16 14 0 0 0 88 78Z" fill="#e0303a" {...O} />
-    <g fill="#7cbf4a">{[60, 66, 72, 78, 84].map(x => <circle key={x} cx={x} cy={x === 60 || x === 84 ? 84 : 89} r="1.5" />)}</g>
-    <ellipse cx="72" cy="70" rx="12" ry="12" fill="#f4f1e6" {...O} />
-    <ellipse cx="68" cy="65" rx="4" ry="2.5" fill="#fff" transform="rotate(-30 68 65)" />
+  // 🔀 สับกอง — ไพ่สองกองสับเข้าหากัน ลูกศรวน
+  shuffle: () => <g><Bg id="bx-shuffle" a="#c9f2ff" b="#4cc9f0" rays="#ecfbff" />
+    {[0, 1, 2].map(i => <MiniCard key={'l' + i} x={34 - i * 2} y={56 - i * 2} a={-24 + i * 4} c={['#ffd166', '#ff8fa3', '#9be7c4'][i]} />)}
+    {[0, 1, 2].map(i => <MiniCard key={'r' + i} x={66 + i * 2} y={56 - i * 2} a={24 - i * 4} c={['#c8b6ff', '#ffd6a5', '#a0c4ff'][i]} />)}
+    <Arc d="M22 26Q50 6 78 26" c="#fff" w="4.4" /><Tip x={78} y={26} a={35} s={1.3} />
+    <Arc d="M78 86Q50 100 22 84" c="#fff" w="4.4" /><Tip x={22} y={84} a={200} s={1.3} />
+    <g fill="#fff" opacity=".85"><path d="M48 46l4 -4M50 56l5 0M48 66l4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></g>
   </g>,
-  f3: () => <g><Sun bg="#f6e3c0" ray="#fbf0dc" ground="#8fc46a" />
-    <path d="M50 8Q48 20 50 28M50 24Q38 28 34 40M50 24Q62 28 66 40M50 28V44" stroke="#7a5a2a" strokeWidth="3" fill="none" strokeLinecap="round" />
-    <g transform="translate(24 18) rotate(-20)"><path d="M0 0Q12 -9 24 0Q12 9 0 0Z" fill="#5f9a3a" {...O} /><path d="M2 0H22" stroke="#3f7a2a" strokeWidth="1.4" /></g>
-    <g transform="translate(76 18) rotate(200)"><path d="M0 0Q12 -9 24 0Q12 9 0 0Z" fill="#5f9a3a" {...O} /><path d="M2 0H22" stroke="#3f7a2a" strokeWidth="1.4" /></g>
-    {[[34, 48], [50, 46], [66, 50], [40, 63], [58, 62], [30, 76], [68, 76]].map(([x, y], i) => <Fr key={i} x={x} y={y} r={10} c="#c9a064" sh="#a8824a" />)}
-    <circle cx="49" cy="78" r="10" fill="#efe9d6" {...O} /><circle cx="51" cy="80" r="4.5" fill="#3a2414" /><ellipse cx="45" cy="74" rx="3" ry="2" fill="#fff" />
+  // 🤲 ขอไพ่ 1 ใบ — มือหนึ่งยื่นไพ่ให้อีกมือที่แบรอ
+  favor: () => <g><Bg id="bx-favor" a="#fff3b0" b="#ffc94d" rays="#fffbe0" />
+    <g transform="translate(30 70)"><path d="M-30 4h18v12h-18z" fill="#ef476f" {...O} strokeWidth="1.8" /><path d="M-12 2q10 -6 22 -2q8 2 10 6q-2 4 -8 4h-12q-8 2 -12 0z" fill={SKIN} {...O} strokeWidth="1.8" /><path d="M-4 0q4 -3 8 -1M2 1q4 -2 8 0" stroke="#d99a6c" strokeWidth="1" fill="none" /></g>
+    <MiniCard x={50} y={44} a={-10} c="#d7ecff" mark={<path d={heart(0, 0, 5)} fill="#ef476f" />} />
+    <Hand x={78} y={36} a={200} s={1.1} sleeve="#4361ee" />
+    <Arc d="M70 54Q60 66 42 64" c="#fff" w="3.4" /><Tip x={42} y={64} a={175} />
+    <text x="20" y="28" fontSize="16" fontWeight="900" fill="#e85d04" fontFamily="sans-serif">1</text>
+    <Sparks pts={[[86, 80, 4], [14, 44, 3]]} />
   </g>,
-  f4: () => <g><Sun bg="#ffe6a0" ray="#fff3cf" ground="#8fc46a" />
-    <path d="M52 26Q66 6 86 12Q74 30 52 26Z" fill="#4f9a3a" {...O} /><path d="M55 25Q70 16 84 13" stroke="#3a7a2a" strokeWidth="1.5" fill="none" />
-    <path d="M50 30Q50 24 54 22" stroke="#6b4a1e" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-    <path d="M50 28Q76 28 78 54Q80 82 54 86Q28 88 24 66Q20 46 34 34Q42 28 50 28Z" fill="#ffc22e" {...O} />
-    <path d="M52 30Q74 30 77 52Q68 38 52 33Z" fill="#ff9a2e" />
-    <path d="M77 56Q78 80 56 85Q74 74 77 56Z" fill="#e8a218" />
-    <path d="M32 46Q36 38 44 35" stroke="#fff3b8" strokeWidth="4" fill="none" strokeLinecap="round" />
-    <Sparks pts={[[16, 24, 5], [86, 40, 4]]} />
+  // ⬇️ จั่วใบล่าง — มือดึงไพ่ใบล่างสุดออกจากกอง
+  bottom: () => <g><Bg id="bx-bottom" a="#d8f3dc" b="#74c69d" rays="#f0fff4" />
+    <g>{P(6, i => <rect key={i} x={30} y={22 + i * 6} width="40" height="9" rx="2" fill={i % 2 ? '#b7e4c7' : '#e9f5ec'} {...O} strokeWidth="1.4" />)}</g>
+    <g transform="translate(56 66) rotate(8)"><rect x="-20" y="-5" width="40" height="11" rx="2" fill="#ffd166" {...O} strokeWidth="1.8" /><path d="M-14 0h20" stroke={INK} strokeWidth="1" opacity=".4" /></g>
+    <Hand x={86} y={70} a={188} s={1.05} sleeve="#2d6a4f" />
+    <g transform="translate(50 86)"><path d="M-6 -6v8h-6l12 10 12 -10h-6v-8z" fill="#fff" {...O} strokeWidth="1.6" /></g>
+    <Sparks pts={[[14, 20, 3.4], [86, 18, 3]]} />
   </g>,
-  f5: () => <g><Sun bg="#e0f5c8" ray="#f0fbe4" ground="#8fc46a" />
-    <path d="M44 29q2 -8 8 -10" stroke="#6b4a1e" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-    <path d="M50 21Q60 10 72 14Q64 24 50 21Z" fill="#4f9a3a" {...O} />
-    <Fr x={44} y={55} r={26} c="#a8d45a" sh="#8ab83e" />
-    <g fill="#93c04a">{[[34, 50], [44, 44], [54, 52], [40, 62], [52, 66], [30, 64], [60, 40], [46, 74]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.4" />)}</g>
-    <path d="M56 88Q58 60 84 56Q92 76 76 88Q66 93 56 88Z" fill="#fff4e0" {...O} />
-    <path d="M61 85Q63 64 82 60Q87 76 73 85Z" fill="#ff8f86" />
-    <path d="M68 78l4 -8M74 80l4 -10M66 70l6 -3" stroke="#ffc0b8" strokeWidth="1.6" strokeLinecap="round" />
+  // 🔄 ส่งไพ่ต่อทุกคน — ไพ่ 4 ใบวนรอบโต๊ะ ลูกศรตามเข็ม
+  market: () => <g><Bg id="bx-market" a="#ffd6ff" b="#c77dff" rays="#fff0ff" />
+    <circle cx="50" cy="52" r="20" fill="#9d6b3f" {...O} /><circle cx="50" cy="52" r="15" fill="#b5835a" />
+    <Box x={50} y={50} s={.3} />
+    {[[50, 20, 0, '#ffd166'], [82, 52, 90, '#9be7c4'], [50, 84, 180, '#a0c4ff'], [18, 52, 270, '#ff8fa3']].map(([x, y, a, c], i) => <MiniCard key={i} x={x} y={y} a={a} c={c} s={.72} />)}
+    {[45, 135, 225, 315].map((a, i) => <g key={i} transform={`rotate(${a} 50 52)`}><Arc d="M36 22Q50 16 64 22" c="#fff" w="3" /><Tip x={64} y={22} a={20} s={.9} /></g>)}
+  </g>,
+  // ---- ของในพัสดุ 5 แบบ (ใช้จับคู่) — วางบนกล่องที่เปิดอยู่ ----
+  f1: () => <g><Bg id="bx-f1" a="#ffe5ec" b="#ffb3c6" rays="#fff4f7" />
+    <Box x={50} y={80} s={.8} open />
+    <g transform="translate(50 46)">
+      <circle cx="-13" cy="-15" r="6" fill="#b5835a" {...O} /><circle cx="13" cy="-15" r="6" fill="#b5835a" {...O} /><circle cx="-13" cy="-15" r="3" fill="#e6b98a" /><circle cx="13" cy="-15" r="3" fill="#e6b98a" />
+      <ellipse cx="0" cy="14" rx="15" ry="14" fill="#b5835a" {...O} /><ellipse cx="0" cy="16" rx="8" ry="8" fill="#e6b98a" />
+      <circle cx="0" cy="-4" r="15" fill="#c8915a" {...O} /><ellipse cx="0" cy="2" rx="6.4" ry="5" fill="#e6b98a" />
+      <circle cx="-5.4" cy="-6" r="1.8" fill={INK} /><circle cx="5.4" cy="-6" r="1.8" fill={INK} /><ellipse cx="0" cy="0" rx="2.2" ry="1.6" fill={INK} /><path d="M-2.4 3q2.4 2 4.8 0" stroke={INK} strokeWidth="1" fill="none" />
+      <path d="M-12 8l-8 8M12 8l8 8" stroke="#b5835a" strokeWidth="6" strokeLinecap="round" /><path d="M-6 9q6 4 12 0l-2 4h-8z" fill="#e63946" {...O} strokeWidth="1.2" />
+    </g>
+    <Sparks pts={[[16, 22, 3.4], [84, 26, 4]]} />
+  </g>,
+  f2: () => <g><Bg id="bx-f2" a="#d7ecff" b="#7fb2ff" rays="#eef6ff" />
+    <Box x={50} y={80} s={.8} open />
+    <g transform="translate(50 50) rotate(-8)">
+      <path d="M-26 6q0 -16 10 -20q10 -2 16 6q6 6 16 6q10 2 10 10v4h-52z" fill="#fff" {...O} />
+      <path d="M-26 12h52v4q0 4 -4 4h-44q-4 0 -4 -4z" fill="#e63946" {...O} />
+      <path d="M-12 -12l4 14M-6 -12l4 12M0 -8l3 10" stroke="#3a86ff" strokeWidth="1.6" />
+      <path d="M-14 -10q8 -4 14 0" stroke={INK} strokeWidth="1.4" fill="none" />
+      <path d="M2 2l14 -4" stroke="#3a86ff" strokeWidth="3" strokeLinecap="round" /><path d="M-20 12v-2M-12 12v-2M-4 12v-2M4 12v-2M12 12v-2M20 12v-2" stroke="#9d0208" strokeWidth="1" />
+    </g>
+    <Sparks pts={[[16, 22, 3.4], [84, 20, 4]]} />
+  </g>,
+  f3: () => <g><Bg id="bx-f3" a="#fff3c4" b="#ffd166" rays="#fffbe8" />
+    <Box x={50} y={80} s={.8} open />
+    <g transform="translate(50 44) rotate(-6)">
+      <path d="M-24 -18h24v34h-24z" fill="#ffffff" {...O} /><path d="M0 -18h24v34h-24z" fill="#f8f9fa" {...O} />
+      <path d="M-24 -18h48" stroke="#e63946" strokeWidth="4" />
+      <g stroke={INK} strokeWidth="1"><rect x="-21" y="-12" width="18" height="12" fill="#a0c4ff" /><rect x="3" y="-12" width="18" height="12" fill="#ffd6a5" /><rect x="-21" y="2" width="18" height="11" fill="#caffbf" /><rect x="3" y="2" width="18" height="11" fill="#ffc6ff" /></g>
+      <circle cx="-12" cy="-6" r="3" fill="#f6c99a" stroke={INK} strokeWidth=".8" /><path d="M8 -4q4 -6 8 0" fill="#ff9e00" stroke={INK} strokeWidth=".8" /><path d="M-18 9l4 -4 4 4" stroke="#2d6a4f" strokeWidth="1.4" fill="none" />
+      <path d="M8 6h8l-2 4h-6z" fill="#fff" stroke={INK} strokeWidth=".8" /><text x="12" y="9.4" fontSize="3.4" textAnchor="middle" fill={INK} fontWeight="700">POW</text>
+    </g>
+    <Sparks pts={[[16, 22, 3.4], [84, 20, 4]]} />
+  </g>,
+  f4: () => <g><Bg id="bx-f4" a="#e9f5db" b="#95d5b2" rays="#f6fff0" />
+    <Box x={50} y={80} s={.8} open />
+    <g transform="translate(50 46)">
+      <path d="M-12 8h24l-3 18h-18z" fill="#e76f51" {...O} /><path d="M-14 6h28v5h-28z" fill="#f4a261" {...O} strokeWidth="1.6" />
+      <path d="M0 6V-16" stroke="#2d6a4f" strokeWidth="2.4" />
+      <path d="M0 -6q-16 -2 -20 -14q14 -2 20 12zM0 -10q14 -6 20 -18q-16 0 -20 16zM0 -16q-4 -12 2 -20q6 10 -2 20z" fill="#52b788" {...O} strokeWidth="1.6" />
+      <path d="M-14 -16q6 2 12 8M14 -24q-6 4 -12 12" stroke="#2d6a4f" strokeWidth=".9" fill="none" />
+      <circle cx="2" cy="-30" r="4" fill="#ffafcc" {...O} strokeWidth="1.2" /><circle cx="2" cy="-30" r="1.4" fill="#ffd60a" />
+    </g>
+    <Sparks pts={[[16, 22, 3.4], [84, 20, 4]]} />
+  </g>,
+  f5: () => <g><Bg id="bx-f5" a="#e2d7ff" b="#b8a6ff" rays="#f5f2ff" />
+    <Box x={50} y={80} s={.8} open />
+    <g transform="translate(50 50)">
+      <path d="M-22 6q0 -30 22 -30t22 30" fill="none" stroke="#3a3a48" strokeWidth="5" strokeLinecap="round" /><path d="M-22 6q0 -30 22 -30t22 30" fill="none" stroke="#6b6b80" strokeWidth="2" strokeLinecap="round" />
+      <rect x="-28" y="-2" width="12" height="18" rx="5" fill="#ef476f" {...O} /><rect x="16" y="-2" width="12" height="18" rx="5" fill="#ef476f" {...O} />
+      <rect x="-25" y="1" width="6" height="12" rx="3" fill="#ffd6dc" /><rect x="19" y="1" width="6" height="12" rx="3" fill="#ffd6dc" />
+    </g>
+    <g fill="#5a189a">{[[16, 30], [84, 34], [78, 16]].map(([x, y], i) => <g key={i}><ellipse cx={x} cy={y} rx="2.6" ry="2" /><path d={`M${x + 2.4} ${y}v-8l4 1`} stroke="#5a189a" strokeWidth="1" fill="none" /></g>)}</g>
   </g>,
 };
 

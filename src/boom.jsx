@@ -1,4 +1,4 @@
-// เกม "ทุเรียนตูม!" — ผลัดกันจั่วไพ่ ใครจั่วได้ทุเรียนตูมแล้วไม่มีที่หนีบจมูก = ตกรอบ เหลือคนสุดท้ายชนะ
+// เกม "กล่องแมวโมโห" — ผลัดกันจั่วกล่องพัสดุ ใครเปิดเจอแมวโมโหแล้วไม่มีปลาทูง้อแมว = ตกรอบ เหลือคนสุดท้ายชนะ
 // (กลไกแนวเดียวกับเกมไพ่จั่วหนีระเบิด แต่ไพ่ ชื่อ ภาพ เป็นของเราเอง)
 import React, { useEffect, useRef, useState } from 'react';
 import { ref, runTransaction } from 'firebase/database';
@@ -12,21 +12,21 @@ export const BOOM_MIN = 2, BOOM_MAX = 10;
 export const BOOM_SCORE = { win: 3, second: 1 };
 const WINDOW = 4000, FAVOR_MS = 20000, DEFUSE_MS = 25000;
 export const BOOM_CARDS = {
-  bomb: { n: 'ทุเรียนตูม!', cat: 'bomb', text: 'จั่วได้ = ระเบิด! ไม่มีที่หนีบจมูกคือตกรอบ' },
-  clip: { n: 'ที่หนีบจมูก', cat: 'save', text: 'รอดจากทุเรียน 1 ครั้ง แล้วแอบใส่ทุเรียนกลับในกอง' },
-  nope: { n: 'ไม่เอา!', cat: 'react', text: 'ยกเลิกไพ่ที่เพิ่งลง เล่นได้ทุกเมื่อ แม้ไม่ใช่ตาคุณ' },
-  skip: { n: 'ขอผ่าน', cat: 'act', text: 'จบตาโดยไม่ต้องจั่ว' },
-  attack: { n: 'โยนให้เพื่อน', cat: 'act', text: 'จบตาโดยไม่จั่ว คนถัดไปต้องเล่น 2 ตาติด' },
-  future: { n: 'ส่องแผง', cat: 'act', text: 'แอบดูไพ่ 3 ใบบนสุดของกอง' },
-  shuffle: { n: 'เขย่าแผง', cat: 'act', text: 'สับกองไพ่ใหม่' },
-  favor: { n: 'ขอหน่อยนะ', cat: 'act', target: true, text: 'เพื่อนที่เลือกต้องให้ไพ่คุณ 1 ใบ (เขาเลือกเอง)' },
-  bottom: { n: 'แอบหยิบข้างล่าง', cat: 'act', text: 'จั่วใบล่างสุดของกองแทน แล้วจบตา' },
-  market: { n: 'ตลาดแตก', cat: 'act', text: 'ทุกคนส่งไพ่สุ่ม 1 ใบให้คนถัดไป' },
-  f1: { n: 'มังคุด', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
-  f2: { n: 'เงาะ', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
-  f3: { n: 'ลำไย', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
-  f4: { n: 'มะม่วง', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
-  f5: { n: 'ส้มโอ', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
+  bomb: { n: 'แมวโมโห!', cat: 'bomb', text: 'จั่วได้ = โดนข่วน! ไม่มีปลาทูง้อแมวคือตกรอบ' },
+  clip: { n: 'ปลาทูง้อแมว', cat: 'save', text: 'รอดจากแมวโมโห 1 ครั้ง แล้วแอบใส่กล่องแมวกลับในกอง' },
+  nope: { n: 'ยกเลิก!', cat: 'react', text: 'ยกเลิกไพ่ที่เพิ่งลง เล่นได้ทุกเมื่อ แม้ไม่ใช่ตาคุณ' },
+  skip: { n: 'ข้ามตา', cat: 'act', text: 'จบตาโดยไม่ต้องจั่ว' },
+  attack: { n: 'ส่งต่อ 2 ตา', cat: 'act', text: 'จบตาโดยไม่จั่ว คนถัดไปต้องเล่น 2 ตาติด' },
+  future: { n: 'ดู 3 ใบบน', cat: 'act', text: 'แอบดูไพ่ 3 ใบบนสุดของกอง' },
+  shuffle: { n: 'สับกอง', cat: 'act', text: 'สับกองไพ่ใหม่ทั้งกอง' },
+  favor: { n: 'ขอไพ่ 1 ใบ', cat: 'act', target: true, text: 'เพื่อนที่เลือกต้องให้ไพ่คุณ 1 ใบ (เขาเลือกเอง)' },
+  bottom: { n: 'จั่วใบล่าง', cat: 'act', text: 'จั่วใบล่างสุดของกองแทน แล้วจบตา' },
+  market: { n: 'ส่งไพ่ต่อทุกคน', cat: 'act', text: 'ทุกคนส่งไพ่สุ่ม 1 ใบให้คนถัดไป' },
+  f1: { n: 'ตุ๊กตาหมี', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
+  f2: { n: 'รองเท้าผ้าใบ', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
+  f3: { n: 'การ์ตูน', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
+  f4: { n: 'กระถางต้นไม้', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
+  f5: { n: 'หูฟัง', cat: 'fruit', text: 'จับคู่ 2 ใบ = ขโมยสุ่ม • 3 ใบ = ขอไพ่ที่ต้องการ' },
 };
 const ACTIONS = ['skip', 'attack', 'future', 'shuffle', 'favor', 'bottom', 'market'];
 export const T = id => String(id).split('-')[0];
@@ -76,9 +76,9 @@ function drawFor(cur, id, bottom, now) {
   if (!card) { endTurn(r); return cur; }
   if (T(card) === 'bomb') {
     const clip = hand(r, id).find(c => T(c) === 'clip');
-    if (clip) { take(r, id, clip); r.discard = [...(r.discard || []), clip]; r.phase = 'defuse'; r.defuse = { pid: id, bomb: card, until: now + DEFUSE_MS }; r.boom = { pid: id, at: now, saved: true }; say(r, `💥 {${id}} จั่วได้ทุเรียนตูม! แต่หนีบจมูกทัน 🧷`, { by: id, act: '🧷 รอดหวุดหวิด!' }); return cur; }
+    if (clip) { take(r, id, clip); r.discard = [...(r.discard || []), clip]; r.phase = 'defuse'; r.defuse = { pid: id, bomb: card, until: now + DEFUSE_MS }; r.boom = { pid: id, at: now, saved: true }; say(r, `🐟 {${id}} เปิดเจอแมวโมโห! แต่ยื่นปลาทูง้อแมวทัน รอดไปได้`, { by: id, act: '🧷 รอดหวุดหวิด!' }); return cur; }
     r.boom = { pid: id, at: now, saved: false };
-    return eliminate(cur, id, `💥 ตูม! {${id}} จั่วได้ทุเรียนตูมแล้วไม่มีที่หนีบจมูก — ตกรอบ`);
+    return eliminate(cur, id, `😾 เหมียว!! {${id}} เปิดกล่องเจอแมวโมโหแล้วไม่มีปลาทูง้อแมว — ตกรอบ`);
   }
   give(r, id, card); say(r, `🃏 {${id}} จั่วไพ่${bottom ? 'ใบล่างสุด' : ''} 1 ใบ`, { by: id, act: bottom ? '🃏 จั่วใบล่าง' : '🃏 จั่ว' }); endTurn(r); return cur;
 }
@@ -102,7 +102,7 @@ export function playCards(cur, me, cards, target, named, now) {
 export function playNope(cur, me, card, now) {
   const r = cur.round; if (!r.pending || !r.alive[me] || T(card) !== 'nope' || !take(r, me, card)) return;
   r.discard = [...(r.discard || []), card]; r.pending.nopes = (r.pending.nopes || 0) + 1; r.pending.noped = [...(r.pending.noped || []), me]; r.pending.until = now + WINDOW;
-  say(r, `🙅 {${me}} ไม่เอา!${r.pending.nopes % 2 ? '' : ' (ยกเลิกการไม่เอา)'}`, { by: me, act: '🙅 ไม่เอา!' }); return cur;
+  say(r, `✋ {${me}} ยกเลิก!${r.pending.nopes % 2 ? '' : ' (ยกเลิกการยกเลิก)'}`, { by: me, act: '✋ ยกเลิก!' }); return cur;
 }
 function resolve(cur, now) {
   const r = cur.round; const p = r.pending; r.pending = null;
@@ -115,7 +115,7 @@ function resolve(cur, now) {
     case 'favor': if (hand(r, p.target).length) { r.phase = 'favor'; r.favor = { from: p.target, to: p.by, until: now + FAVOR_MS }; } break;
     case 'bottom': return drawFor(cur, p.by, true, now);
     case 'market': { const ids = aliveIds(r, cur).filter(id => hand(r, id).length); const picks = ids.map(id => { const h = hand(r, id); return h[rint(h.length)]; });
-      ids.forEach((id, i) => take(r, id, picks[i])); ids.forEach((id, i) => give(r, ids[(i + 1) % ids.length], picks[i])); say(r, '🛒 ตลาดแตก! ทุกคนส่งไพ่ให้คนถัดไป'); break; }
+      ids.forEach((id, i) => take(r, id, picks[i])); ids.forEach((id, i) => give(r, ids[(i + 1) % ids.length], picks[i])); say(r, '🔄 ส่งไพ่ต่อทุกคน! ทุกคนส่งไพ่ให้คนถัดไป'); break; }
     case 'pair': { const h = hand(r, p.target); if (h.length) { const c = h[rint(h.length)]; take(r, p.target, c); give(r, p.by, c); say(r, `🖐️ {${p.by}} ขโมยไพ่ 1 ใบจาก {${p.target}}`, { by: p.by, act: '🖐️ ขโมย!' }); } break; }
     case 'trio': { const c = hand(r, p.target).find(x => T(x) === p.named); if (c) { take(r, p.target, c); give(r, p.by, c); say(r, `🎯 {${p.by}} ได้ “${BOOM_CARDS[p.named].n}” จาก {${p.target}}`, { by: p.by, act: '🎯 ได้แล้ว!' }); } else say(r, `😅 {${p.target}} ไม่มี “${BOOM_CARDS[p.named].n}”`); break; }
   }
@@ -125,7 +125,7 @@ export function drawCard(cur, me, now) { const r = cur.round; if (r.phase !== 'p
 export function placeBomb(cur, me, pos) {
   const r = cur.round; if (r.phase !== 'defuse' || r.defuse?.pid !== me) return;
   const deck = [...(r.deck || [])]; deck.splice(Math.max(0, Math.min(deck.length, pos | 0)), 0, r.defuse.bomb); r.deck = deck;
-  r.phase = 'play'; r.defuse = null; say(r, `🤫 {${me}} แอบใส่ทุเรียนกลับเข้ากองแล้ว…`, { by: me, act: '🤫 ซ่อนทุเรียน' }); endTurn(r); return cur;
+  r.phase = 'play'; r.defuse = null; say(r, `🤫 {${me}} แอบใส่กล่องแมวกลับเข้ากองแล้ว…`, { by: me, act: '🤫 ซ่อนกล่องแมว' }); endTurn(r); return cur;
 }
 export function giveFavor(cur, me, card) {
   const r = cur.round; if (r.phase !== 'favor' || r.favor?.from !== me || !take(r, me, card)) return;
@@ -149,7 +149,7 @@ const DECK_XY = { x: 38, y: 52 }, PILE_XY = { x: 62, y: 52 };
 const MiniBacks = ({ n }) => <span className="mini-backs">{Array.from({ length: Math.min(n, 7) }, (_, i) => <i key={i} />)}</span>;
 
 function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, pick, picked, onPick, sound }) {
-  // อนิเมชั่นสับไพ่: ตอนมีคนเล่นเขย่าแผง (r.shuf เปลี่ยน) และตอนเริ่มรอบใหม่
+  // อนิเมชั่นสับไพ่: ตอนมีคนเล่นสับกอง (r.shuf เปลี่ยน) และตอนเริ่มรอบใหม่
   const [shuf, setShuf] = useState(0); const shufAt = useRef(r.shuf || 0); const shufRound = useRef(null);
   const playShuf = () => { setShuf(k => k + 1); sfx(sound, 'shuffle'); };
   useEffect(() => { const t = r.shuf || 0; if (t > shufAt.current) { shufAt.current = t; playShuf(); } }, [r.shuf]);
@@ -178,7 +178,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
     const fresh = s.log.length > p.log.length ? s.log.slice(p.log.length) : (s.log.length && s.log[s.log.length - 1]?.t !== p.log[p.log.length - 1]?.t ? s.log.slice(-1) : []);
     fresh.filter(e => e.by && e.act).forEach(e => { const id = e.by, kk = k(); setBubbles(b => ({ ...b, [id]: { text: e.act, k: kk } })); setTimeout(() => setBubbles(b => (b[id]?.k === kk ? { ...b, [id]: null } : b)), 2500); });
   });
-  // ลงไพ่: ไพ่ใหญ่พุ่งจากที่นั่งมากระแทกกลางโต๊ะ • โดน "ไม่เอา!" = ตราประทับบนกองทิ้ง
+  // ลงไพ่: ไพ่ใหญ่พุ่งจากที่นั่งมากระแทกกลางโต๊ะ • โดน "ยกเลิก!" = ตราประทับบนกองทิ้ง
   const [slam, setSlam] = useState(null); const slamKey = useRef(null);
   useEffect(() => {
     const id = P ? P.by + ':' + (P.cards || []).join(',') : ''; const k = P ? id + '#' + (P.nopes || 0) : ''; const was = slamKey.current; slamKey.current = k;
@@ -193,7 +193,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
   return <div className={'rt' + (n > 6 ? ' crowd' : '')}>
     <div className="rt-felt" />
     {!res && <div className="rt-pointer" style={{ transform: `translate(-50%,-50%) rotate(${ang}deg)` }}><i /></div>}
-    <div className="rt-info"><span>💥 ทุเรียน {bombs} ลูก</span><b className={danger >= 25 ? 'hot' : ''}>{danger}%</b></div>
+    <div className="rt-info"><span>😾 แมวโมโห {bombs} ตัว</span><b className={danger >= 25 ? 'hot' : ''}>{danger}%</b></div>
     <button type="button" className={'rt-deck' + (canDraw ? ' can' : '') + (danger >= 30 && !res ? ' hot' : '')} style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }} onClick={canDraw ? onDraw : undefined} disabled={!canDraw} aria-label="กองจั่ว">
       <CardFace back backKind="boom" size="sm" /><span className="pile-n">{deck.length}</span>{canDraw && <span className="rt-tap">แตะเพื่อจั่ว</span>}
     </button>
@@ -216,7 +216,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
       <div className="slam-at"><i className="slam-ring" /><i className="slam-ring r2" />{Array.from({ length: 12 }, (_, i) => <i key={i} className="slam-ray" style={{ '--a': i * 30 + 'deg' }} />)}</div>
       <div className="slam-card"><Card id={slam.card} size="md" />{slam.n > 1 && <em>×{slam.n}</em>}</div>
       <span className="slam-txt">{slam.by === myId ? 'คุณ' : nameOf(slam.by)}: {BOOM_CARDS[T(slam.card)]?.n}{slam.n === 2 ? ' • คู่!' : slam.n >= 3 ? ' • ตอง!' : ''}</span></div>}
-    {slam && slam.nope && <div key={slam.k} className={'nope-stamp' + (slam.nopes % 2 ? '' : ' back')} style={{ left: PILE_XY.x + '%', top: PILE_XY.y + '%' }}><b>{slam.nopes % 2 ? '🙅 ไม่เอา!' : '🔁 กลับมาได้ผล!'}</b>{slam.who && <small>{slam.who === myId ? 'คุณ' : nameOf(slam.who)}</small>}</div>}
+    {slam && slam.nope && <div key={slam.k} className={'nope-stamp' + (slam.nopes % 2 ? '' : ' back')} style={{ left: PILE_XY.x + '%', top: PILE_XY.y + '%' }}><b>{slam.nopes % 2 ? '✋ ยกเลิก!' : '🔁 กลับมาได้ผล!'}</b>{slam.who && <small>{slam.who === myId ? 'คุณ' : nameOf(slam.who)}</small>}</div>}
     {shuf > 0 && <div key={'sh' + shuf} className="shuf-fx" style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }}>{Array.from({ length: 8 }, (_, i) => <i key={i} className={i % 2 ? 'r' : 'l'} style={{ '--i': i }}><CardFace back backKind="boom" size="sm" /></i>)}<span className="shuf-txt">🔀 สับไพ่!</span></div>}
     {flies.map(f => <div key={f.k} className="fly" style={{ '--fx': f.from.x + '%', '--fy': f.from.y + '%', '--tx': f.to.x + '%', '--ty': f.to.y + '%', animationDelay: f.delay + 'ms' }}>{f.face ? <Card id={f.face} size="sm" /> : <CardFace back backKind="boom" size="sm" />}</div>)}
   </div>;
@@ -253,7 +253,7 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
   useEffect(() => { if (due && !res) tx(c => boomTick(c, srvNow)); }, [due]);
   // เอฟเฟกต์ระเบิด + เสียง
   const lastBoom = useRef(r.boom?.at || 0);
-  useEffect(() => { const b = r.boom; if (!b || b.at <= lastBoom.current) return; lastBoom.current = b.at; setBoomFx(b); sfx(sound, b.saved ? 'defuse' : 'boom');
+  useEffect(() => { const b = r.boom; if (!b || b.at <= lastBoom.current) return; lastBoom.current = b.at; setBoomFx(b); sfx(sound, b.saved ? 'defuse' : 'meow');
     if (!b.saved) { setQuake(b.at); setTimeout(() => setQuake(0), 750); } try { navigator.vibrate?.(b.saved ? [40, 40, 40] : [120, 60, 240]); } catch { }
     const t = setTimeout(() => { setBoomFx(null); fxOff.current = Date.now(); }, 3000); return () => clearTimeout(t); }, [r.boom?.at]);
   const prev = useRef(null);
@@ -293,27 +293,27 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
 
     {/* ตอนนี้ตาใคร */}
     {!res && r.phase === 'play' && (myTurn ? <div className="turn-banner me"><b>🎯 ตาคุณ!{r.turnsLeft > 1 ? ` (เหลือ ${r.turnsLeft} ตา)` : ''}</b><small>แตะไพ่เพื่อเลือกเล่น (กี่ใบก็ได้) • จบตาด้วยการแตะกองไพ่หรือปุ่มจั่ว • ผลไม้เหมือนกัน 2–3 ใบเล่นเป็นชุด</small></div>
-      : <div className="turn-banner"><Avatar id={cur} av={av} size={28} /><b>ตาของ {nameOf(cur)}{r.turnsLeft > 1 ? ` (${r.turnsLeft} ตา)` : ''}</b><small>{!r.alive?.[myId] ? '💀 คุณตกรอบแล้ว — ดูเพื่อนเล่นต่อได้ ห้ามใบ้นะ!' : myNope ? '🙅 ถือ “ไม่เอา!” อยู่ — มีใครลงไพ่ กดสวนได้ทันที' : 'นั่งลุ้นว่าใครจะจั่วได้ทุเรียน…'}</small></div>)}
+      : <div className="turn-banner"><Avatar id={cur} av={av} size={28} /><b>ตาของ {nameOf(cur)}{r.turnsLeft > 1 ? ` (${r.turnsLeft} ตา)` : ''}</b><small>{!r.alive?.[myId] ? '💀 คุณตกรอบแล้ว — ดูเพื่อนเล่นต่อได้ ห้ามใบ้นะ!' : myNope ? '✋ ถือ “ยกเลิก!” อยู่ — มีใครลงไพ่ กดสวนได้ทันที' : 'นั่งลุ้นว่าใครจะเปิดเจอแมว…'}</small></div>)}
 
     {/* ไพ่ที่เพิ่งลง + ช่วงเวลาให้สวน */}
     {P && !res && <div className={'pending' + (P.nopes % 2 ? ' noped' : '')}>
       <Card id={P.cards[0]} size="sm" />
       <div className="pd-body"><b><Avatar id={P.by} av={av} size={22} /> {nameOf(P.by)} เล่น “{BOOM_CARDS[T(P.cards[0])].n}”{P.cards.length > 1 ? ` ×${P.cards.length}` : ''}{P.target ? <> ใส่ {nameOf(P.target)}</> : ''}</b>
-        <small>{P.nopes ? `🙅 โดนไม่เอา ${P.nopes} ครั้ง → ${P.nopes % 2 ? 'ถูกยกเลิก' : 'กลับมาได้ผล'}` : kindText[P.kind]} • อีก {Math.ceil(left / 1000)} วิ</small>
+        <small>{P.nopes ? `✋ โดนยกเลิก ${P.nopes} ครั้ง → ${P.nopes % 2 ? 'ถูกยกเลิก' : 'กลับมาได้ผล'}` : kindText[P.kind]} • อีก {Math.ceil(left / 1000)} วิ</small>
         <div className="pd-bar"><i style={{ width: (left / WINDOW * 100) + '%' }} /></div></div>
-      {nopeOk && <button className="nope-btn" onClick={() => { sfx(sound, 'nope'); tx(c => playNope(c, myId, myNope, srvNow)); }}>🙅 ไม่เอา!</button>}
+      {nopeOk && <button className="nope-btn" onClick={() => { sfx(sound, 'nope'); tx(c => playNope(c, myId, myNope, srvNow)); }}>✋ ยกเลิก!</button>}
     </div>}
 
-    {/* ส่องแผง */}
+    {/* ดู 3 ใบบน */}
     {r.peek?.pid === myId && myTurn && !P && <div className="peek"><SecH icon="🔭">ไพ่ 3 ใบบนสุด <small>ซ้ายสุด = ใบที่จะจั่วถัดไป • เห็นแค่คุณ</small></SecH><div className="hand-row">{r.peek.cards.map((c, i) => <Card key={c} id={c} size="md" tag={`ใบที่ ${i + 1}`} />)}</div></div>}
 
-    {/* หนีบจมูกทัน → ใส่ทุเรียนกลับ */}
-    {r.phase === 'defuse' && !res && (r.defuse.pid === myId ? <div className="defuse"><Phase art="check" tone="good" kicker="🧷 รอดหวุดหวิด!" title="แอบใส่ทุเรียนกลับในกองตรงไหนดี?">คนอื่นไม่เห็นว่าคุณใส่ไว้ตรงไหน • เวลา {Math.ceil(Math.max(0, r.defuse.until - srvNow) / 1000)} วิ</Phase>
+    {/* มีปลาทูง้อแมว → ใส่กล่องแมวกลับ */}
+    {r.phase === 'defuse' && !res && (r.defuse.pid === myId ? <div className="defuse"><Phase art="check" tone="good" kicker="🐟 รอดหวุดหวิด!" title="แอบใส่กล่องแมวกลับในกองตรงไหนดี?">คนอื่นไม่เห็นว่าคุณใส่ไว้ตรงไหน • เวลา {Math.ceil(Math.max(0, r.defuse.until - srvNow) / 1000)} วิ</Phase>
       <input type="range" min="0" max={deck.length} value={pos} onChange={e => setPos(+e.target.value)} className="pos-range" />
       <div className="pos-label">{pos === 0 ? '⬆️ บนสุด (คนถัดไปจั่วเจอเลย!)' : pos >= deck.length ? '⬇️ ล่างสุด' : `ใบที่ ${pos + 1} จากบน`}</div>
       <div className="pos-quick"><button className="secondary" onClick={() => setPos(0)}>บนสุด</button><button className="secondary" onClick={() => setPos(Math.min(deck.length, 1))}>ใบที่ 2</button><button className="secondary" onClick={() => setPos(rint(deck.length + 1))}>สุ่ม</button><button className="secondary" onClick={() => setPos(deck.length)}>ล่างสุด</button></div>
-      <button className="primary wide" onClick={() => tx(c => placeBomb(c, myId, pos))}>🤫 ใส่ทุเรียนกลับ</button></div>
-      : <div className="waiting">🤫 {nameOf(r.defuse.pid)} กำลังแอบใส่ทุเรียนกลับเข้ากอง… ({Math.ceil(Math.max(0, r.defuse.until - srvNow) / 1000)} วิ)</div>)}
+      <button className="primary wide" onClick={() => tx(c => placeBomb(c, myId, pos))}>🤫 ใส่กล่องแมวกลับ</button></div>
+      : <div className="waiting">🤫 {nameOf(r.defuse.pid)} กำลังแอบใส่กล่องแมวกลับเข้ากอง… ({Math.ceil(Math.max(0, r.defuse.until - srvNow) / 1000)} วิ)</div>)}
 
     {/* ขอหน่อยนะ → ผู้ถูกขอเลือกไพ่ให้ */}
     {r.phase === 'favor' && !res && (giving ? <div className="turn-banner me"><b>🥺 เลือกไพ่ 1 ใบให้ {nameOf(r.favor.to)}</b><small>แตะไพ่ในมือที่จะให้ • ไม่เลือกภายใน {Math.ceil(Math.max(0, r.favor.until - srvNow) / 1000)} วิ ระบบสุ่มให้</small></div>
@@ -328,14 +328,14 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
           {needTarget && <><small>{target ? `เป้าหมาย: ${nameOf(target)}` : 'แตะรูปเพื่อนที่โต๊ะด้านบน หรือเลือกตรงนี้'}</small><PlayerGrid ids={targets} av={av} nameOf={nameOf} selected={target} onPick={id => { sfx(sound, 'select'); setTarget(id); }} small note={id => `🃏 ${(r.hands?.[id] || []).length} ใบ`} /></>}
           {kind === 'trio' && <div className="name-pick">{Object.keys(BOOM_CARDS).filter(t => t !== 'bomb').map(t => <Card key={t} id={t + '-q'} size="sm" selected={named === t} onClick={() => setNamed(t)} />)}</div>}
           <button className="primary wide" disabled={needTarget && !target} onClick={play}>🃏 เล่นไพ่</button></div>}
-        {sel.length > 0 && !kind && <p className="hint">{['bomb', 'clip'].includes(selType) ? 'ไพ่ใบนี้เล่นเองไม่ได้ (ใช้อัตโนมัติ)' : selType === 'nope' ? '“ไม่เอา!” ใช้สวนตอนคนอื่นลงไพ่' : 'ผลไม้ใช้เป็นชุด 2–3 ใบที่เหมือนกัน'}</p>}
-        <button className="draw-btn" onClick={draw}><span>🃏</span> จั่วไพ่ (จบตา)<small>เสี่ยงเจอทุเรียน {danger}%</small></button>
-        <p className="kbd-hint">⌨️ <kbd>Space</kbd> จั่ว • <kbd>Enter</kbd> เล่นไพ่ที่เลือก • <kbd>N</kbd> ไม่เอา!</p>
+        {sel.length > 0 && !kind && <p className="hint">{['bomb', 'clip'].includes(selType) ? 'ไพ่ใบนี้เล่นเองไม่ได้ (ใช้อัตโนมัติ)' : selType === 'nope' ? '“ยกเลิก!” ใช้สวนตอนคนอื่นลงไพ่' : 'ของในพัสดุใช้เป็นชุด 2–3 ใบที่เหมือนกัน'}</p>}
+        <button className="draw-btn" onClick={draw}><span>🃏</span> จั่วไพ่ (จบตา)<small>เสี่ยงเจอแมว {danger}%</small></button>
+        <p className="kbd-hint">⌨️ <kbd>Space</kbd> จั่ว • <kbd>Enter</kbd> เล่นไพ่ที่เลือก • <kbd>N</kbd> ยกเลิก!</p>
       </div>}
     </>}
 
     {res && <>
-      <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รอดคนสุดท้าย! 🏆`}>ไม่โดนทุเรียนเลยสักลูก • ได้ +{BOOM_SCORE.win}{res.second ? <> • {nameOf(res.second)} อันดับ 2 ได้ +{BOOM_SCORE.second}</> : ''}</Outcome>
+      <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={`${nameOf(res.winner)} รอดคนสุดท้าย! 🏆`}>ไม่โดนแมวข่วนเลยสักครั้ง • ได้ +{BOOM_SCORE.win}{res.second ? <> • {nameOf(res.second)} อันดับ 2 ได้ +{BOOM_SCORE.second}</> : ''}</Outcome>
       <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={() => { if (boomFx || Date.now() - fxOff.current < 800) return; onBack(); }}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
     </>}
@@ -346,7 +346,39 @@ export function BoomGame({ db, room, roomCode, myId, players, isHost, scores, so
     <ul className="head-log">{[...(r.log || [])].reverse().slice(0, 8).map((e, i) => <li key={i} className={e.boom ? 'boom-line' : ''}>{nm(e.text)}</li>)}</ul>
     </div></div>
 
-    {boomFx && <div className={'boom-fx' + (boomFx.saved ? ' saved' : '')} onClick={() => { setBoomFx(null); fxOff.current = Date.now(); }}><i className="bfx-flash" /><div className="bfx-burst" aria-hidden="true"><i className="bfx-ring" /><i className="bfx-ring r2" /><i className="bfx-ring r3" />{Array.from({ length: 18 }, (_, i) => <i key={'s' + i} className="bfx-spike" style={{ '--a': i * 20 + 'deg', '--d': 0.8 + (i % 3) * 0.22 }} />)}{Array.from({ length: 8 }, (_, i) => <i key={'m' + i} className="bfx-smoke" style={{ '--a': i * 45 + 22 + 'deg' }} />)}</div><div className="bfx-box"><span className="bfx-word">{boomFx.saved ? 'รอด!!' : 'ตูม!!'}</span><CardFace art={boomFx.saved ? 'clip' : 'bomb'} name={boomFx.saved ? 'ที่หนีบจมูก!' : 'ทุเรียนตูม!'} cat={boomFx.saved ? 'save' : 'bomb'} size="lg" /><b>{boomFx.saved ? `${nameOf(boomFx.pid)} หนีบจมูกทัน!` : `ตูม!! ${nameOf(boomFx.pid)} ตกรอบ`}</b><small>แตะเพื่อปิด</small></div></div>}
+    {boomFx && !boomFx.saved && <CatScare name={nameOf(boomFx.pid)} onClose={() => { setBoomFx(null); fxOff.current = Date.now(); }} />}
+    {boomFx && boomFx.saved && <div className={'boom-fx' + (boomFx.saved ? ' saved' : '')} onClick={() => { setBoomFx(null); fxOff.current = Date.now(); }}><i className="bfx-flash" /><div className="bfx-burst" aria-hidden="true"><i className="bfx-ring" /><i className="bfx-ring r2" /><i className="bfx-ring r3" />{Array.from({ length: 18 }, (_, i) => <i key={'s' + i} className="bfx-spike" style={{ '--a': i * 20 + 'deg', '--d': 0.8 + (i % 3) * 0.22 }} />)}{Array.from({ length: 8 }, (_, i) => <i key={'m' + i} className="bfx-smoke" style={{ '--a': i * 45 + 22 + 'deg' }} />)}</div><div className="bfx-box"><span className="bfx-word">{boomFx.saved ? 'รอด!!' : 'เหมียว!!'}</span><CardFace art={boomFx.saved ? 'clip' : 'bomb'} name={boomFx.saved ? 'ปลาทูง้อแมว!' : 'แมวโมโห!'} cat={boomFx.saved ? 'save' : 'bomb'} size="lg" /><b>{boomFx.saved ? `${nameOf(boomFx.pid)} ยื่นปลาทูง้อแมวทัน!` : `${nameOf(boomFx.pid)} โดนแมวข่วน ตกรอบ!`}</b><small>แตะเพื่อปิด</small></div></div>}
+  </div>;
+}
+
+// ---------- แมวโมโหกระโดดตุ้งแช่เต็มจอ (ตอนเปิดเจอแมวแล้วไม่มีปลาทู) ----------
+export function CatScare({ name, onClose }) {
+  return <div className="cat-scare" onClick={onClose} role="alert">
+    <i className="cs-flash" />
+    <svg className="cs-cat" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="cs-fur" cx=".5" cy=".42"><stop offset="0" stopColor="#ffb05a" /><stop offset=".7" stopColor="#f07a1e" /><stop offset="1" stopColor="#a8450d" /></radialGradient>
+        <radialGradient id="cs-eye" cx=".5" cy=".5"><stop offset="0" stopColor="#fff9b0" /><stop offset=".55" stopColor="#ffd60a" /><stop offset="1" stopColor="#e85d04" /></radialGradient>
+        <radialGradient id="cs-mouth" cx=".5" cy=".3"><stop offset="0" stopColor="#ff4d6d" /><stop offset="1" stopColor="#590d22" /></radialGradient>
+      </defs>
+      <g className="cs-fur-spikes" fill="#c4560f">{Array.from({ length: 22 }, (_, i) => <path key={i} d="M100 22l-7 -16 14 0z" transform={`rotate(${i * 16.4 - 172} 100 106)`} />)}</g>
+      <path d="M34 70L22 6l52 40zM166 70l12 -64 -52 40z" fill="url(#cs-fur)" stroke="#5a1f00" strokeWidth="3" strokeLinejoin="round" />
+      <path d="M38 58l-6 -36 28 24zM162 58l6 -36 -28 24z" fill="#ff8fa3" />
+      <ellipse cx="100" cy="108" rx="84" ry="78" fill="url(#cs-fur)" stroke="#5a1f00" strokeWidth="3" />
+      <g fill="none" stroke="#a8450d" strokeWidth="5" strokeLinecap="round"><path d="M100 34v22M84 38l4 18M116 38l-4 18" /><path d="M24 100l18 4M22 116l18 0M176 100l-18 4M178 116l-18 0" /></g>
+      <path d="M44 74l40 18M156 74l-40 18" stroke="#3d1300" strokeWidth="8" strokeLinecap="round" />
+      <g><ellipse cx="68" cy="100" rx="20" ry="16" fill="url(#cs-eye)" stroke="#3d1300" strokeWidth="3" /><ellipse cx="132" cy="100" rx="20" ry="16" fill="url(#cs-eye)" stroke="#3d1300" strokeWidth="3" />
+        <ellipse cx="68" cy="101" rx="4" ry="13" fill="#140600" /><ellipse cx="132" cy="101" rx="4" ry="13" fill="#140600" />
+        <circle cx="62" cy="94" r="3.4" fill="#fff" /><circle cx="126" cy="94" r="3.4" fill="#fff" /></g>
+      <ellipse cx="68" cy="100" rx="30" ry="24" fill="#ffd60a" opacity=".18" className="cs-glow" /><ellipse cx="132" cy="100" rx="30" ry="24" fill="#ffd60a" opacity=".18" className="cs-glow" />
+      <path d="M92 122l8 8 8 -8z" fill="#ff4d6d" stroke="#3d1300" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M60 140q40 -14 80 0q-4 42 -40 42t-40 -42z" fill="url(#cs-mouth)" stroke="#3d1300" strokeWidth="3" strokeLinejoin="round" />
+      <path d="M66 142l8 18 6 -16M134 142l-8 18 -6 -16" fill="#fff" stroke="#3d1300" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M86 170q14 -10 28 0q-6 8 -14 8t-14 -8z" fill="#ff8fa3" />
+      <g stroke="#fff" strokeWidth="2.4" strokeLinecap="round" opacity=".9"><path d="M54 132l-44 -8M54 140l-46 6M56 148l-40 18M146 132l44 -8M146 140l46 6M144 148l40 18" /></g>
+      <g fill="#fff" opacity=".9"><path d="M14 40l6 6M10 54l8 2M186 40l-6 6M190 54l-8 2" stroke="#fff" strokeWidth="3" strokeLinecap="round" /></g>
+    </svg>
+    <div className="cs-txt"><b>เหมียว!!</b><span>{name} โดนแมวข่วน ตกรอบ!</span><small>แตะเพื่อปิด</small></div>
   </div>;
 }
 
@@ -355,7 +387,7 @@ export function BoomLobby({ n }) {
   const k = Math.max(BOOM_MIN, Math.min(BOOM_MAX, n)); const plan = deckPlan(k); const extra = k <= 4 ? 2 : 1;
   const total = Object.values(plan).reduce((a, b) => a + b, 0) + (k - 1) + k + extra;
   return <>
-    <div className="score-rules"><b>🃏 สำรับสำหรับ {k} คน</b><span>💥 ทุเรียนตูม {k - 1} ลูก (น้อยกว่าคนเล่น 1 → สุดท้ายเหลือรอดคนเดียว)</span><span>🧷 ที่หนีบจมูก แจกคนละ 1 + ซ่อนในกองอีก {extra} • ทั้งหมด {total} ใบ • แจกคนละ 5 ใบ</span></div>
-    <div className="card-gallery">{Object.entries(BOOM_CARDS).filter(([t]) => !/^f[2-5]$/.test(t)).map(([t, c]) => <div key={t} className="cg-item"><CardFace art={t} name={t === 'f1' ? 'ผลไม้' : c.n} cat={c.cat} size="sm" /><div><b>{t === 'f1' ? 'ผลไม้ 5 ชนิด' : c.n}</b><small>{c.text}</small></div></div>)}</div>
+    <div className="score-rules"><b>🃏 สำรับสำหรับ {k} คน</b><span>😾 แมวโมโห {k - 1} ตัว (น้อยกว่าคนเล่น 1 → สุดท้ายเหลือรอดคนเดียว)</span><span>🐟 ปลาทูง้อแมว แจกคนละ 1 + ซ่อนในกองอีก {extra} • ทั้งหมด {total} ใบ • แจกคนละ 5 ใบ</span></div>
+    <div className="card-gallery">{Object.entries(BOOM_CARDS).filter(([t]) => !/^f[2-5]$/.test(t)).map(([t, c]) => <div key={t} className="cg-item"><CardFace art={t} name={t === 'f1' ? 'ของในพัสดุ' : c.n} cat={c.cat} size="sm" /><div><b>{t === 'f1' ? 'ของในพัสดุ 5 แบบ' : c.n}</b><small>{c.text}</small></div></div>)}</div>
   </>;
 }

@@ -71,3 +71,19 @@
 .tam-left span.out{opacity:.6}
 .tam-gallery .cg-item .gcard.tc{--cw:52px}
 @media (prefers-reduced-motion:reduce){.tam-dir ellipse,.tam-stack{animation:none}}
+
+/* ===== สี่สีป่วน: หน้าไพ่ใหม่ — วงกลมกลางไพ่ + ไอคอน SVG + มุมสองด้าน ===== */
+.gcard.tc{background:linear-gradient(160deg,var(--tc1),var(--tc2))}
+.gcard.tc:after{background:linear-gradient(115deg,#ffffff40 0 18%,transparent 18% 100%),radial-gradient(circle,#ffffff2a 0 1.2px,transparent 2px) 0 0/calc(var(--cw)*.18) calc(var(--cw)*.18)}
+.gcard.tc-w{--tc1:#3d2b55;--tc2:#120b1e}
+.tc-mortar{display:none}
+.tc-badge{position:absolute;left:12%;right:12%;top:20%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#fff6e6 60%,#f1e0c4);box-shadow:inset 0 calc(var(--cw)*-.03) 0 #0002,0 calc(var(--cw)*.03) 0 #0004,0 0 0 calc(var(--cw)*.025) #ffffffaa;display:grid;place-items:center;color:var(--tc2);z-index:1}
+.tc-w .tc-badge{background:radial-gradient(circle at 35% 30%,#fff,#f4ecff);box-shadow:0 0 0 calc(var(--cw)*.045) transparent,0 calc(var(--cw)*.03) 0 #0006;border:calc(var(--cw)*.05) solid transparent;background-image:radial-gradient(circle at 35% 30%,#fff,#f4ecff),conic-gradient(#ff6a45 0 25%,#8fd650 0 50%,#ffcf45 0 75%,#55bdf0 0);background-origin:border-box;background-clip:padding-box,border-box;color:#3d2b55}
+.tc-badge svg{width:86%;height:86%;overflow:visible}
+.tc-ix.br{left:auto;top:auto;right:8%;bottom:16%;transform:rotate(180deg);opacity:.85}
+.tc-fl{display:none}
+.tc-lb{bottom:4%}
+.gcard.tc-back{background:conic-gradient(from 45deg,#ff6a45 0 25%,#8fd650 0 50%,#ffcf45 0 75%,#55bdf0 0) padding-box,linear-gradient(#fff8ea,#fff8ea) border-box}
+.tc-back .tcb-dots{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--cw)*.04);width:44%;aspect-ratio:1;padding:calc(var(--cw)*.05);border-radius:50%;background:#1b1230;box-shadow:0 0 0 calc(var(--cw)*.03) #fff8ea}
+.tc-back .tcb-dots i{border-radius:50%;background:#ff6a45}.tc-back .tcb-dots i:nth-child(2){background:#8fd650}.tc-back .tcb-dots i:nth-child(3){background:#55bdf0}.tc-back .tcb-dots i:nth-child(4){background:#ffcf45}
+.tc-back b{margin-top:calc(var(--cw)*.06)}

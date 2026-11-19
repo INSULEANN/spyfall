@@ -1,4 +1,4 @@
-// เกม "ตำแหลก!" — ไพ่ 4 รส (เผ็ด เปรี้ยว หวาน เค็ม) ลงให้ตรงรสหรือตรงเลข ใครหมดมือก่อนชนะ
+// เกม "สี่สีป่วน" — ไพ่ 4 สี (แดง เขียว เหลือง ฟ้า) ลงให้ตรงสีหรือตรงเลข ใครหมดมือก่อนชนะ
 // โหมดโหดไม่เลี้ยง: ซ้อนไพ่บวกได้ • จั่วจนกว่าจะเจอใบที่ลงได้ • 7 แลกมือ • 0 ส่งต่อทั้งวง • ไพ่ในมือถึง 25 ใบ = ตกรอบ
 // (กลไกแนวเกมไพ่ลงสีที่มีทั่วไป แต่ชื่อ ไพ่ ภาพ เป็นของเราเองทั้งหมด)
 import React, { useEffect, useRef, useState } from 'react';
@@ -13,23 +13,23 @@ import './tam.css';
 export const TAM_MIN = 2, TAM_MAX = 10, MERCY = 25, HAND0 = 7;
 export const TAM_SCORE = { win: 3 };
 export const TURN_MS = 30000, PICK_MS = 15000;
-export const FLAVORS = { r: { n: 'เผ็ด', e: '🌶️' }, g: { n: 'เปรี้ยว', e: '🍋' }, y: { n: 'หวาน', e: '🍯' }, b: { n: 'เค็ม', e: '🦀' } };
+export const FLAVORS = { r: { n: 'แดง', e: '🔴' }, g: { n: 'เขียว', e: '🟢' }, y: { n: 'เหลือง', e: '🟡' }, b: { n: 'ฟ้า', e: '🔵' } };
 export const FL = ['r', 'g', 'y', 'b'];
 export const TAM_CARDS = {
-  sk: { n: 'ข้ามคิว', ico: '⏭️', text: 'คนถัดไปโดนข้าม' },
-  rv: { n: 'กลับลำ', ico: '🔄', text: 'กลับทิศทางการเล่น (เหลือ 2 คน = ข้าม)' },
-  d2: { n: 'พริก +2', draw: 2, text: 'คนถัดไปจั่ว 2 • ซ้อนได้' },
-  d4: { n: 'พริก +4', draw: 4, text: 'คนถัดไปจั่ว 4 • ซ้อนได้' },
-  da: { n: 'เทกระจาด', ico: '🧺', text: 'ทิ้งไพ่รสเดียวกันทั้งมือไปพร้อมกัน' },
-  se: { n: 'เหมาร้าน', ico: '🛒', text: 'ข้ามทุกคน แล้วคุณได้เล่นต่ออีกตา' },
-  r4: { n: 'ย้อนศร +4', draw: 4, wild: true, text: 'กลับทิศ + คนถัดไปจั่ว 4 • เลือกรสใหม่' },
-  p6: { n: 'เผ็ดตาย +6', draw: 6, wild: true, text: 'คนถัดไปจั่ว 6 • เลือกรสใหม่' },
-  p10: { n: 'นรกพริก +10', draw: 10, wild: true, text: 'คนถัดไปจั่ว 10 • เลือกรสใหม่' },
-  ru: { n: 'สุ่มรส', ico: '🎰', wild: true, text: 'คนถัดไปเลือกรส แล้วเปิดไพ่จนกว่าจะเจอรสนั้น เก็บไว้ทั้งหมด' },
+  sk: { n: 'ข้ามคนถัดไป', ico: '⏭️', text: 'คนถัดไปโดนข้าม' },
+  rv: { n: 'กลับทิศ', ico: '🔄', text: 'กลับทิศทางการเล่น (เหลือ 2 คน = ข้าม)' },
+  d2: { n: 'จั่ว +2', draw: 2, text: 'คนถัดไปจั่ว 2 • ซ้อนได้' },
+  d4: { n: 'จั่ว +4', draw: 4, text: 'คนถัดไปจั่ว 4 • ซ้อนได้' },
+  da: { n: 'ทิ้งสีเดียวกันหมด', ico: '🧺', text: 'ทิ้งไพ่สีเดียวกันทั้งมือไปพร้อมกัน' },
+  se: { n: 'เล่นอีกตา', ico: '🔁', text: 'ข้ามทุกคน แล้วคุณได้เล่นต่ออีกตา' },
+  r4: { n: 'กลับทิศ +4', draw: 4, wild: true, text: 'กลับทิศ + คนถัดไปจั่ว 4 • เลือกสีใหม่' },
+  p6: { n: '+6 เปลี่ยนสี', draw: 6, wild: true, text: 'คนถัดไปจั่ว 6 • เลือกสีใหม่' },
+  p10: { n: '+10 เปลี่ยนสี', draw: 10, wild: true, text: 'คนถัดไปจั่ว 10 • เลือกสีใหม่' },
+  ru: { n: 'เปิดจนเจอสี', ico: '🎰', wild: true, text: 'คนถัดไปเลือกสี แล้วเปิดไพ่จนกว่าจะเจอสีนั้น เก็บไว้ทั้งหมด' },
 };
-export const NUM_TXT = { 7: 'แลกมือ', 0: 'ส่งต่อ' };
+export const NUM_TXT = { 7: 'แลกมือ', 0: 'ส่งมือต่อ' };
 const ACT_ORDER = ['sk', 'rv', 'd2', 'd4', 'da', 'se', 'r4', 'p6', 'p10', 'ru'];
-// รหัสไพ่: รส+ค่า-ลำดับ เช่น r7-12, gd2-40 • ไพ่เปลี่ยนรสขึ้นต้นด้วย w เช่น wp10-130
+// รหัสไพ่: สี+ค่า-ลำดับ เช่น r7-12, gd2-40 • ไพ่เปลี่ยนสีขึ้นต้นด้วย w เช่น wp10-130
 export const parse = id => { const b = String(id).split('-')[0]; return b[0] === 'w' ? { c: null, v: b.slice(1) } : { c: b[0], v: b.slice(1) }; };
 export const isNum = v => /^\d$/.test(v);
 export const cardName = id => { const { c, v } = parse(id); const f = c ? ' ' + FLAVORS[c].e : ''; return isNum(v) ? `${v}${NUM_TXT[v] ? ' ' + NUM_TXT[v] : ''}${f}` : `${TAM_CARDS[v]?.n || v}${f}`; };
@@ -86,7 +86,7 @@ function finish(cur, winner, why) {
 // หลังทุกการกระทำ: ใครถือไพ่ถึง 25 ตกรอบ • เหลือคนเดียวชนะ • คนที่ถึงตาหลุดไปแล้ว → ข้าม • ไพ่ตันทั้งวง → นับไพ่
 function settle(cur, now) {
   const r = cur.round; if (cur.status !== 'playing') return cur;
-  alives(r).forEach(id => { const n = hand(r, id).length; if (n >= MERCY) out(cur, id, `🥵 {${id}} ถือไพ่ ${n} ใบ เผ็ดจนทนไม่ไหว — ตกรอบ!`, '🥵 ไม่ไหวแล้ว!'); });
+  alives(r).forEach(id => { const n = hand(r, id).length; if (n >= MERCY) out(cur, id, `🥵 {${id}} ถือไพ่ ${n} ใบ การ์ดล้นมือ — ตกรอบ!`, '🥵 ไม่ไหวแล้ว!'); });
   const al = alives(r); if (al.length <= 1) return finish(cur, al[0] || null, 'last');
   if (!r.alive[curOf(r)]) advance(r, now);
   if ((r.stuck || 0) >= al.length * 2) { const w = [...al].sort((a, b) => hand(r, a).length - hand(r, b).length)[0]; say(r, '🧱 ไพ่ตันทั้งวง ไม่มีใครลงได้ — นับไพ่ในมือ ใครน้อยสุดชนะ'); return finish(cur, w, 'stuck'); }
@@ -101,15 +101,15 @@ export function playCard(cur, me, card, color, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'play' || curOf(r) !== me || !r.alive?.[me]) return;
   const h = hand(r, me); if (!h.includes(card) || !canPlay(r, card)) return;
   const { c, v } = parse(card); const def = TAM_CARDS[v] || {};
-  if (!c && v !== 'ru' && !FL.includes(color)) return; // ไพ่เปลี่ยนรสต้องเลือกรส
+  if (!c && v !== 'ru' && !FL.includes(color)) return; // ไพ่เปลี่ยนสีต้องเลือกสี
   r.hands[me] = h.filter(x => x !== card); r.stuck = 0;
   let extra = [];
   if (v === 'da') { extra = hand(r, me).filter(x => parse(x).c === c); r.hands[me] = hand(r, me).filter(x => parse(x).c !== c); }
   r.discard = [...(r.discard || []), ...extra, card];
   if (c) r.color = c; else if (v !== 'ru') r.color = color;
   const left = hand(r, me).length;
-  const act = def.draw ? `+${def.draw}!` : { sk: '⏭️ ข้าม!', rv: '🔄 กลับลำ!', da: `🧺 เท ${extra.length + 1} ใบ!`, se: '🛒 เหมาร้าน!', ru: '🎰 สุ่มรส!', 7: '🔁 แลกมือ!', 0: '🔃 ส่งต่อ!' }[v] || `ลง ${v}`;
-  say(r, `🃏 {${me}} ลง “${cardName(card)}”${!c && v !== 'ru' ? ` เปลี่ยนเป็นรส${FLAVORS[color].n} ${FLAVORS[color].e}` : ''}${extra.length ? ` แล้วเทรส${FLAVORS[c].n}ทิ้งอีก ${extra.length} ใบ` : ''}`, { by: me, act: left === 1 ? '🌶️ ใบสุดท้าย!' : act });
+  const act = def.draw ? `+${def.draw}!` : { sk: '⏭️ ข้าม!', rv: '🔄 กลับทิศ!', da: `🧺 ทิ้ง ${extra.length + 1} ใบ!`, se: '🔁 เล่นอีกตา!', ru: '🎰 เปิดจนเจอสี!', 7: '🔁 แลกมือ!', 0: '🔃 ส่งมือต่อ!' }[v] || `ลง ${v}`;
+  say(r, `🃏 {${me}} ลง “${cardName(card)}”${!c && v !== 'ru' ? ` เปลี่ยนเป็นสี${FLAVORS[color].n} ${FLAVORS[color].e}` : ''}${extra.length ? ` แล้วเทสี${FLAVORS[c].n}ทิ้งอีก ${extra.length} ใบ` : ''}`, { by: me, act: left === 1 ? '🌶️ ใบสุดท้าย!' : act });
   if (!left) { say(r, `🏆 {${me}} หมดมือ!`, { by: me, act: '🏆 หมดมือ!' }); return finish(cur, me, 'empty'); }
   if (def.draw) { if (v === 'r4') r.dir = -r.dir; r.stack = (r.stack || 0) + def.draw; r.stackMin = def.draw; advance(r, now); return settle(cur, now); }
   switch (v) {
@@ -130,13 +130,13 @@ export function swap7(cur, me, target, now) {
   say(r, `🔁 {${me}} แลกไพ่ทั้งมือกับ {${target}} (${a.length} ↔ ${b.length} ใบ)`, { by: target, act: '😱 โดนแลก!' });
   advance(r, now); return settle(cur, now);
 }
-// สุ่มรส: คนโดนเลือกรส แล้วเปิดไพ่จากกองจนเจอรสนั้น เก็บทั้งหมด แล้วจบตา
+// เปิดจนเจอสี: คนโดนเลือกสี แล้วเปิดไพ่จากกองจนเจอสีนั้น เก็บทั้งหมด แล้วจบตา
 export function rouletteSpin(cur, me, color, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'roulette' || r.pick?.by !== me || !FL.includes(color)) return;
   const got = []; let hit = false;
   while (hand(r, me).length + got.length < MERCY) { const c = drawOne(r); if (!c) break; got.push(c); if (parse(c).c === color) { hit = true; break; } }
   r.hands[me] = [...hand(r, me), ...got]; r.color = color;
-  say(r, `🎰 {${me}} เลือกรส${FLAVORS[color].n} ${FLAVORS[color].e} เปิดไป ${got.length} ใบ${hit ? '' : ' (ยังไม่เจอ)'}`, { by: me, act: `🎰 +${got.length}` });
+  say(r, `🎰 {${me}} เลือกสี${FLAVORS[color].n} ${FLAVORS[color].e} เปิดไป ${got.length} ใบ${hit ? '' : ' (ยังไม่เจอ)'}`, { by: me, act: `🎰 +${got.length}` });
   advance(r, now); return settle(cur, now);
 }
 // โดนสะสม: รับไพ่ทั้งหมดแล้วจบตา
@@ -161,7 +161,7 @@ export function passTurn(cur, me, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'play' || curOf(r) !== me || !r.drew || r.stack > 0) return;
   say(r, `⏩ {${me}} ผ่าน`, { by: me, act: '⏩ ผ่าน' }); advance(r, now); return settle(cur, now);
 }
-// หมดเวลา / หัวหน้าห้องสั่ง: ระบบเล่นแทน (รับสะสม หรือจั่วแล้วผ่าน • เลือกแลก/เลือกรสแบบสุ่ม)
+// หมดเวลา / หัวหน้าห้องสั่ง: ระบบเล่นแทน (รับสะสม หรือจั่วแล้วผ่าน • เลือกแลก/เลือกสีแบบสุ่ม)
 function autoMove(cur, now) {
   const r = cur.round; const me = curOf(r);
   if (r.phase === 'pick7') { const o = alives(r).filter(id => id !== r.pick.by); return swap7(cur, r.pick.by, o[rint(o.length)], now); }
@@ -185,25 +185,39 @@ export function kickTam(cur, id, now) {
 }
 
 // ---------- ไพ่ ----------
+// ไอคอนกลางไพ่ (วาด SVG) — ใช้สีของไพ่ผ่าน currentColor
+const TcIcon = ({ v, draw }) => {
+  const st = { stroke: 'currentColor', strokeWidth: 7, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' };
+  if (isNum(v)) return <text x="50" y="66" textAnchor="middle" fontSize="54" fontWeight="900" fill="currentColor" stroke="#fff" strokeWidth="2.4" paintOrder="stroke" fontFamily="'Chonburi','Kanit',sans-serif">{v}</text>;
+  if (draw) return <g>
+    {[0, 1].map(i => <rect key={i} x={34 + i * 10} y={8 + i * 5} width="20" height="28" rx="4" fill="#fff" stroke="currentColor" strokeWidth="3.4" transform={`rotate(${-14 + i * 16} ${44 + i * 10} ${22 + i * 5})`} />)}
+    <text x="50" y="84" textAnchor="middle" fontSize={draw >= 10 ? 38 : 46} fontWeight="900" fill="currentColor" stroke="#fff" strokeWidth="3" paintOrder="stroke" fontFamily="'Chonburi','Kanit',sans-serif">+{draw}</text>
+  </g>;
+  if (v === 'sk') return <g><circle cx="50" cy="50" r="26" {...st} /><path d="M32 68L68 32" {...st} /><path d="M70 70l10 0M74 64l6 6 -6 6" {...st} strokeWidth="4" /></g>;
+  if (v === 'rv') return <g><path d="M28 44q4 -20 26 -20q16 0 22 12" {...st} /><path d="M70 22l6 14 -14 2" {...st} strokeWidth="6" /><path d="M72 56q-4 20 -26 20q-16 0 -22 -12" {...st} /><path d="M30 78l-6 -14 14 -2" {...st} strokeWidth="6" /></g>;
+  if (v === 'da') return <g>{[0, 1, 2].map(i => <rect key={i} x={22 + i * 12} y={34 - i * 4} width="22" height="30" rx="4" fill="#fff" stroke="currentColor" strokeWidth="4" transform={`rotate(${-20 + i * 20} ${33 + i * 12} ${49 - i * 4})`} />)}<path d="M24 82h52M64 74l12 8 -12 8" {...st} strokeWidth="5" /></g>;
+  if (v === 'se') return <g><path d="M30 60a22 22 0 1 1 10 14" {...st} /><path d="M24 70l8 6 6 -9" {...st} strokeWidth="6" /><text x="52" y="58" textAnchor="middle" fontSize="20" fontWeight="900" fill="currentColor" fontFamily="sans-serif">+1</text></g>;
+  if (v === 'ru') return <g><circle cx="50" cy="50" r="28" fill="#fff" stroke="#3b2412" strokeWidth="3" />{['#ff6a45', '#8fd650', '#ffcf45', '#55bdf0'].map((c, i) => <path key={c} d={`M50 50L${50 + 28 * Math.cos(i * Math.PI / 2)} ${50 + 28 * Math.sin(i * Math.PI / 2)}A28 28 0 0 1 ${50 + 28 * Math.cos((i + 1) * Math.PI / 2)} ${50 + 28 * Math.sin((i + 1) * Math.PI / 2)}Z`} fill={c} />)}<circle cx="50" cy="50" r="7" fill="#fff" stroke="#3b2412" strokeWidth="3" /><path d="M50 14l-5 -8h10z" fill="#3b2412" /><path d="M50 50L66 32" stroke="#3b2412" strokeWidth="4" strokeLinecap="round" /></g>;
+  return null;
+};
 export function TamCard({ id, size = 'md', selected, dim, onClick }) {
   if (!id) return <div className={`gcard ${size} tc tc-empty`} />;
   const { c, v } = parse(id); const def = TAM_CARDS[v]; const num = isNum(v);
-  const big = num ? v : def?.draw ? `+${def.draw}` : def?.ico || '?';
   const label = num ? NUM_TXT[v] : def?.n;
+  const corner = num ? v : def?.draw ? `+${def.draw}` : { sk: '⊘', rv: '⇄', da: '≡', se: '↻', ru: '◎' }[v] || '?';
   const cls = `gcard ${size} tc ${c ? 'tc-' + c : 'tc-w'}${selected ? ' sel' : ''}${dim ? ' dim' : ''}${onClick ? ' tap' : ''}`;
   const inner = <>
-    <span className="tc-ix">{num ? v : def?.draw ? `+${def.draw}` : def?.ico}</span>
-    <span className="tc-fl">{c ? FLAVORS[c].e : '🎨'}</span>
-    <span className="tc-mortar"><span className={'tc-big' + (num ? ' num' : def?.draw ? ' plus' : ' ico')}>{big}</span></span>
+    <span className="tc-ix">{corner}</span><span className="tc-ix br">{corner}</span>
+    <span className="tc-badge"><svg viewBox="0 0 100 100" aria-hidden="true"><TcIcon v={v} draw={def?.draw} /></svg></span>
     {label && <b className="tc-lb">{label}</b>}
   </>;
   const title = cardName(id);
   return onClick ? <button type="button" className={cls} onClick={onClick} title={title}>{inner}</button> : <div className={cls} title={title}>{inner}</div>;
 }
-export const TamBack = ({ size = 'sm' }) => <div className={`gcard ${size} tc-back`}><span>🌶️</span><b>ตำแหลก</b></div>;
+export const TamBack = ({ size = 'sm' }) => <div className={`gcard ${size} tc-back`}><span className="tcb-dots"><i /><i /><i /><i /></span><b>สี่สีป่วน</b></div>;
 const FlavorPick = ({ onPick, cur }) => <div className="fl-pick">{FL.map(c => <button type="button" key={c} className={'fl-btn fl-' + c + (cur === c ? ' on' : '')} onClick={() => onPick(c)}><span>{FLAVORS[c].e}</span>{FLAVORS[c].n}</button>)}</div>;
 
-// ---------- วงไพ่ (ทุกคนนั่งรอบกระด้ง เราอยู่ล่างสุด) ----------
+// ---------- วงไพ่ (ทุกคนนั่งรอบโต๊ะ เราอยู่ล่างสุด) ----------
 const seatXY = (k, n) => { const a = Math.PI / 2 + (k / n) * Math.PI * 2; return { x: 50 + Math.cos(a) * 37, y: 50 + Math.sin(a) * 39 }; };
 const DECK_XY = { x: 39, y: 48 }, PILE_XY = { x: 61, y: 48 };
 const MiniBacks = ({ n }) => <span className="mini-backs">{Array.from({ length: Math.min(n, 7) }, (_, i) => <i key={i} />)}</span>;
@@ -234,7 +248,7 @@ function TamTable({ r, room, myId, av, nameOf, res, canDraw, onDraw, pick, onPic
     <div className="rt-felt" />
     {!res && <div className={'tam-dir' + (r.dir < 0 ? ' ccw' : '')}><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="50" cy="50" rx="49" ry="49" /></svg><i>➜</i><i>➜</i></div>}
     {!res && <div className="rt-pointer" style={{ transform: `translate(-50%,-50%) rotate(${ang}deg)` }}><i /></div>}
-    <div className="rt-info tam-info"><span className={'fl-chip fl-' + r.color}>{fl.e} รส{fl.n}</span><span>{r.dir < 0 ? '↺ ทวนเข็ม' : '↻ ตามเข็ม'}</span></div>
+    <div className="rt-info tam-info"><span className={'fl-chip fl-' + r.color}>{fl.e} สี{fl.n}</span><span>{r.dir < 0 ? '↺ ทวนเข็ม' : '↻ ตามเข็ม'}</span></div>
     <button type="button" className={'rt-deck' + (canDraw ? ' can' : '')} style={{ left: DECK_XY.x + '%', top: DECK_XY.y + '%' }} onClick={canDraw ? onDraw : undefined} disabled={!canDraw} aria-label="กองจั่ว">
       <TamBack size="sm" /><span className="pile-n">{deck.length}</span>{canDraw && <span className="rt-tap">{r.stack > 0 ? `แตะเพื่อรับ +${r.stack}` : 'แตะเพื่อจั่ว'}</span>}
     </button>
@@ -258,7 +272,7 @@ function TamTable({ r, room, myId, av, nameOf, res, canDraw, onDraw, pick, onPic
   </div>;
 }
 
-// ไพ่ในมือแบบพัด (เรียงตามรส แล้วตามเลข) — ใบที่ลงไม่ได้จะจางลงตอนถึงตาเรา
+// ไพ่ในมือแบบพัด (เรียงตามสี แล้วตามเลข) — ใบที่ลงไม่ได้จะจางลงตอนถึงตาเรา
 const sortKey = id => { const { c, v } = parse(id); return [c ? FL.indexOf(c) : 9, isNum(v) ? +v : 10 + ACT_ORDER.indexOf(v)]; };
 function TamFan({ ids, selected, onTap, playable }) {
   const box = useRef(null); const [w, setW] = useState(360);
@@ -305,7 +319,7 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
   const play = (card, color) => { sfx(sound, 'card'); setSel(null); tx(c => playCard(c, myId, card, color, srvNow)); };
   const tapCard = id => {
     if (!myTurn) return;
-    if (!ok(id)) { msg(r.stack > 0 ? `ตอนนี้ต้องซ้อนไพ่บวก +${r.stackMin} ขึ้นไป หรือกดรับ` : `ใบนี้ลงไม่ได้ — ต้องตรงรส${FLAVORS[r.color].n} ${FLAVORS[r.color].e} หรือตรงเลข`); return; }
+    if (!ok(id)) { msg(r.stack > 0 ? `ตอนนี้ต้องซ้อนไพ่บวก +${r.stackMin} ขึ้นไป หรือกดรับ` : `ใบนี้ลงไม่ได้ — ต้องตรงสี${FLAVORS[r.color].n} ${FLAVORS[r.color].e} หรือตรงเลข`); return; }
     if (sel === id) { const p = parse(id); if (p.c || p.v === 'ru') play(id); return; }
     sfx(sound, 'click'); setSel(id);
   };
@@ -330,22 +344,22 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
 
     {/* ตอนนี้ตาใคร */}
     {!res && r.phase === 'play' && (myTurn ? <div className={'turn-banner me tam-tb' + (r.stack > 0 ? ' hot' : '')}><TimerRing secs={secs} total={(r.tmT || TURN_MS) / 1000} size={48} />
-      <div><b>{r.stack > 0 ? `🔥 โดนสะสม +${r.stack}!` : r.drew ? '🃏 จั่วได้ใบที่ลงได้แล้ว' : '🎯 ตาคุณ!'}</b><small>{r.stack > 0 ? `ซ้อนไพ่บวกตั้งแต่ +${r.stackMin} ขึ้นไป (รสไหนก็ได้) ส่งต่อ หรือกดรับ` : r.drew ? 'ลงไพ่ หรือกดผ่าน' : <>ลงไพ่ที่ตรงรส <b>{FLAVORS[r.color].e} {FLAVORS[r.color].n}</b> หรือตรงเลข • ไม่มีให้จั่ว</>}</small></div></div>
+      <div><b>{r.stack > 0 ? `🔥 โดนสะสม +${r.stack}!` : r.drew ? '🃏 จั่วได้ใบที่ลงได้แล้ว' : '🎯 ตาคุณ!'}</b><small>{r.stack > 0 ? `ซ้อนไพ่บวกตั้งแต่ +${r.stackMin} ขึ้นไป (สีไหนก็ได้) ส่งต่อ หรือกดรับ` : r.drew ? 'ลงไพ่ หรือกดผ่าน' : <>ลงไพ่ที่ตรงสี <b>{FLAVORS[r.color].e} {FLAVORS[r.color].n}</b> หรือตรงเลข • ไม่มีให้จั่ว</>}</small></div></div>
       : <div className="turn-banner tam-tb"><Avatar id={cur} av={av} size={30} /><div><b>ตาของ {nameOf(cur)} <span className="tb-secs">⏱ {secs}</span></b><small>{!meIn ? '🥵 คุณตกรอบแล้ว — ดูเพื่อนเล่นต่อได้' : r.stack > 0 ? `${nameOf(cur)} โดนสะสม +${r.stack} อยู่ — จะซ้อนต่อหรือรับ?` : nextId === myId ? 'ตาถัดไปคือคุณ เตรียมไพ่ไว้!' : 'รอสักครู่…'}</small></div></div>)}
 
-    {/* 7 แลกมือ / สุ่มรส */}
+    {/* 7 แลกมือ / เปิดจนเจอสี */}
     {!res && r.phase === 'pick7' && (pickMine ? <div className="turn-banner me tam-tb"><TimerRing secs={secs} total={PICK_MS / 1000} size={48} /><div><b>🔁 เลือกคนที่จะแลกไพ่ทั้งมือ</b><small>แตะรูปที่วงไพ่ หรือเลือกด้านล่าง • ไม่เลือกระบบสุ่มให้</small></div></div>
       : <div className="waiting">🔁 {nameOf(r.pick.by)} กำลังเลือกคนแลกไพ่ทั้งมือ… ({secs} วิ)</div>)}
     <ActionSheet open={!res && r.phase === 'pick7' && pickMine} k={'p7' + (r.pick?.until || '')} icon="🔁" title="เลือกคนที่จะแลกไพ่ทั้งมือ" sub="ไม่เลือกก่อนหมดเวลา ระบบสุ่มให้" secs={secs} total={PICK_MS / 1000}><PlayerGrid ids={alive.filter(id => id !== myId)} av={av} nameOf={nameOf} small onPick={swapTo} note={id => `🃏 ${hand(r, id).length} ใบ`} /></ActionSheet>
-    {!res && r.phase === 'roulette' && (pickMine ? <ActionSheet open k={'rl' + (r.pick?.until || '')} icon="🎰" title="โดนสุ่มรส! เลือกรสที่จะเปิดหา" sub="เปิดไพ่จากกองไปเรื่อย ๆ จนกว่าจะเจอรสที่เลือก เก็บไว้ทั้งหมด แล้วจบตา" secs={secs} total={PICK_MS / 1000}><FlavorPick onPick={c => { sfx(sound, 'confirm'); tx(x => rouletteSpin(x, myId, c, srvNow)); }} /></ActionSheet>
-      : <div className="waiting">🎰 {nameOf(r.pick.by)} โดนสุ่มรส กำลังเลือกรส… ({secs} วิ)</div>)}
+    {!res && r.phase === 'roulette' && (pickMine ? <ActionSheet open k={'rl' + (r.pick?.until || '')} icon="🎰" title="โดนเปิดจนเจอสี! เลือกสีที่จะเปิดหา" sub="เปิดไพ่จากกองไปเรื่อย ๆ จนกว่าจะเจอสีที่เลือก เก็บไว้ทั้งหมด แล้วจบตา" secs={secs} total={PICK_MS / 1000}><FlavorPick onPick={c => { sfx(sound, 'confirm'); tx(x => rouletteSpin(x, myId, c, srvNow)); }} /></ActionSheet>
+      : <div className="waiting">🎰 {nameOf(r.pick.by)} โดนเปิดจนเจอสี กำลังเลือกสี… ({secs} วิ)</div>)}
 
     {/* ไพ่ในมือ */}
     {!res && meIn && <>
       <SecH icon="🃏">ไพ่ในมือคุณ <small>{myHand.length} ใบ{myHand.length >= 18 ? ` • ⚠️ อีก ${MERCY - myHand.length} ใบตกรอบ!` : myTurn ? ' • แตะเพื่อเลือก แตะซ้ำเพื่อลง' : ''}</small></SecH>
       <TamFan ids={sorted} selected={sel} onTap={myTurn ? tapCard : undefined} playable={myTurn ? ok : null} />
       {myTurn && <div className="boom-actions">
-        {sel && <div className="act-box tam-act"><b>ลง “{cardName(sel)}”{selWild ? ' แล้วเลือกรสใหม่' : ''}</b>
+        {sel && <div className="act-box tam-act"><b>ลง “{cardName(sel)}”{selWild ? ' แล้วเลือกสีใหม่' : ''}</b>
           <small>{TAM_CARDS[selP.v]?.text || (selP.v === '7' ? 'แล้วเลือกคนที่จะแลกไพ่ทั้งมือด้วย' : selP.v === '0' ? 'ทุกคนส่งไพ่ทั้งมือให้คนถัดไปตามทิศ' : 'แตะไพ่ซ้ำ หรือกดปุ่มด้านล่าง')}{selP.v === 'ru' && nextId ? ` (โดน ${nameOf(nextId)})` : ''}</small>
           {selWild ? <FlavorPick onPick={c => play(sel, c)} cur={r.color} /> : <button className="primary wide" onClick={() => play(sel)}>🃏 ลงไพ่ใบนี้</button>}</div>}
         {r.stack > 0 ? <button className="draw-btn hot" onClick={drawOrTake}><span>🥵</span> รับ +{r.stack} ใบ (จบตา)<small>{myHand.length + r.stack >= MERCY ? `⚠️ รับแล้วถึง ${MERCY} ใบ = ตกรอบ!` : `หรือซ้อนไพ่บวก +${r.stackMin} ขึ้นไปส่งต่อ`}</small></button>
@@ -357,7 +371,7 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
 
     {res && <>
       <Outcome art="win" tone={res.winner === myId ? 'good' : ''} title={res.winner ? (res.why === 'empty' ? `${nameOf(res.winner)} หมดมือก่อน! 🏆` : res.why === 'last' ? `${nameOf(res.winner)} รอดคนสุดท้าย! 🏆` : `${nameOf(res.winner)} ไพ่น้อยสุด! 🏆`) : 'ไม่มีใครรอดเลย!'}>
-        {res.winner ? `ได้ +${TAM_SCORE.win}` : ''}{(r.outs || []).length ? <> • เผ็ดเกินทน ตกรอบ: <b>{r.outs.map(nameOf).join(', ')}</b></> : ''}</Outcome>
+        {res.winner ? `ได้ +${TAM_SCORE.win}` : ''}{(r.outs || []).length ? <> • การ์ดล้นมือ ตกรอบ: <b>{r.outs.map(nameOf).join(', ')}</b></> : ''}</Outcome>
       <div className="tam-left">{[...r.order].sort((a, b) => (r.alive?.[b] ? 1 : 0) - (r.alive?.[a] ? 1 : 0) || hand(r, a).length - hand(r, b).length).map(id => <span key={id} className={r.alive?.[id] ? '' : 'out'}><Avatar id={id} av={av} size={24} dead={!r.alive?.[id]} /> {nameOf(id)} <b>{r.alive?.[id] ? `${hand(r, id).length} ใบ` : '🥵'}</b></span>)}</div>
       <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นรอบใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มรอบใหม่…</div>}
@@ -376,10 +390,10 @@ export function TamGame({ db, room, roomCode, myId, players, isHost, scores, sou
 export function TamLobby({ n }) {
   const total = FL.length * (10 * DECK_PLAN.num + ['sk', 'rv', 'd2', 'd4', 'da', 'se'].reduce((a, v) => a + DECK_PLAN[v], 0)) + ['r4', 'p6', 'p10', 'ru'].reduce((a, v) => a + DECK_PLAN[v], 0);
   const sample = ['r5', 'g7', 'y0', 'bsk', 'rrv', 'gd2', 'yd4', 'bda', 'rse', 'wr4', 'wp6', 'wp10', 'wru'];
-  const txt = id => { const { v } = parse(id); return isNum(v) ? (v === '7' ? 'ลงแล้วเลือกคนแลกไพ่ทั้งมือ' : v === '0' ? 'ทุกคนส่งไพ่ทั้งมือให้คนถัดไป' : 'เลข 0–9 ลงตามรสหรือตามเลข') : TAM_CARDS[v].text; };
+  const txt = id => { const { v } = parse(id); return isNum(v) ? (v === '7' ? 'ลงแล้วเลือกคนแลกไพ่ทั้งมือ' : v === '0' ? 'ทุกคนส่งไพ่ทั้งมือให้คนถัดไป' : 'เลข 0–9 ลงตามสีหรือตามเลข') : TAM_CARDS[v].text; };
   return <>
-    <div className="score-rules"><b>🌶️ สำรับ {total} ใบ • แจกคนละ {HAND0} ใบ • วงนี้ {Math.max(TAM_MIN, Math.min(TAM_MAX, n))} คน</b>
-      <span>ลงไพ่ที่ <b>ตรงรส</b> หรือ <b>ตรงเลข/ตรงแบบ</b> กับใบบนกอง • ไพ่ดำ (🎨) ลงได้ทุกเมื่อแล้วเลือกรสใหม่</span>
+    <div className="score-rules"><b>🎨 สำรับ {total} ใบ • แจกคนละ {HAND0} ใบ • วงนี้ {Math.max(TAM_MIN, Math.min(TAM_MAX, n))} คน</b>
+      <span>ลงไพ่ที่ <b>ตรงสี</b> หรือ <b>ตรงเลข/ตรงแบบ</b> กับใบบนกอง • ไพ่สีรุ้ง (🎨) ลงได้ทุกเมื่อแล้วเลือกสีใหม่</span>
       <span>🔥 โดนไพ่บวก → ซ้อนไพ่บวกที่เท่ากันหรือมากกว่าส่งต่อ หรือรับทั้งหมด • ไม่มีให้ลง → จั่วไปเรื่อย ๆ จนกว่าจะได้ใบที่ลงได้</span>
       <span>🥵 ถือไพ่ถึง {MERCY} ใบ = ตกรอบทันที • หมดมือก่อน หรือรอดคนสุดท้าย = ชนะ • ตาละ {TURN_MS / 1000} วิ หมดเวลาระบบจั่วแล้วผ่านให้</span></div>
     <div className="card-gallery tam-gallery">{sample.map(id => <div key={id} className="cg-item"><TamCard id={id + '-x'} size="sm" /><div><b>{cardName(id + '-x')}</b><small>{txt(id)}</small></div></div>)}</div>

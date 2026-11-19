@@ -300,38 +300,64 @@ export function BrandMark() {
   return <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect x="9" y="3" width="20" height="20" rx="5" fill="#fff" opacity=".9" transform="rotate(14 19 13)" /><rect x="3" y="9" width="20" height="20" rx="5" fill="var(--accent)" /><g fill="var(--on-accent)"><circle cx="8.5" cy="14.5" r="2" /><circle cx="13" cy="19" r="2" /><circle cx="17.5" cy="23.5" r="2" /></g></svg>;
 }
 
-// ---------- 💥 ทุเรียนตูม: แผงผลไม้ ทุเรียนชนวนติดไฟ คนหนีบจมูก ----------
+// ---------- 😾 กล่องแมวโมโห: ห้องเก็บพัสดุ กล่องซ้อนเต็มชั้น กล่องหนึ่งเปิดเจอแมวโมโห เพื่อนถือปลาทูง้อ ----------
 function BoomScene() {
-  const spikes = (cx, cy, rx, ry, n, c) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry; return <path key={i} d={`M${x} ${y} l${Math.cos(a) * 12} ${Math.sin(a) * 12} l${Math.cos(a + 1.3) * 7} ${Math.sin(a + 1.3) * 7} Z`} fill={c} />; });
-  return <S id="boom" label="ทุเรียนลูกใหญ่มีชนวนติดไฟอยู่บนแผงผลไม้">
+  const box = (x, y, s, k, open) => <g key={k} transform={`translate(${x} ${y}) scale(${s})`}>
+    <path d="M-26 -6L0 -14L26 -6V18L0 26L-26 18Z" fill="#c8894e" stroke="#3b2412" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M-26 -6L0 2V26L-26 18Z" fill="#b5763d" /><path d="M-26 -6L0 2L26 -6" fill="none" stroke="#3b2412" strokeWidth="1.6" />
+    {open ? <g><path d="M-26 -6L-34 -24L-8 -32L0 -14Z" fill="#d99a5e" stroke="#3b2412" strokeWidth="2" strokeLinejoin="round" /><path d="M26 -6L34 -24L8 -32L0 -14Z" fill="#e2a86c" stroke="#3b2412" strokeWidth="2" strokeLinejoin="round" /></g>
+      : <path d="M-13 -10L13 -2" stroke="#e8c27a" strokeWidth="4" />}
+    <rect x="5" y="6" width="13" height="8" rx="1" fill="#fff8e7" transform="skewY(-17)" />
+  </g>;
+  return <S id="boom" label="ห้องเก็บพัสดุ กล่องซ้อนกันเต็มชั้น กล่องหนึ่งเปิดออกมีแมวส้มโมโหกระโดดออกมา เพื่อนถือปลาทูง้อแมว">
     <defs>
-      <linearGradient id="bm-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a1a08" /><stop offset=".55" stopColor="#6a3a10" /><stop offset="1" stopColor="#c0661a" /></linearGradient>
-      <radialGradient id="bm-burst" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#fff2a8" stopOpacity=".9" /><stop offset=".5" stopColor="#ffb03a" stopOpacity=".45" /><stop offset="1" stopColor="#ff7a1a" stopOpacity="0" /></radialGradient>
+      <linearGradient id="bc-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3d2a4f" /><stop offset=".6" stopColor="#6b3f5f" /><stop offset="1" stopColor="#c0663a" /></linearGradient>
+      <radialGradient id="bc-burst" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#fff2a8" stopOpacity=".95" /><stop offset=".55" stopColor="#ff9e3a" stopOpacity=".5" /><stop offset="1" stopColor="#ff5a36" stopOpacity="0" /></radialGradient>
+      <radialGradient id="bc-cat" cx=".5" cy=".42"><stop offset="0" stopColor="#ffb05a" /><stop offset=".75" stopColor="#f07a1e" /><stop offset="1" stopColor="#b14d10" /></radialGradient>
+      <radialGradient id="bc-lamp" cx=".5" cy="0" r=".9"><stop offset="0" stopColor="#ffe08a" stopOpacity=".55" /><stop offset="1" stopColor="#ffe08a" stopOpacity="0" /></radialGradient>
     </defs>
-    <rect width="400" height="260" fill="url(#bm-sky)" />
-    <g opacity=".5"><path d="M0 70 L40 40 L80 70 Z M70 70 L120 30 L170 70 Z M300 70 L345 34 L390 70 Z" fill="#3a2410" /></g>
-    {/* ผ้าใบแผงลอย */}
-    <path d="M0 26 H400 V52 Q380 66 360 52 Q340 66 320 52 Q300 66 280 52 Q260 66 240 52 Q220 66 200 52 Q180 66 160 52 Q140 66 120 52 Q100 66 80 52 Q60 66 40 52 Q20 66 0 52 Z" fill="#d9352b" />
-    <g fill="#fff3dc">{[0, 80, 160, 240, 320].map(x => <path key={x} d={`M${x + 40} 26 H${x + 80} V52 Q${x + 60} 66 ${x + 40} 52 Z`} />)}</g>
-    <circle className="glow" cx="200" cy="138" r="104" fill="url(#bm-burst)" />
-    {/* ลังไม้ */}
-    <g><rect x="0" y="196" width="400" height="64" fill="#5a3410" /><g stroke="#3a2008" strokeWidth="3">{[214, 232].map(y => <path key={y} d={`M0 ${y} H400`} />)}{[60, 140, 260, 340].map(x => <path key={x} d={`M${x} 196 V260`} />)}</g></g>
-    {/* ผลไม้ข้าง ๆ */}
-    <g className="float"><circle cx="70" cy="182" r="18" fill="#5b2a5e" /><g fill="#4f8a3a"><ellipse cx="70" cy="164" rx="5" ry="8" /><ellipse cx="62" cy="168" rx="5" ry="7" transform="rotate(-50 62 168)" /><ellipse cx="78" cy="168" rx="5" ry="7" transform="rotate(50 78 168)" /></g></g>
-    <g className="float"><g stroke="#3fae4a" strokeWidth="3" fill="none" strokeLinecap="round">{Array.from({ length: 14 }, (_, i) => { const a = i / 14 * Math.PI * 2; return <path key={i} d={`M${112 + Math.cos(a) * 15} ${186 + Math.sin(a) * 15} l${Math.cos(a) * 8} ${Math.sin(a) * 8}`} />; })}</g><circle cx="112" cy="186" r="15" fill="#e0303a" /></g>
-    <g className="float"><path d="M300 196 Q296 168 318 164 Q340 162 338 186 Q336 200 318 200 Z" fill="#ffc93a" /><path d="M318 164 q4 -8 12 -8" stroke="#4f8a3a" strokeWidth="4" fill="none" /></g>
-    {/* ทุเรียนลูกใหญ่ + ชนวน */}
-    <g className="bob">
-      {spikes(200, 150, 50, 44, 22, '#6f8a22')}
-      <ellipse cx="200" cy="150" rx="50" ry="45" fill="#a3b13a" />
-      <g fill="#8a9a2c">{[[180, 130], [206, 124], [224, 146], [188, 160], [212, 172], [170, 152]].map(([x, y], i) => <path key={i} d={`M${x} ${y} l6 -9 l6 9 Z`} />)}</g>
-      <g fill="#2b1d10"><ellipse cx="184" cy="146" rx="5" ry="6" /><ellipse cx="216" cy="146" rx="5" ry="6" /></g><path d="M186 166 q14 10 28 0" stroke="#2b1d10" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <path d="M200 106 Q204 86 222 80 Q236 76 240 64" stroke="#5a4a1a" strokeWidth="5" fill="none" strokeLinecap="round" />
-      <g className="flick"><path d="M240 64 Q232 48 242 38 Q244 50 250 46 Q252 58 240 64 Z" fill="#ffcf5a" /><path d="M240 62 Q236 54 241 48 Q244 56 246 54 Q246 60 240 62 Z" fill="#fff" /></g>
-      <g className="tw" fill="#ffe08a"><circle cx="256" cy="44" r="2.5" /><circle cx="230" cy="40" r="2" /><circle cx="252" cy="62" r="1.8" /></g>
+    <rect width="400" height="260" fill="url(#bc-wall)" />
+    <g stroke="#2a1b38" strokeWidth="2" opacity=".5">{[40, 120, 280, 360].map(x => <path key={x} d={`M${x} 0V190`} />)}</g>
+    <path d="M150 0L120 200H280L250 0Z" fill="url(#bc-lamp)" /><g transform="translate(200 0)"><path d="M0 0V16" stroke="#2a1b38" strokeWidth="2" /><path d="M-14 16H14L10 28H-10Z" fill="#ffd166" stroke="#2a1b38" strokeWidth="2" /><circle cy="31" r="5" fill="#fff6c8" className="pulse" /></g>
+    {/* ชั้นวางกล่องสองข้าง */}
+    <g fill="#5a3418" stroke="#2a1608" strokeWidth="2"><rect x="0" y="92" width="110" height="7" /><rect x="0" y="150" width="110" height="7" /><rect x="290" y="92" width="110" height="7" /><rect x="290" y="150" width="110" height="7" /></g>
+    {box(26, 78, .7, 'a')}{box(70, 74, .9, 'b')}{box(30, 136, .8, 'c')}{box(84, 134, .7, 'd')}{box(318, 76, .8, 'e')}{box(372, 74, .7, 'f')}{box(330, 136, .75, 'g')}{box(378, 132, .9, 'h')}
+    <rect y="196" width="400" height="64" fill="#7a4a2a" /><path d="M0 196H400" stroke="#3b2412" strokeWidth="3" /><g stroke="#5c3418" strokeWidth="1.4" opacity=".6">{[214, 234, 252].map(y => <path key={y} d={`M0 ${y}H400`} />)}</g>
+    {/* กล่องตรงกลางเปิด แมวพุ่งออก */}
+    <circle className="glow" cx="200" cy="130" r="96" fill="url(#bc-burst)" />
+    <g fill="#ffd166" opacity=".6">{Array.from({ length: 12 }, (_, i) => <path key={i} d="M200 130L194 40H206Z" transform={`rotate(${i * 30} 200 130)`} />)}</g>
+    {box(200, 196, 1.8, 'main', true)}
+    <g transform="translate(200 116)"><g className="bob">
+      <path d="M-28 -8L-34 -42L-6 -24zM28 -8L34 -42L6 -24z" fill="url(#bc-cat)" stroke="#3b2412" strokeWidth="2.4" strokeLinejoin="round" /><path d="M-26 -14L-30 -34L-12 -22zM26 -14L30 -34L12 -22z" fill="#ff9fb0" />
+      <ellipse rx="36" ry="30" fill="url(#bc-cat)" stroke="#3b2412" strokeWidth="2.4" />
+      <path d="M0 -30v12M-10 -28l3 10M10 -28l-3 10" stroke="#b14d10" strokeWidth="3.4" strokeLinecap="round" />
+      <path d="M-24 -10l16 7M24 -10l-16 7" stroke="#3b2412" strokeWidth="4" strokeLinecap="round" />
+      <ellipse cx="-14" cy="2" rx="8" ry="6.4" fill="#ffd60a" stroke="#3b2412" strokeWidth="2" /><ellipse cx="14" cy="2" rx="8" ry="6.4" fill="#ffd60a" stroke="#3b2412" strokeWidth="2" />
+      <ellipse cx="-14" cy="2.6" rx="1.8" ry="5.4" fill="#1a0a00" /><ellipse cx="14" cy="2.6" rx="1.8" ry="5.4" fill="#1a0a00" />
+      <path d="M-12 16q12 -7 24 0q-3 13 -12 13t-12 -13z" fill="#9d0208" stroke="#3b2412" strokeWidth="2" /><path d="M-8 16l2.4 6 2.4 -5M8 16l-2.4 6 -2.4 -5" fill="#fff" />
+      <path d="M-2.4 9h4.8l-2.4 3z" fill="#ff6b81" />
+      <g stroke="#fff" strokeWidth="1.6" strokeLinecap="round"><path d="M-18 12l-24 -4M-18 16l-24 5M18 12l24 -4M18 16l24 5" /></g>
+      <path d="M-34 22q-20 -4 -26 -20M34 22q20 -4 26 -20" stroke="#f07a1e" strokeWidth="9" strokeLinecap="round" fill="none" />
+      <g fill="#fff" stroke="#3b2412" strokeWidth="1.2"><path d="M-62 4l-6 -4 7 1zM-60 0l-3 -7 5 5zM-56 -2l1 -7 2 6z" /><path d="M62 4l6 -4 -7 1zM60 0l3 -7 -5 5zM56 -2l-1 -7 -2 6z" /></g>
+    </g></g>
+    <g fill="#fff" fontFamily="Mitr,sans-serif" fontWeight="900"><text x="250" y="60" fontSize="22" transform="rotate(12 250 60)" fill="#ffd60a" stroke="#9d0208" strokeWidth="1.4">เหมียว!!</text></g>
+    {/* เพื่อนถือปลาทูง้อแมว */}
+    <g transform="translate(300 214)">
+      <circle cy="-48" r="12" fill="#f6c99a" stroke="#3b2412" strokeWidth="2" /><path d="M-12 -52q12 -16 24 0q-4 -8 -12 -8t-12 8z" fill="#3d2b1f" />
+      <ellipse cx="-4" cy="-48" rx="2.4" ry="3.4" fill="#3b2412" /><ellipse cx="5" cy="-48" rx="2.4" ry="3.4" fill="#3b2412" /><ellipse cx="0" cy="-40" rx="3" ry="3.6" fill="#3b2412" />
+      <path d="M-14 -34h28l4 34h-36z" fill="#2a9d8f" stroke="#3b2412" strokeWidth="2" /><path d="M-14 -30l-16 -10" stroke="#f6c99a" strokeWidth="5" strokeLinecap="round" />
+      <g transform="translate(-40 -46) rotate(-20)"><path d="M-14 0q7 -7 18 -5q7 2 9 5q-2 3 -9 5q-11 3 -18 -5z" fill="#9fb3c8" stroke="#3b2412" strokeWidth="1.6" /><path d="M-14 0l-7 -6v12z" fill="#7d93aa" stroke="#3b2412" strokeWidth="1.4" /><circle cx="9" cy="-.6" r="1.4" fill="#3b2412" /></g>
     </g>
-    {/* คนหนีบจมูก */}
-    <g className="peek"><g transform="translate(352 150)"><circle r="26" fill="#ffd2a8" /><path d="M-26 -6 Q-24 -30 0 -30 Q24 -30 26 -6 Q14 -18 0 -16 Q-14 -18 -26 -6 Z" fill="#2b1d10" /><path d="M-12 -4 l6 4 l-6 4 M12 -4 l-6 4 l6 4" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><rect x="-5" y="2" width="10" height="16" rx="3" fill="#d9a66a" /><path d="M-9 20 q9 6 18 0" stroke="#2b1d10" strokeWidth="3" fill="none" strokeLinecap="round" /><g stroke="#9ab03a" strokeWidth="3" strokeLinecap="round" fill="none" opacity=".8"><path d="M-46 -20 q-6 -8 2 -14" /><path d="M-52 4 q-8 -6 0 -12" /></g></g></g>
+    {/* คนเปิดกล่อง ตกใจ */}
+    <g transform="translate(96 216)">
+      <circle cy="-46" r="12" fill="#e0ac69" stroke="#3b2412" strokeWidth="2" /><path d="M-12 -50q12 -14 24 0" fill="#ffb703" />
+      <circle cx="-4" cy="-46" r="3" fill="#fff" stroke="#3b2412" strokeWidth="1" /><circle cx="5" cy="-46" r="3" fill="#fff" stroke="#3b2412" strokeWidth="1" /><circle cx="-4" cy="-46" r="1.2" fill="#3b2412" /><circle cx="5" cy="-46" r="1.2" fill="#3b2412" /><ellipse cx="0" cy="-38" rx="3" ry="4" fill="#3b2412" />
+      <path d="M-14 -32h28l4 32h-36z" fill="#e63946" stroke="#3b2412" strokeWidth="2" /><path d="M-14 -28l-12 -16M14 -28l12 -16" stroke="#e0ac69" strokeWidth="5" strokeLinecap="round" />
+      <g stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M-24 -62l-4 -6M-14 -66l-1 -7M18 -64l4 -6" /></g>
+    </g>
+    {/* ไพ่กองบนพื้น */}
+    <g transform="translate(150 236)">{[0, 1, 2].map(i => <rect key={i} x={-14 + i * 1.5} y={-10 - i * 3} width="28" height="20" rx="3" fill={['#ffd166', '#a0c4ff', '#ff8fa3'][i]} stroke="#3b2412" strokeWidth="1.6" transform={`rotate(${-8 + i * 6})`} />)}</g>
+    <g transform="translate(200 244)"><rect x="-74" y="-12" width="148" height="22" rx="4" fill="#1e1424" stroke="#ffd166" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffd166" fontFamily="Mitr,sans-serif">กล่องต่อไป…มีแมวไหม?</text></g>
   </S>;
 }
 // ---------- 💼 ปิดดีล!: ตึกสูงยามค่ำ โต๊ะประชุม มือจับกัน เหรียญทอง หมวกเจ้าสัว ----------
@@ -365,40 +391,49 @@ function DealScene() {
     <g fill="#fff3a0">{[[170, 120], [236, 118], [200, 196]].map(([x, y], i) => <path key={i} d={`M${x} ${y - 6} l1.6 4 l4 1.6 l-4 1.6 l-1.6 4 l-1.6 -4 l-4 -1.6 l4 -1.6Z`} className="pulse" />)}</g>
   </S>;
 }
-// ---------- 🌶️ ตำแหลก!: แผงส้มตำ ครกดินเผาใบโต สากตำขึ้นลง ไพ่ 4 รสปลิวว่อน ป้าย +10 ----------
-const TamC = ({ x, y, r, c1, c2, t }) => <g transform={`translate(${x} ${y}) rotate(${r})`}><rect x="-18" y="-25" width="36" height="50" rx="5" fill="#fff8ea" /><rect x="-15.5" y="-22.5" width="31" height="45" rx="4" fill={c1} />
-  <path d="M-12 -7 h24 q0 17 -12 19 q-12 -2 -12 -19 z" fill="#fff8ea" /><text y="7" textAnchor="middle" fontSize={t.length > 1 ? 10 : 14} fill={c2} fontFamily="Chonburi,Kanit,sans-serif">{t}</text></g>;
+// ---------- 🎨 สี่สีป่วน: วงไพ่สี่สีบนโต๊ะ ไพ่ +10 พุ่งกลางวง มือเพื่อนซ้อนไพ่ ลูกศรกลับทิศวน ----------
 function TamScene() {
-  return <S id="tam" label="ครกส้มตำใบใหญ่บนแผงริมทาง มีไพ่สี่รสปลิวออกมา">
+  const C = { r: ['#ff6a45', '#c4241a'], g: ['#8fd650', '#2e8a2c'], y: ['#ffcf45', '#d97c12'], b: ['#55bdf0', '#1d5aa6'] };
+  const card = (x, y, a, c, label, s = 1, k) => <g key={k} transform={`translate(${x} ${y}) rotate(${a}) scale(${s})`}>
+    <rect x="-24" y="-34" width="48" height="68" rx="7" fill="#0005" transform="translate(3 5)" />
+    <rect x="-24" y="-34" width="48" height="68" rx="7" fill={c === 'w' ? '#2a1d3d' : C[c][0]} stroke="#fff8ea" strokeWidth="3.4" />
+    <path d="M-24 -10L-6 -34H6L-24 2Z" fill="#fff" opacity=".18" />
+    <circle r="17" fill={c === 'w' ? 'none' : '#fff8ea'} />
+    {c === 'w' && <g>{['#ff6a45', '#8fd650', '#ffcf45', '#55bdf0'].map((cc, i) => <path key={cc} d={`M0 0L${17 * Math.cos(i * Math.PI / 2)} ${17 * Math.sin(i * Math.PI / 2)}A17 17 0 0 1 ${17 * Math.cos((i + 1) * Math.PI / 2)} ${17 * Math.sin((i + 1) * Math.PI / 2)}Z`} fill={cc} />)}<circle r="11" fill="#fff8ea" /></g>}
+    <text y={label.length > 2 ? 6 : 8} textAnchor="middle" fontSize={label.length > 2 ? 14 : 20} fontWeight="900" fill={c === 'w' ? '#2a1d3d' : C[c][1]} fontFamily="'Chonburi','Kanit',sans-serif">{label}</text>
+    <text x="-17" y="-22" fontSize="9" fontWeight="900" fill="#fff" fontFamily="'Chonburi','Kanit',sans-serif">{label}</text>
+  </g>;
+  return <S id="tam" label="วงไพ่สี่สีบนโต๊ะกลม ไพ่ +10 สีรุ้งพุ่งกลางวง มือเพื่อนซ้อนไพ่ +4 ลูกศรกลับทิศวนรอบโต๊ะ">
     <defs>
-      <linearGradient id="tm-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a0e08" /><stop offset=".6" stopColor="#8a2a10" /><stop offset="1" stopColor="#e0661a" /></linearGradient>
-      <radialGradient id="tm-burst" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffe08a" stopOpacity=".8" /><stop offset=".55" stopColor="#ff7a3a" stopOpacity=".32" /><stop offset="1" stopColor="#ff3a1a" stopOpacity="0" /></radialGradient>
+      <radialGradient id="tm-bg" cx=".5" cy=".45" r=".75"><stop offset="0" stopColor="#4b2a7a" /><stop offset=".7" stopColor="#24133f" /><stop offset="1" stopColor="#120a22" /></radialGradient>
+      <radialGradient id="tm-table" cx=".5" cy=".4" r=".6"><stop offset="0" stopColor="#3aa36a" /><stop offset="1" stopColor="#1d5c3b" /></radialGradient>
+      <radialGradient id="tm-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#fff3b0" stopOpacity=".8" /><stop offset="1" stopColor="#fff3b0" stopOpacity="0" /></radialGradient>
     </defs>
-    <rect width="400" height="260" fill="url(#tm-sky)" />
-    <path d="M0 22 H400 V46 Q380 60 360 46 Q340 60 320 46 Q300 60 280 46 Q260 60 240 46 Q220 60 200 46 Q180 60 160 46 Q140 60 120 46 Q100 60 80 46 Q60 60 40 46 Q20 60 0 46 Z" fill="#2f8a2c" />
-    <g fill="#fff8ea">{[0, 80, 160, 240, 320].map(x => <path key={x} d={`M${x + 40} 22 H${x + 80} V46 Q${x + 60} 60 ${x + 40} 46 Z`} />)}</g>
-    <circle className="glow" cx="200" cy="140" r="112" fill="url(#tm-burst)" />
-    <g><rect x="0" y="200" width="400" height="60" fill="#6a3a14" /><g stroke="#4a2408" strokeWidth="3">{[216, 236].map(y => <path key={y} d={`M0 ${y} H400`} />)}</g></g>
-    {/* ไพ่ 4 รสปลิว */}
-    <g className="float"><TamC x={76} y={112} r={-18} c1="#ff6a45" c2="#c4241a" t="7" /></g>
-    <g className="float"><TamC x={126} y={74} r={-7} c1="#8fd650" c2="#2e8a2c" t="+4" /></g>
-    <g className="float"><TamC x={278} y={76} r={8} c1="#ffcf45" c2="#d97c12" t="0" /></g>
-    <g className="float"><TamC x={328} y={116} r={20} c1="#55bdf0" c2="#1d5aa6" t="+2" /></g>
-    {/* ครกดินเผา + ส้มตำ */}
-    <path d="M126 140 H274 Q270 196 200 205 Q130 196 126 140 Z" fill="#b5652c" />
-    <path d="M140 162 Q200 176 260 162" stroke="#8a4a1c" strokeWidth="3" fill="none" /><path d="M150 182 Q200 192 250 182" stroke="#8a4a1c" strokeWidth="2.5" fill="none" />
-    <rect x="168" y="200" width="64" height="9" rx="3" fill="#8a4a1c" />
-    <ellipse cx="200" cy="140" rx="74" ry="14" fill="#8a4a1c" /><ellipse cx="200" cy="140" rx="63" ry="10" fill="#4a2208" />
-    <path d="M156 138 q10 -12 22 -3 q8 -11 20 -2 q10 -9 22 0 q8 -7 18 2" stroke="#d8f0a0" strokeWidth="5" fill="none" strokeLinecap="round" />
-    <path d="M168 133 q6 -12 17 -10" stroke="#e0303a" strokeWidth="5" fill="none" strokeLinecap="round" /><circle cx="232" cy="131" r="7" fill="#7fd34a" /><circle cx="214" cy="134" r="5" fill="#ff5a3c" />
-    {/* สาก */}
-    <g className="bob"><path d="M214 128 L258 40" stroke="#d9b07a" strokeWidth="14" strokeLinecap="round" /><path d="M218 120 L224 108" stroke="#a07a4a" strokeWidth="15" strokeLinecap="round" /></g>
-    {/* ป้าย +10 */}
-    <g className="tw"><g transform="translate(200 66) rotate(-6)"><path d="M-36 -18 L-26 -8 L-42 0 L-26 6 L-32 22 L-12 12 L0 28 L10 12 L32 22 L24 6 L42 0 L26 -8 L34 -18 L14 -14 L0 -30 L-12 -14 Z" fill="#ffd34d" /><text y="8" textAnchor="middle" fontSize="20" fill="#c4241a" fontFamily="Chonburi,Kanit,sans-serif">+10</text></g></g>
-    {/* พริก มะนาว มะเขือเทศ */}
-    <g className="float"><path d="M58 198 q22 -4 36 -26 q4 -6 -2 -8 q-10 18 -34 26 z" fill="#e0303a" /><path d="M92 165 q4 -7 11 -7" stroke="#3f8a2c" strokeWidth="3" fill="none" /></g>
-    <g className="float"><circle cx="334" cy="184" r="16" fill="#7fd34a" /><circle cx="334" cy="184" r="11" fill="#c8f08a" /><g stroke="#7fd34a" strokeWidth="1.5">{[0, 60, 120].map(a => <path key={a} d="M334 173 V195" transform={`rotate(${a} 334 184)`} />)}</g></g>
-    <g className="float"><circle cx="302" cy="194" r="10" fill="#ff5a3c" /><path d="M297 185 l5 3 l5 -3" stroke="#3f8a2c" strokeWidth="2" fill="none" /></g>
+    <rect width="400" height="260" fill="url(#tm-bg)" />
+    {/* ลำแสงสี่สีพุ่งจากมุม */}
+    {[['#ff6a45', 0, 0], ['#8fd650', 400, 0], ['#ffcf45', 0, 260], ['#55bdf0', 400, 260]].map(([c, x, y], i) => <path key={i} d={`M${x} ${y}L200 130L${x === 0 ? 60 : 340} ${y === 0 ? 0 : 260}Z`} fill={c} opacity=".16" />)}
+    <g>{Array.from({ length: 26 }, (_, i) => <rect key={i} x={(i * 53) % 396} y={(i * 37) % 120} width="7" height="3.6" rx="1.4" fill={['#ff6a45', '#8fd650', '#ffcf45', '#55bdf0', '#fff'][i % 5]} transform={`rotate(${i * 41} ${(i * 53) % 396} ${(i * 37) % 120})`} opacity=".85" />)}</g>
+    {/* โต๊ะ */}
+    <ellipse cx="200" cy="200" rx="220" ry="70" fill="#5a3418" /><ellipse cx="200" cy="192" rx="206" ry="62" fill="url(#tm-table)" stroke="#8a5a2c" strokeWidth="6" />
+    <ellipse cx="200" cy="192" rx="160" ry="44" fill="none" stroke="#fff8ea" strokeWidth="2" strokeDasharray="8 8" opacity=".35" />
+    <path d="M76 176q-10 -24 14 -40" fill="none" stroke="#fff8ea" strokeWidth="3" opacity=".7" /><path d="M86 132l8 4 -6 7" fill="none" stroke="#fff8ea" strokeWidth="3" opacity=".7" />
+    <path d="M324 208q10 24 -14 40" fill="none" stroke="#fff8ea" strokeWidth="3" opacity=".7" /><path d="M314 252l-8 -4 6 -7" fill="none" stroke="#fff8ea" strokeWidth="3" opacity=".7" />
+    {/* กองไพ่กลางโต๊ะ */}
+    {card(160, 186, -18, 'g', '5', .9, 'p1')}{card(180, 182, -6, 'b', '+2', .9, 'p2')}{card(222, 186, 14, 'y', '7', .9, 'p3')}
+    <circle className="glow" cx="200" cy="120" r="80" fill="url(#tm-glow)" />
+    <g className="bob"><g>{card(200, 112, -6, 'w', '+10', 1.5, 'big')}</g></g>
+    {/* มือซ้าย ถือไพ่ +4 พร้อมซ้อน */}
+    <g transform="translate(66 118) rotate(-14)">
+      {card(-4, -6, -18, 'r', '+4', .75, 'h1')}{card(14, -10, -4, 'r', '3', .75, 'h2')}{card(30, -6, 10, 'y', '9', .75, 'h3')}
+      <path d="M-20 26h20q8 0 8 -6t-8 -6h-6q8 0 8 -5t-8 -5h-14z" fill="#f6c99a" stroke="#3b2412" strokeWidth="2" /><rect x="-44" y="10" width="24" height="18" rx="3" fill="#ef476f" stroke="#3b2412" strokeWidth="2" />
+    </g>
+    {/* มือขวา ไพ่กลับทิศ */}
+    <g transform="translate(334 112) rotate(14) scale(-1 1)">
+      {card(-4, -6, -16, 'b', '⇄', .75, 'k1')}{card(14, -10, -2, 'g', 'ข้าม', .75, 'k2')}
+      <path d="M-20 26h20q8 0 8 -6t-8 -6h-6q8 0 8 -5t-8 -5h-14z" fill="#e0ac69" stroke="#3b2412" strokeWidth="2" /><rect x="-44" y="10" width="24" height="18" rx="3" fill="#4361ee" stroke="#3b2412" strokeWidth="2" />
+    </g>
+    <g fill="#fff3b0">{[[120, 70], [290, 64], [200, 32], [100, 40], [310, 30]].map(([x, y], i) => <path key={i} d={`M${x} ${y - 7}l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2Z`} className="pulse" />)}</g>
+    <g transform="translate(200 244)"><rect x="-64" y="-12" width="128" height="22" rx="4" fill="#120a22" stroke="#ffcf45" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffcf45" fontFamily="Mitr,sans-serif">+10 ไหวไหม?</text></g>
   </S>;
 }
 // ---------- 👻 จับผีปอป: หมู่บ้านอีสานยามค่ำ บ้านใต้ถุนสูง ผีปอปลอยกลางดง หมอธรรมถือไต้ เงาคนกระซิบ ----------
