@@ -171,3 +171,62 @@ export function ActionSheet({ open, k, icon, title, sub, secs, total, children }
       <button type="button" className="asheet-min" onClick={() => setMin(true)}>ย่อไว้ก่อน ▾</button>
     </div></div>, document.body);
 }
+
+// ---------- ฉากพื้นหลังเต็มจอตามธีมเกม (อยู่ด้านล่างจอ จาง ๆ ไม่บังเนื้อหา) ----------
+const BD_STONE = (x, y, s, k) => <g key={k} transform={`translate(${x} ${y}) scale(${s})`}><path d="M-12 20V-2Q-12 -16 0 -16Q12 -16 12 -2V20Z" /><path d="M-2 -10h4v4h4v4h-4v10h-4v-10h-4v-4h4Z" fill="#000" opacity=".35" /></g>;
+const BD_CROSS = (x, y, s, k) => <g key={k} transform={`translate(${x} ${y}) scale(${s})`}><path d="M-2.4 22V-14h4.8v36zM-10 -6h20v4.8h-20z" /></g>;
+function DigBackdrop() {
+  return <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <radialGradient id="bd-moon" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#f6efd2" stopOpacity=".35" /><stop offset="1" stopColor="#f6efd2" stopOpacity="0" /></radialGradient>
+      <radialGradient id="bd-lamp" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffcf6a" stopOpacity=".55" /><stop offset="1" stopColor="#ffcf6a" stopOpacity="0" /></radialGradient>
+      <linearGradient id="bd-fog" x2="0" y2="1"><stop offset="0" stopColor="#c9c3e0" stopOpacity="0" /><stop offset=".5" stopColor="#c9c3e0" stopOpacity=".1" /><stop offset="1" stopColor="#c9c3e0" stopOpacity="0" /></linearGradient>
+    </defs>
+    <circle cx="1320" cy="120" r="230" fill="url(#bd-moon)" /><circle cx="1320" cy="120" r="54" fill="#efe7c8" opacity=".55" /><circle cx="1338" cy="104" r="50" fill="var(--bg)" opacity=".55" />
+    <g fill="#e8e4f8" opacity=".5">{[[80, 60], [240, 140], [420, 40], [610, 110], [820, 50], [980, 150], [1120, 30], [1500, 220], [1560, 80], [300, 220], [700, 200]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 3 ? 1.4 : 2.2} />)}</g>
+    {/* เนินไกล */}
+    <path d="M0 420Q200 360 400 395Q620 340 820 390Q1040 345 1240 385Q1430 350 1600 380V600H0Z" fill="#1a1626" opacity=".85" />
+    {/* ต้นไม้ตายไกล ๆ */}
+    <g stroke="#14111d" strokeWidth="9" strokeLinecap="round" fill="none" opacity=".9">
+      <path d="M140 420V250M140 320l-50 -48M140 290l40 -60M180 230l20 -12M140 360l46 -30M90 272l-18 6" />
+      <path d="M1460 410V270M1460 330l38 -48M1460 300l-36 -40M1498 282l10 -18" />
+    </g>
+    <g fill="#1d1a2a" opacity=".9">{[[300, 418, 1.4], [370, 424, 1], [520, 410, 1.2], [960, 412, 1.3], [1060, 420, 1], [1190, 408, 1.5]].map(([x, y, s], i) => (i % 2 ? BD_CROSS : BD_STONE)(x, y, s, 'f' + i))}</g>
+    <rect y="430" width="1600" height="60" fill="url(#bd-fog)" />
+    {/* พื้นหน้า: รั้วเหล็ก ป้ายหลุม ตะเกียง */}
+    <path d="M0 500Q400 470 800 495Q1200 470 1600 498V600H0Z" fill="#0f0d16" />
+    <g stroke="#0b0a10" strokeWidth="5"><path d="M0 492H560M1040 490H1600" />{Array.from({ length: 26 }, (_, i) => { const x = i < 13 ? 20 + i * 42 : 1060 + (i - 13) * 42; return <path key={i} d={`M${x} 520V470`} />; })}</g>
+    <g fill="#0b0a10">{Array.from({ length: 26 }, (_, i) => { const x = i < 13 ? 20 + i * 42 : 1060 + (i - 13) * 42; return <path key={i} d={`M${x - 6} 471l6 -12 6 12z`} />; })}</g>
+    <g fill="#14111d">{[[620, 520, 2.2], [700, 528, 1.6], [880, 522, 2], [960, 532, 1.5], [420, 540, 1.8], [1180, 536, 2.1]].map(([x, y, s], i) => (i % 3 === 1 ? BD_CROSS : BD_STONE)(x, y, s, 'n' + i))}</g>
+    {[[580, 470], [1010, 466]].map(([x, y], i) => <g key={i}><circle cx={x} cy={y - 34} r="70" fill="url(#bd-lamp)" /><path d={`M${x} ${y + 60}V${y - 20}`} stroke="#0b0a10" strokeWidth="5" /><rect x={x - 9} y={y - 46} width="18" height="24" rx="4" fill="#ffcf6a" opacity=".8" /><path d={`M${x - 12} ${y - 46}h24l-4 -8h-16z`} fill="#0b0a10" /></g>)}
+    <rect y="540" width="1600" height="60" fill="url(#bd-fog)" />
+  </svg>;
+}
+function DealBackdrop() {
+  const towers = [[0, 300, 90], [80, 220, 70], [150, 330, 60], [210, 180, 84], [300, 260, 66], [370, 140, 96], [470, 300, 70], [540, 230, 80], [1040, 250, 70], [1110, 160, 92], [1210, 290, 66], [1280, 120, 100], [1385, 240, 74], [1460, 190, 80], [1540, 300, 60]];
+  return <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="bd-city" x2="0" y2="1"><stop offset="0" stopColor="#16204a" /><stop offset="1" stopColor="#0a0f26" /></linearGradient>
+      <radialGradient id="bd-gold" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#f5c451" stopOpacity=".28" /><stop offset="1" stopColor="#f5c451" stopOpacity="0" /></radialGradient>
+      <linearGradient id="bd-river" x2="0" y2="1"><stop offset="0" stopColor="#1d3270" stopOpacity=".7" /><stop offset="1" stopColor="#090e22" /></linearGradient>
+    </defs>
+    <circle cx="800" cy="460" r="420" fill="url(#bd-gold)" />
+    <circle cx="260" cy="110" r="44" fill="#ffe9a8" opacity=".35" />
+    {/* ตึกไกล */}
+    <g fill="#121a3d" opacity=".9">{Array.from({ length: 22 }, (_, i) => <rect key={i} x={i * 74} y={330 + (i * 37) % 90} width="64" height="300" />)}</g>
+    {/* ตึกหน้า */}
+    {towers.map(([x, y, w], i) => <g key={i}>
+      <rect x={x} y={y} width={w} height={600 - y} fill="url(#bd-city)" stroke="#060a1c" strokeWidth="2" />
+      {i % 3 === 0 && <path d={`M${x + w / 2} ${y}V${y - 40}`} stroke="#060a1c" strokeWidth="4" />}
+      {i % 3 === 0 && <circle cx={x + w / 2} cy={y - 42} r="4" fill="#ff4f4f" opacity=".85" />}
+      {i % 4 === 1 && <path d={`M${x} ${y}L${x + w / 2} ${y - 30}L${x + w} ${y}Z`} fill="#16204a" />}
+      <g fill="#ffd76a">{Array.from({ length: Math.floor((600 - y) / 26) * 3 }, (_, j) => { const col = j % 3, row = Math.floor(j / 3); const on = (i * 7 + j * 13) % 5 < 2; return on ? <rect key={j} x={x + 10 + col * (w - 20) / 3} y={y + 16 + row * 26} width={(w - 20) / 3 - 6} height="10" opacity={.35 + ((i + j) % 4) * .12} /> : null; })}</g>
+    </g>)}
+    {/* ป้ายไฟ DEAL + แม่น้ำสะท้อนไฟ */}
+    <g transform="translate(1310 200)"><rect x="-56" y="-18" width="112" height="36" rx="6" fill="#1a1440" stroke="#ff4fa3" strokeWidth="3" opacity=".9" /><text y="9" textAnchor="middle" fontSize="24" fontWeight="900" fill="#ff8fc8" fontFamily="sans-serif" opacity=".9">DEAL</text></g>
+    <rect y="540" width="1600" height="60" fill="url(#bd-river)" />
+    <g stroke="#f5c451" strokeWidth="3" opacity=".25">{Array.from({ length: 18 }, (_, i) => <path key={i} d={`M${40 + i * 90} ${556 + (i % 3) * 12}h${30 + (i % 4) * 10}`} />)}</g>
+  </svg>;
+}
+const BACKDROPS = { dig: DigBackdrop, deal: DealBackdrop };
+export function Backdrop({ theme }) { const B = BACKDROPS[theme]; return B ? <div className="backdrop" aria-hidden="true" data-bd={theme}><B /></div> : null; }

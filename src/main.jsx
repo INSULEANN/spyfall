@@ -9,7 +9,7 @@ import './play.css';
 import './effects.css';
 import './desktop.css';
 import { Art } from './play-art.jsx';
-import { makeAv, Avatar, Voters, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Choice, Ambient, TimerRing, freeAv, AvFace } from './ui.jsx';
+import { makeAv, Avatar, Voters, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Choice, Ambient, TimerRing, freeAv, AvFace, Backdrop } from './ui.jsx';
 import { CharEditor, BODY_COLORS, fixLook, randomLook } from './char.jsx';
 import { SceneArt, HubArt, BrandMark } from './art.jsx';
 import { play as sfx, setSfxTheme, setSfxVolume } from './sfx.js';
@@ -516,7 +516,7 @@ function App() {
     setVerdict({right,key:resultKey});sfx(sound,right?'right':'wrong');const t=setTimeout(()=>setVerdict(null),3500);return()=>clearTimeout(t)},[resultKey]);
   if(!configured||!db)return <div className="setup"><div className="brand"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></div><div className="setup-card"><span className="eyebrow">SETUP ก่อนเปิดเกม</span><h1>อีกนิดเดียวก็ได้โป๊ะกับเพื่อนแล้ว</h1><p>เว็บนี้พร้อมรันแล้ว แต่ต้องเชื่อม Firebase Realtime Database เพื่อให้ผู้เล่นคนละเครื่องเห็นข้อมูลห้องเดียวกัน</p><ol><li>สร้างโปรเจกต์ Firebase แล้วเปิด Realtime Database</li><li>คัดลอกค่าการตั้งค่ามาใส่ในไฟล์ <code>.env</code></li><li>ตั้งค่า Database Rules ตาม README แล้วรัน <code>npm run dev</code></li></ol><a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="primary">เปิด Firebase Console ↗</a><p className="muted">อ่าน README.md ในไฟล์โปรเจกต์เพื่อทำทีละขั้นตอน</p></div></div>;
 
-  return <div className="app"><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
+  return <div className="app"><Backdrop theme={themeId}/><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
     {intro&&<IntroFilm id={intro} sound={sound} onDone={()=>setIntro(null)}/>}
     <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo"><BrandMark/></span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?`${G.emoji} ${G.name}`:'รวมบอร์ดเกมเล่นกับแก๊งเพื่อน 🇹🇭'}</div><div className="sound-wrap" ref={mixRef}><button className={'sound'+(mixOpen?' open':'')} onClick={()=>setMixOpen(o=>!o)} title="ปรับเสียง" aria-label="ปรับเสียง" aria-expanded={mixOpen}>{sound&&(musicVol>0||sfxVol>0)?<Volume2/>:<VolumeX/>}</button>
       {mixOpen&&<div className="mixer" role="dialog" aria-label="ปรับเสียง">

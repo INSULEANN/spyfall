@@ -165,3 +165,8 @@
 @media(max-width:760px){.rx-bar button{width:36px;height:36px;font-size:20px}}
 .rx{translate:-50% 0}.rx span{max-width:130px;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:420px){.rx-bar{gap:0;padding:4px 6px}.rx-bar button{width:33px;height:36px;font-size:19px}}
+
+/* ฉากพื้นหลังเต็มจอตามธีม (ขุดสมบัติ / ปิดดีล) — ติดล่างจอ จาง ๆ อยู่หลังทุกอย่าง */
+.backdrop{position:fixed;left:0;right:0;bottom:0;height:min(70vh,620px);z-index:-2;pointer-events:none;opacity:.85;-webkit-mask-image:linear-gradient(180deg,transparent,#000 30%);mask-image:linear-gradient(180deg,transparent,#000 30%)}
+.backdrop svg{width:100%;height:100%;display:block}
+@media (max-width:760px){.backdrop{height:55vh;opacity:.7}}
