@@ -555,82 +555,139 @@ function ClueScene() {
     <g className="peek"><path d="M8 118 h84 q8 0 8 8 v22 q0 8 -8 8 h-50 l-10 12 l0 -12 h-24 q-8 0 -8 -8 v-22 q0 -8 8 -8 Z" fill="#fff" /><text x="50" y="143" textAnchor="middle" fontSize="15" fontWeight="900" fill="#d8283d" fontFamily="Kanit,sans-serif">“ทะเล” 2</text></g>
   </S>;
 }
-// ---------- ⚡ คำไว: ป้ายหมวดกลางเวที คำพุ่งออกมาเป็นสายฟ้า ตัวไข่รัวคีย์บอร์ด ----------
+// ---------- ⚡ คำไว: ป้ายหมวด + สายฟ้า นาฬิกาจับเวลา มือถือพิมพ์ผิดแล้วขึ้นคำแนะนำ คำพุ่งผ่าน ----------
 function KwaiScene() {
-  const words = [[60, 62, 'มะม่วง', -8], [312, 52, 'ทุเรียน', 7], [92, 128, 'เงาะ', 5], [300, 120, 'ลำไย', -6]];
-  return <S id="kwai" label="ป้ายหมวดผลไม้กลางเวที มีคำ มะม่วง ทุเรียน เงาะ ลำไย ลอยอยู่ ตัวไข่สองตัวพิมพ์แข่งกัน">
-    <defs><radialGradient id="kw-bg" cx=".5" cy=".35" r=".8"><stop offset="0" stopColor="#3a1d5c" /><stop offset="1" stopColor="#120a24" /></radialGradient></defs>
+  const fly = [[70, 40, 'ทุเรียน', -6], [236, 226, 'มังคุด', 4], [318, 34, 'เงาะ', 8], [214, 52, 'ลำไย', -4]];
+  return <S id="kwai" label="ป้ายหมวดผลไม้ สายฟ้า นาฬิกาจับเวลา มือถือพิมพ์ มะม่ง แล้วขึ้นคำแนะนำ มะม่วง คำผลไม้พุ่งผ่าน">
+    <defs>
+      <radialGradient id="kw-bg" cx=".5" cy=".35" r=".85"><stop offset="0" stopColor="#4a2272" /><stop offset="1" stopColor="#120a24" /></radialGradient>
+      <linearGradient id="kw-bolt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff6a8" /><stop offset="1" stopColor="#ffb800" /></linearGradient>
+      <linearGradient id="kw-phone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2c2448" /><stop offset="1" stopColor="#120c24" /></linearGradient>
+    </defs>
     <rect width="400" height="260" fill="url(#kw-bg)" />
-    <g className="glow"><path d="M206 20 L176 92 L200 92 L184 150 L236 70 L210 70 L228 20 Z" fill="#ffe14d" opacity=".9" /></g>
-    <rect x="140" y="100" width="120" height="40" rx="12" fill="#ff4f8b" stroke="#120a24" strokeWidth="3" />
-    <text x="200" y="127" textAnchor="middle" fontSize="20" fontWeight="900" fill="#fff" fontFamily="Mitr,sans-serif">🍉 ผลไม้</text>
-    {words.map(([x, y, w, rot], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.4) + 's' }} transform={`rotate(${rot} ${x} ${y})`}>
-      <rect x={x - 38} y={y - 16} width="76" height="30" rx="15" fill="#fff" opacity=".92" />
-      <text x={x} y={y + 5} textAnchor="middle" fontSize="15" fontWeight="800" fill="#3a1d5c" fontFamily="Mitr,sans-serif">{w}</text></g>)}
-    <path d="M0 260 V222 Q200 206 400 222 V260 Z" fill="#0b0618" />
-    {[[90, '#7ae0c3'], [310, '#ffb347']].map(([x, c], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.7) + 's' }}>
-      <ellipse cx={x} cy="194" rx="24" ry="30" fill={c} />
-      <g fill="#fff"><ellipse cx={x - 8} cy="188" rx="5" ry="6" /><ellipse cx={x + 8} cy="188" rx="5" ry="6" /></g>
-      <g fill="#120a24"><circle cx={x - 7} cy="190" r="2.6" /><circle cx={x + 9} cy="190" r="2.6" /></g>
-      <path d={`M${x - 6} 203 Q${x} 207 ${x + 6} 203`} stroke="#120a24" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <rect x={x - 30} y="214" width="60" height="14" rx="4" fill="#2b2147" stroke="#5c4a8f" strokeWidth="2" />
-      <g fill="#8f7fd1">{[0, 1, 2, 3, 4].map(k => <rect key={k} x={x - 26 + k * 11} y="217" width="8" height="4" rx="1" />)}</g></g>)}
+    {/* เส้นความเร็ว */}
+    <g stroke="#ffe14d" strokeLinecap="round" opacity=".22">{[[10, 90, 90], [20, 120, 70], [0, 150, 110], [300, 200, 90], [320, 228, 70]].map(([x, y, w], i) => <path key={i} d={`M${x} ${y} h${w}`} strokeWidth={i % 2 ? 2 : 3} />)}</g>
+    {/* สายฟ้าใหญ่ด้านหลัง */}
+    <path className="glow" d="M214 6 L170 104 L202 104 L180 196 L250 82 L216 82 L240 6 Z" fill="url(#kw-bolt)" opacity=".85" />
+    {/* คำที่พุ่งผ่าน */}
+    {fly.map(([x, y, w, r], i) => <g key={i} transform={`rotate(${r} ${x} ${y})`}><g className="bob" style={{ animationDelay: (-i * 0.6) + 's' }}>
+      <path d={`M${x - 70} ${y} h28`} stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity=".35" />
+      <rect x={x - 36} y={y - 14} width="72" height="26" rx="13" fill="#fff" opacity=".94" />
+      <text x={x} y={y + 5} textAnchor="middle" fontSize="14" fontWeight="800" fill="#3a1d5c" fontFamily="Mitr,sans-serif">{w}</text></g></g>)}
+    {/* ป้ายหมวด */}
+    <g transform="translate(200 128)">
+      <rect x="-70" y="-24" width="140" height="48" rx="14" fill="#ff4f8b" stroke="#120a24" strokeWidth="3" />
+      <rect x="-64" y="-18" width="128" height="36" rx="10" fill="none" stroke="#fff6" strokeWidth="1.5" strokeDasharray="4 3" />
+      <text x="0" y="8" textAnchor="middle" fontSize="22" fontWeight="900" fill="#fff" fontFamily="Mitr,sans-serif">🍉 ผลไม้</text>
+      <text x="0" y="-30" textAnchor="middle" fontSize="11" fontWeight="700" fill="#ffe14d" fontFamily="Mitr,sans-serif" letterSpacing="2">หมวดรอบนี้</text>
+    </g>
+    {/* นาฬิกาจับเวลา */}
+    <g transform="translate(72 150) rotate(-10)">
+      <rect x="-6" y="-46" width="12" height="9" rx="2" fill="#c9c2e8" /><rect x="-12" y="-52" width="24" height="7" rx="3" fill="#ffe14d" />
+      <circle r="38" fill="#ffe14d" stroke="#120a24" strokeWidth="3" /><circle r="30" fill="#fff" />
+      <path d="M0 0 L0 -30 A30 30 0 0 1 26 15 Z" fill="#ff4f8b" opacity=".35" />
+      <g stroke="#3a1d5c" strokeWidth="2">{Array.from({ length: 12 }, (_, i) => <path key={i} d="M0 -26 V-30" transform={`rotate(${i * 30})`} />)}</g>
+      <path d="M0 0 L22 13" stroke="#e8264f" strokeWidth="3" strokeLinecap="round" /><circle r="4" fill="#3a1d5c" />
+    </g>
+    {/* มือถือ: พิมพ์ผิด → ขึ้นคำแนะนำ */}
+    <g transform="translate(316 132) rotate(8)">
+      <rect x="-44" y="-74" width="88" height="150" rx="14" fill="url(#kw-phone)" stroke="#8f7fd1" strokeWidth="3" />
+      <rect x="-36" y="-62" width="72" height="126" rx="6" fill="#1d1238" />
+      <rect x="-30" y="-52" width="60" height="22" rx="5" fill="#fff" />
+      <text x="-2" y="-36" textAnchor="middle" fontSize="13" fontWeight="800" fill="#3a1d5c" fontFamily="Mitr,sans-serif">มะม่ง</text><rect x="20" y="-48" width="2" height="14" fill="#3a1d5c" className="tw" />
+      <text x="0" y="-16" textAnchor="middle" fontSize="7" fill="#c9c2e8" fontFamily="Mitr,sans-serif">หมายถึงคำนี้ไหม?</text>
+      <g className="bob"><rect x="-26" y="-10" width="52" height="20" rx="10" fill="#ffe14d" /><text x="0" y="4" textAnchor="middle" fontSize="11" fontWeight="900" fill="#2a1f00" fontFamily="Mitr,sans-serif">มะม่วง ✓</text></g>
+      <g fill="#3a2a66">{[0, 1, 2].map(r => [0, 1, 2, 3, 4].map(c => <rect key={r + '-' + c} x={-31 + c * 12.6} y={20 + r * 13} width="10" height="10" rx="2" />))}</g>
+    </g>
+    <Spark x={130} y={92} /><Spark x={268} y={92} s={.8} c="#ff8fb1" /><Spark x={36} y={70} s={.7} /><Spark x={372} y={96} s={.9} />
   </S>;
 }
-// ---------- 🔗 ต่อตัวท้าย: ป้ายคำห้อยต่อกันเป็นโซ่ ตัวไข่สองตัวช่วยกันลาก ----------
+// ---------- 🔗 ต่อตัวท้าย: ป้ายคำไม้ร้อยด้วยโซ่ ตัวท้ายเรืองแสง ช่องต่อไปรอคำ ----------
 function WordchainScene() {
-  const words = [[34, 96, 'แมว', '#ff8fb1'], [118, 70, 'วัด', '#ffd23f'], [204, 96, 'ดอกไม้', '#7ae0c3'], [300, 70, 'ยักษ์', '#7aa8ff']];
-  return <S id="wordchain" label="ป้ายคำ แมว วัด ดอกไม้ ยักษ์ ต่อกันเป็นโซ่ มีตัวไข่สองตัวยืนเชียร์">
-    <defs><linearGradient id="wc-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#141c3d" /><stop offset="1" stopColor="#2b2160" /></linearGradient></defs>
+  // [x, y, ก่อนตัวท้าย, ตัวท้าย, หลังตัวท้าย, สี]
+  const tiles = [[66, 54, 'แม', 'ว', '', '#ff8fb1'], [176, 92, 'วั', 'ด', '', '#ffd23f'], [296, 54, 'ดอ', 'ก', 'ไม้', '#7ae0c3'], [318, 150, 'ยั', 'ก', 'ษ์', '#7aa8ff']];
+  const link = (ax, ay, bx, by, k) => { const n = 4; return <g key={k}>{Array.from({ length: n }, (_, i) => { const t = (i + 0.5) / n; const x = ax + (bx - ax) * t, y = ay + (by - ay) * t; const a = Math.atan2(by - ay, bx - ax) * 180 / Math.PI; return <ellipse key={i} cx={x} cy={y} rx="9" ry="5.5" transform={`rotate(${a + (i % 2 ? 0 : 0)} ${x} ${y})`} fill="none" stroke={i % 2 ? '#c9a24a' : '#ffcf6a'} strokeWidth="3.5" />; })}</g>; };
+  return <S id="wordchain" label="ป้ายคำไม้ แมว วัด ดอกไม้ ยักษ์ ร้อยต่อกันด้วยโซ่ทอง ตัวท้ายแต่ละคำเรืองแสง ช่องคำถัดไปขึ้นต้นด้วย ก รออยู่">
+    <defs>
+      <linearGradient id="wc-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0e1433" /><stop offset="1" stopColor="#2b2160" /></linearGradient>
+      <radialGradient id="wc-halo" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffb347" stopOpacity=".55" /><stop offset="1" stopColor="#ffb347" stopOpacity="0" /></radialGradient>
+    </defs>
     <rect width="400" height="260" fill="url(#wc-bg)" />
-    <g fill="#fff" opacity=".35">{[[30, 30], [90, 22], [170, 36], [250, 18], [330, 34], [372, 60]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? 1.6 : 2.4} />)}</g>
-    {words.slice(1).map(([x, y], i) => { const [px, py] = words[i]; const ax = px + 62, ay = py + 20, bx = x, by = y + 20; return <g key={i} stroke="#ffb347" strokeWidth="5" fill="none"><ellipse cx={(ax * 2 + bx) / 3} cy={(ay * 2 + by) / 3} rx="11" ry="7" /><ellipse cx={(ax + bx * 2) / 3} cy={(ay + by * 2) / 3} rx="11" ry="7" /></g>; })}
-    {words.map(([x, y, w, c], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.5) + 's' }}>
-      <rect x={x} y={y} width="66" height="40" rx="12" fill={c} stroke="#1a1533" strokeWidth="3" />
-      <text x={x + 33} y={y + 27} textAnchor="middle" fontSize={w.length > 4 ? 15 : 18} fontWeight="800" fill="#1a1533" fontFamily="Mitr,sans-serif">{w}</text></g>)}
-    <path d="M0 260 V222 Q200 204 400 222 V260 Z" fill="#1a1533" />
-    {[[70, '#ffd23f', -1], [330, '#ff8fb1', 1]].map(([x, c, d], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.8) + 's' }}>
-      <ellipse cx={x} cy="196" rx="24" ry="30" fill={c} />
-      <g fill="#fff"><ellipse cx={x - 8} cy="190" rx="5" ry="6" /><ellipse cx={x + 8} cy="190" rx="5" ry="6" /></g>
-      <g fill="#1a1533"><circle cx={x - 7 - d} cy="191" r="2.6" /><circle cx={x + 9 - d} cy="191" r="2.6" /></g>
-      <path d={`M${x - 7} 204 Q${x} 211 ${x + 7} 204`} stroke="#1a1533" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <text x={x - d * 30} y="160" textAnchor="middle" fontSize="24" fontWeight="900" fill="#ffb347" fontFamily="Mitr,sans-serif">{d < 0 ? 'ว?' : 'ก!'}</text></g>)}
+    <g fill="#fff">{[[24, 20, 1.6], [120, 16, 1.1], [236, 22, 1.4], [372, 18, 1.2], [210, 140, 1], [30, 120, 1.2], [384, 220, 1.4]].map(([x, y, r], i) => <circle key={i} className="tw" cx={x} cy={y} r={r} opacity=".6" />)}</g>
+    {/* ตารางจาง ๆ เหมือนกระดานคำ */}
+    <g stroke="#7aa8ff" strokeWidth="1" opacity=".07">{Array.from({ length: 11 }, (_, i) => <path key={'v' + i} d={`M${i * 40} 0 V260`} />)}{Array.from({ length: 7 }, (_, i) => <path key={'h' + i} d={`M0 ${i * 40} H400`} />)}</g>
+    {tiles.slice(1).map(([x, y], i) => { const [px, py] = tiles[i]; return link(px + 30, py, x - 30, y, i); })}
+    {link(tiles[3][0] - 38, tiles[3][1], 258, 150, 'n')}
+    {tiles.map(([x, y, a, L, b, c], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.5) + 's' }}>
+      <circle cx={x + (b ? 4 : 18)} cy={y} r="22" fill="url(#wc-halo)" className="glow" />
+      <rect x={x - 38} y={y - 20 + 4} width="76" height="42" rx="10" fill="#000" opacity=".35" />
+      <rect x={x - 38} y={y - 20} width="76" height="42" rx="10" fill={c} stroke="#1a1533" strokeWidth="3" />
+      <rect x={x - 32} y={y - 15} width="64" height="6" rx="3" fill="#fff" opacity=".35" />
+      <text x={x} y={y + 9} textAnchor="middle" fontSize="20" fontWeight="800" fill="#1a1533" fontFamily="Mitr,sans-serif">{a}<tspan fill="#c2410c" fontWeight="900">{L}</tspan>{b}</text>
+    </g>)}
+    {/* ช่องคำถัดไป: ขึ้นต้นด้วย ก */}
+    <g transform="translate(214 150)">
+      <rect x="-44" y="-22" width="88" height="44" rx="10" fill="#ffffff10" stroke="#ffb347" strokeWidth="2.5" strokeDasharray="7 5" />
+      <text x="-14" y="10" textAnchor="middle" fontSize="24" fontWeight="900" fill="#ffb347" fontFamily="Mitr,sans-serif">ก</text>
+      <text x="16" y="10" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fff" opacity=".55" fontFamily="Mitr,sans-serif" className="tw">…?</text>
+    </g>
+    {/* นาฬิกาทราย */}
+    <g transform="translate(120 140) rotate(-8)">
+      <rect x="-16" y="-30" width="32" height="5" rx="2" fill="#c9a24a" /><rect x="-16" y="25" width="32" height="5" rx="2" fill="#c9a24a" />
+      <path d="M-12 -25 H12 Q12 -6 2 0 Q12 6 12 25 H-12 Q-12 6 -2 0 Q-12 -6 -12 -25Z" fill="#ffffff22" stroke="#e8e2ff" strokeWidth="2" />
+      <path d="M-8 -16 H8 Q6 -6 0 -1 Q-6 -6 -8 -16Z" fill="#ffb347" /><path d="M-9 24 H9 Q6 14 0 12 Q-6 14 -9 24Z" fill="#ffb347" /><path d="M0 0 V12" stroke="#ffb347" strokeWidth="1.5" />
+    </g>
+    <Spark x={130} y={24} s={.8} /><Spark x={250} y={130} s={.9} c="#ffcf6a" /><Spark x={366} y={98} s={.7} />
   </S>;
 }
-// ---------- 🤫 Insider: Master ใต้โคมไฟ เพื่อนล้อมถาม มีคนหนึ่งยิ้มรู้ทัน ----------
+// ---------- 🤫 Insider: ซองคำลับมีตรามงกุฎใต้โคมไฟ ฟองคำถามลอยรอบ ๆ เงาปริศนาหลังม่านจุ๊ปาก ----------
 function InsiderScene() {
-  const ppl = [[70, '#2fd6a0', 0], [140, '#7aa8ff', 0], [260, '#ff8fb1', 1], [330, '#ffd23f', 0]];
-  return <S id="insider" label="Master ใต้โคมไฟถือการ์ดคำลับ เพื่อนสี่คนล้อมถาม หนึ่งในนั้นยิ้มเจ้าเล่ห์">
+  const bubbles = [[64, 44, 'มันกินได้ไหม?', 102], [240, 80, 'ใช่!', 46], [40, 104, 'ตัวใหญ่ไหม?', 90], [228, 28, 'ไม่ใช่', 58]];
+  return <S id="insider" label="ซองคำลับตรามงกุฎวางบนโต๊ะใต้โคมไฟ ฟองคำถามลอยรอบ ๆ เงาปริศนาแอบหลังม่านยกนิ้วจุ๊ปาก ตาเรืองแสง">
     <defs>
       <linearGradient id="in-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#041210" /><stop offset="1" stopColor="#0f3d31" /></linearGradient>
-      <radialGradient id="in-lamp" cx=".5" cy="0" r="1"><stop offset="0" stopColor="#ffe08a" stopOpacity=".55" /><stop offset="1" stopColor="#ffe08a" stopOpacity="0" /></radialGradient>
+      <radialGradient id="in-lamp" cx=".5" cy="0" r="1"><stop offset="0" stopColor="#ffe08a" stopOpacity=".6" /><stop offset="1" stopColor="#ffe08a" stopOpacity="0" /></radialGradient>
+      <linearGradient id="in-curt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#0a3a2c" /><stop offset=".5" stopColor="#14604a" /><stop offset="1" stopColor="#062219" /></linearGradient>
+      <linearGradient id="in-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6b4421" /><stop offset="1" stopColor="#2c1a0c" /></linearGradient>
     </defs>
     <rect width="400" height="260" fill="url(#in-bg)" />
-    <path className="glow" d="M180 40 L220 40 L300 230 L100 230 Z" fill="url(#in-lamp)" />
-    <path d="M200 0 V30" stroke="#1d3a33" strokeWidth="3" /><path d="M178 42 Q200 22 222 42 Z" fill="#f2c14e" />
-    <path d="M0 260 V214 Q200 198 400 214 V260 Z" fill="#082019" />
-    {ppl.map(([x, c, sly], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.6) + 's' }}>
-      <ellipse cx={x} cy="196" rx="26" ry="32" fill={c} />
-      <g fill="#fff"><ellipse cx={x - 8} cy="190" rx="5" ry="6" /><ellipse cx={x + 8} cy="190" rx="5" ry="6" /></g>
-      <g fill="#14221e"><circle cx={x - 7 + (x < 200 ? 2 : -2)} cy="191" r="2.6" /><circle cx={x + 9 + (x < 200 ? 2 : -2)} cy="191" r="2.6" /></g>
-      {sly ? <path d={`M${x - 8} 204 Q${x + 2} 212 ${x + 10} 200`} stroke="#14221e" strokeWidth="3" fill="none" strokeLinecap="round" /> : <ellipse cx={x} cy="206" rx="4" ry="3.5" fill="#14221e" />}
-      {!sly && <text x={x} y="152" textAnchor="middle" fontSize="22" fontWeight="900" fill="#fff" opacity=".85" fontFamily="Mitr,sans-serif">?</text>}
-    </g>)}
-    <g transform="translate(200 0)">
-      <ellipse cx="0" cy="168" rx="30" ry="38" fill="#f2c14e" /><path d="M-18 132 L-12 116 L0 128 L12 116 L18 132 Z" fill="#ffd77a" stroke="#a87a10" strokeWidth="2" />
-      <g fill="#fff"><ellipse cx="-9" cy="160" rx="6" ry="7" /><ellipse cx="9" cy="160" rx="6" ry="7" /></g><g fill="#14221e"><circle cx="-9" cy="162" r="3" /><circle cx="9" cy="162" r="3" /></g>
-      <path d="M-8 178 Q0 183 8 178" stroke="#14221e" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <g className="peek" transform="rotate(-6 0 210)"><rect x="-30" y="196" width="60" height="34" rx="4" fill="#fbf4e4" /><text x="0" y="219" textAnchor="middle" fontSize="15" fontWeight="900" fill="#0f3d31" fontFamily="Mitr,sans-serif">ใช่ / ไม่ใช่</text></g>
+    <g stroke="#2fd6a0" opacity=".06">{Array.from({ length: 12 }, (_, i) => <path key={i} d={`M${i * 34 + 6} 0 V200`} strokeWidth="8" />)}</g>
+    {/* เงาปริศนา (Insider) แอบหลังม่าน */}
+    <g>
+      <path d="M300 260 V196 Q300 160 334 152 Q322 140 322 120 Q322 90 350 90 Q378 90 378 120 Q378 140 366 152 Q400 160 400 196 V260 Z" fill="#010604" />
+      <g className="tw"><path d="M334 116 Q341 110 348 116 Q341 119 334 116Z" fill="#ffd23f" /><path d="M354 116 Q361 110 368 116 Q361 119 354 116Z" fill="#ffd23f" /></g>
+      <path d="M332 106 L348 110 M368 106 L354 110" stroke="#ffd23f" strokeWidth="2" strokeLinecap="round" opacity=".7" />
+      <path d="M338 132 Q350 140 362 130" stroke="#2fd6a0" strokeWidth="2" fill="none" strokeLinecap="round" opacity=".7" />
+      <g className="peek"><rect x="346" y="124" width="8" height="26" rx="4" fill="#020a07" stroke="#2fd6a0" strokeWidth="1.2" opacity=".9" /></g>
+      <text x="318" y="84" fontSize="13" fontWeight="800" fill="#2fd6a0" opacity=".8" fontFamily="Mitr,sans-serif">จุ๊ ๆ</text>
     </g>
-    <g transform="translate(290 70)"><path d="M0 12 Q0 0 12 0 H92 Q104 0 104 12 V28 Q104 40 92 40 H30 L16 54 L20 40 H12 Q0 40 0 28 Z" fill="#fff" /><text x="52" y="26" textAnchor="middle" fontFamily="Mitr,sans-serif" fontWeight="600" fontSize="13" fill="#0f3d31">กินได้ไหม?</text></g>
-    {/* ชั้นหนังสือ ตู้ นาฬิกา ไพ่บนโต๊ะ ประกายลับ เงา */}
-    <g fill="#0a2a22" stroke="#041210" strokeWidth="2"><rect x="10" y="40" width="70" height="110" /></g>
-    <g stroke="#041210" strokeWidth="2">{[74, 108].map(y => <path key={y} d={`M10 ${y} H80`} />)}</g>
-    <g>{[[14, 46, '#c8584a'], [24, 50, '#e8b84a'], [32, 44, '#3fa9f5'], [44, 52, '#7acf8a'], [54, 48, '#c89aff'], [14, 80, '#e8b84a'], [26, 84, '#c8584a'], [38, 78, '#3fa9f5']].map(([x, y, c], i) => <rect key={i} x={x} y={y} width="8" height={74 - (y % 74) - (y > 74 ? -34 : 0) > 30 ? 26 : 22} rx="1" fill={c} opacity=".7" />)}</g>
-    <g transform="translate(110 30)"><circle r="12" fill="#f2e6c4" stroke="#041210" strokeWidth="2" /><path d="M0 0 V-8 M0 0 L6 3" stroke="#041210" strokeWidth="2" strokeLinecap="round" /></g>
-    <g transform="translate(44 126)"><path d="M-12 14 H12 L8 -4 H-8Z" fill="#c8584a" stroke="#041210" strokeWidth="1.6" /><path d="M0 -4 q-10 -14 -2 -22 q4 8 2 22Z M0 -4 q10 -12 4 -20 q-4 8 -4 20Z" fill="#3f7a4a" /></g>
-    <g fill="#ffe08a">{[[150, 60], [258, 52], [120, 110], [286, 120]].map(([x, y], i) => <path key={i} d={`M${x} ${y - 5} l1.4 3.6 l3.6 1.4 l-3.6 1.4 l-1.4 3.6 l-1.4 -3.6 l-3.6 -1.4 l3.6 -1.4Z`} className="tw" />)}</g>
-    <g fill="#000" opacity=".3"><ellipse cx="200" cy="232" rx="60" ry="6" /></g>
+    <path d="M384 0 H400 V260 H372 Q388 200 378 130 Q370 60 384 0Z" fill="url(#in-curt)" />
+    <path d="M286 0 H320 Q306 40 312 80 Q318 110 300 128 Q296 70 286 0Z" fill="url(#in-curt)" opacity=".9" />
+    <circle cx="303" cy="128" r="5" fill="#f2c14e" /><path d="M303 133 V146" stroke="#f2c14e" strokeWidth="3" />
+    {/* โคมไฟ */}
+    <path className="glow" d="M176 40 L224 40 L310 214 L90 214 Z" fill="url(#in-lamp)" />
+    <path d="M200 0 V28" stroke="#1d3a33" strokeWidth="3" /><path d="M174 42 Q200 18 226 42 Z" fill="#f2c14e" stroke="#a87a10" strokeWidth="2" /><ellipse cx="200" cy="42" rx="26" ry="4" fill="#fff3c4" />
+    {/* โต๊ะ */}
+    <path d="M60 206 Q200 188 340 206 L360 260 H40 Z" fill="url(#in-desk)" /><path d="M60 206 Q200 188 340 206" stroke="#a87a4a" strokeWidth="2" fill="none" />
+    {/* ซองคำลับ + การ์ดโผล่ */}
+    <g transform="translate(200 176) rotate(-4)">
+      <ellipse cx="0" cy="34" rx="62" ry="7" fill="#000" opacity=".35" />
+      <g className="peek"><rect x="-34" y="-34" width="68" height="44" rx="4" fill="#fffdf4" stroke="#c8b98a" strokeWidth="1.5" /><text x="0" y="-12" textAnchor="middle" fontSize="15" fontWeight="900" fill="#0f3d31" fontFamily="Mitr,sans-serif">? ? ?</text></g>
+      <rect x="-52" y="-6" width="104" height="40" rx="4" fill="#e9d6a8" stroke="#a88a4a" strokeWidth="2" />
+      <path d="M-52 -6 L0 22 L52 -6" fill="#f3e4bd" stroke="#a88a4a" strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="0" cy="20" r="11" fill="#b3202e" stroke="#7a1420" strokeWidth="2" />
+      <path d="M-6 23 L-6 16 L-3 19 L0 14 L3 19 L6 16 L6 23 Z" fill="#ffd77a" />
+      <text x="0" y="-44" textAnchor="middle" fontSize="11" fontWeight="800" fill="#ffe08a" fontFamily="Mitr,sans-serif" letterSpacing="2">คำลับ</text>
+    </g>
+    {/* มงกุฎ Master ลอยเหนือซอง */}
+    <g transform="translate(200 104)"><g className="bob"><path d="M-20 10 L-24 -10 L-10 0 L0 -16 L10 0 L24 -10 L20 10 Z" fill="#f2c14e" stroke="#a87a10" strokeWidth="2" strokeLinejoin="round" /><rect x="-20" y="10" width="40" height="6" rx="2" fill="#d8a52a" /><circle cx="0" cy="-16" r="3" fill="#ff8fb1" /><circle cx="-24" cy="-10" r="2.5" fill="#7ae0c3" /><circle cx="24" cy="-10" r="2.5" fill="#7ae0c3" /></g></g>
+    {/* แว่นขยาย */}
+    <g transform="translate(118 196) rotate(-30)"><circle r="14" fill="#9fe8d2" fillOpacity=".25" stroke="#c8d6d0" strokeWidth="4" /><rect x="-3" y="14" width="6" height="22" rx="3" fill="#6b4421" /></g>
+    {/* ฟองคำถาม */}
+    {bubbles.map(([x, y, t, w], i) => <g key={i} transform={`translate(${x} ${y})`}><g className="bob" style={{ animationDelay: (-i * 0.7) + 's' }}>
+      <path d={`M0 0 h${w} q8 0 8 8 v14 q0 8 -8 8 h-${w - 24} l-10 9 l2 -9 h-${12} q-8 0 -8 -8 v-14 q0 -8 8 -8z`} fill={i === 1 ? '#2fd6a0' : i === 3 ? '#ff8a8a' : '#fff'} opacity=".95" />
+      <text x={w / 2 + 2} y="20" textAnchor="middle" fontSize="12" fontWeight="700" fill={i === 1 || i === 3 ? '#062219' : '#0f3d31'} fontFamily="Mitr,sans-serif">{t}</text></g></g>)}
+    <g fill="#ffe08a">{[[150, 140], [258, 132], [236, 88], [148, 30]].map(([x, y], i) => <Spark key={i} x={x} y={y} s={.7} />)}</g>
   </S>;
 }
 // ---------- 🖼️ ภาพนี้มีพิรุธ: หอศิลป์ กรอบทองเรียงบนผนัง ไฟส่อง และภาพหนึ่งที่เอียงแปลก ๆ ----------
@@ -893,25 +950,73 @@ function MiniCard({ x, y, r = 0, rank, s, back }) {
   </g>;
 }
 const ChipStack = ({ x, y, c, n }) => <g>{Array.from({ length: n }, (_, i) => <g key={i}><ellipse cx={x} cy={y - i * 4} rx="13" ry="5" fill={c} stroke="#fff" strokeWidth="1.5" strokeDasharray="3 2.5" /></g>)}</g>;
-function FeltTable({ id, label, cards, chips, lamp }) {
+function FeltTable({ id, label, cards, chips, lamp, cone = '#ffd98a', back = null, front = null }) {
   return <S id={id} label={label}>
     <defs>
       <radialGradient id={id + '-bg'} cx=".5" cy=".2" r="1"><stop offset="0" stopColor={lamp} /><stop offset="1" stopColor="#05070c" /></radialGradient>
       <radialGradient id={id + '-felt'} cx=".5" cy=".4" r=".7"><stop offset="0" stopColor="#3aa866" /><stop offset=".6" stopColor="#1c7a43" /><stop offset="1" stopColor="#0f5730" /></radialGradient>
+      <radialGradient id={id + '-cone'} cx=".5" cy="0" r="1"><stop offset="0" stopColor={cone} stopOpacity=".42" /><stop offset="1" stopColor={cone} stopOpacity="0" /></radialGradient>
+      <linearGradient id={id + '-rim'} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#e9bf68" /><stop offset="1" stopColor="#8a5a1c" /></linearGradient>
     </defs>
     <rect width="400" height="260" fill={`url(#${id}-bg)`} />
-    <ellipse cx="200" cy="175" rx="196" ry="86" fill="#3e1f0c" /><ellipse cx="200" cy="172" rx="186" ry="78" fill="#c8963c" /><ellipse cx="200" cy="172" rx="180" ry="74" fill={`url(#${id}-felt)`} />
+    {back}
+    {/* โคมไฟห้อยเหนือโต๊ะ */}
+    <path className="glow" d="M172 26 L228 26 L330 190 L70 190 Z" fill={`url(#${id}-cone)`} />
+    <path d="M200 0 V16" stroke="#2a2a2a" strokeWidth="3" /><path d="M170 30 Q200 4 230 30 Z" fill="#1e2a22" stroke="#c8963c" strokeWidth="2" /><ellipse cx="200" cy="30" rx="30" ry="4" fill={cone} opacity=".9" />
+    {/* โต๊ะ: ขอบไม้ ขอบทอง สักหลาด เส้นเย็บ */}
+    <ellipse cx="200" cy="180" rx="198" ry="88" fill="#000" opacity=".45" />
+    <ellipse cx="200" cy="175" rx="196" ry="86" fill="#3e1f0c" /><ellipse cx="200" cy="172" rx="186" ry="78" fill={`url(#${id}-rim)`} /><ellipse cx="200" cy="172" rx="180" ry="74" fill={`url(#${id}-felt)`} />
+    <ellipse cx="200" cy="172" rx="172" ry="68" fill="none" stroke="#ffffff30" strokeWidth="1.2" strokeDasharray="4 4" />
     <ellipse cx="200" cy="172" rx="150" ry="56" fill="none" stroke="#ffffff22" strokeWidth="1.5" />
+    <g fill="#fff3c4">{Array.from({ length: 14 }, (_, i) => { const a = Math.PI * (i / 13); return <circle key={i} cx={200 - Math.cos(a) * 183} cy={172 - Math.sin(a) * 76} r="1.6" opacity=".8" />; })}</g>
     {chips.map((c, i) => <ChipStack key={i} {...c} />)}
     <g className="bob">{cards.map((c, i) => <MiniCard key={i} {...c} />)}</g>
+    {front}
   </S>;
 }
-const PokdengScene = () => <FeltTable id="pokdeng" lamp="#4a2a10" label="วงป๊อกเด้งบนโต๊ะสักหลาดเขียว ไพ่ป๊อกเก้าสองเด้ง ชิปกองแดงทอง"
-  cards={[{ x: 170, y: 150, r: -12, rank: '4', s: 'H' }, { x: 214, y: 146, r: 10, rank: '5', s: 'H' }, { x: 300, y: 186, r: 18, back: true }, { x: 92, y: 190, r: -20, back: true }]}
-  chips={[{ x: 120, y: 150, c: '#d42a3c', n: 5 }, { x: 146, y: 214, c: '#1f8f4e', n: 3 }, { x: 268, y: 222, c: '#16181d', n: 4 }]} />;
-const PokerScene = () => <FeltTable id="poker" lamp="#14203f" label="โต๊ะโป๊กเกอร์ ไพ่กองกลางห้าใบ เอซโพดำ ชิปกองโต"
-  cards={[{ x: 112, y: 160, r: 0, rank: 'A', s: 'S' }, { x: 156, y: 160, r: 0, rank: 'K', s: 'S' }, { x: 200, y: 160, r: 0, rank: 'Q', s: 'S' }, { x: 244, y: 160, r: 0, rank: 'J', s: 'S' }, { x: 288, y: 160, r: 0, back: true }]}
-  chips={[{ x: 186, y: 225, c: '#7b3fe4', n: 6 }, { x: 214, y: 228, c: '#d42a3c', n: 4 }, { x: 330, y: 210, c: '#16181d', n: 3 }]} />;
+const Spark = ({ x, y, s = 1, c = '#ffe08a' }) => <path className="tw" transform={`translate(${x} ${y}) scale(${s})`} d="M0 -7 L1.8 -1.8 L7 0 L1.8 1.8 L0 7 L-1.8 1.8 L-7 0 L-1.8 -1.8Z" fill={c} />;
+const Ribbon = ({ x, y, w, text, fill, color = '#fff' }) => <g transform={`translate(${x} ${y})`}><g className="bob">
+  <path d={`M${-w / 2 - 14} 4 L${-w / 2} -2 L${-w / 2} 18 L${-w / 2 - 14} 24 L${-w / 2 - 8} 14 Z M${w / 2 + 14} 4 L${w / 2} -2 L${w / 2} 18 L${w / 2 + 14} 24 L${w / 2 + 8} 14 Z`} fill={fill} opacity=".75" />
+  <rect x={-w / 2} y="-6" width={w} height="26" rx="5" fill={fill} stroke="#fff8" strokeWidth="1.5" />
+  <text x="0" y="12" textAnchor="middle" fontSize="14" fontWeight="900" fill={color} fontFamily="Mitr,sans-serif" letterSpacing=".5">{text}</text>
+</g></g>;
+// ถาดชิปเจ้ามือ
+const ChipTray = ({ x, y }) => <g transform={`translate(${x} ${y})`}>
+  <rect x="-48" y="-12" width="96" height="22" rx="5" fill="#2a160a" stroke="#c8963c" strokeWidth="1.5" />
+  {['#d42a3c', '#1f8f4e', '#2f6fe0', '#16181d', '#f2c14e'].map((c, i) => <g key={i}>{[0, 1, 2, 3, 4].map(k => <rect key={k} x={-44 + i * 18 + k * 3} y="-9" width="3" height="16" rx="1" fill={c} stroke="#0006" strokeWidth=".5" />)}</g>)}
+</g>;
+const PokdengScene = () => <FeltTable id="pokdeng" lamp="#4a2a10" label="วงป๊อกเด้ง ไพ่ 4 กับ 5 โพแดง ป๊อกเก้าสองเด้ง มีถาดชิปเจ้ามือ กองไพ่ ชิปและเหรียญกระจาย"
+  cards={[{ x: 170, y: 150, r: -12, rank: '4', s: 'H' }, { x: 214, y: 146, r: 10, rank: '5', s: 'H' }, { x: 300, y: 186, r: 18, back: true }, { x: 326, y: 180, r: 30, back: true }, { x: 92, y: 190, r: -20, back: true }, { x: 66, y: 184, r: -32, back: true }]}
+  chips={[{ x: 120, y: 150, c: '#d42a3c', n: 5 }, { x: 136, y: 160, c: '#f2c14e', n: 3 }, { x: 146, y: 214, c: '#1f8f4e', n: 3 }, { x: 268, y: 222, c: '#16181d', n: 4 }, { x: 282, y: 140, c: '#2f6fe0', n: 4 }]}
+  back={<g opacity=".18" fill="#ffcf5a">{[[30, 40], [370, 40], [40, 110], [362, 104]].map(([x, y], i) => <text key={i} x={x} y={y} textAnchor="middle" fontSize="26" fontFamily="Georgia,serif">{['♥', '♦', '♣', '♠'][i]}</text>)}</g>}
+  front={<>
+    <ChipTray x={200} y={112} />
+    {/* กองไพ่ข้างถาด */}
+    <g transform="translate(262 112) rotate(8)">{[0, 1, 2, 3].map(i => <rect key={i} x={-14 - i} y={-19 - i * 1.5} width="28" height="38" rx="3" fill="#b3202e" stroke="#fffdf8" strokeWidth="1.5" />)}<path d="M-4 -10 L2 -4 L-4 2 L-10 -4Z" fill="#ffcf5a" /></g>
+    {/* เหรียญ + ชิปล้ม */}
+    <g>{[[236, 200], [250, 206], [178, 212], [100, 168]].map(([x, y], i) => <g key={i}><ellipse cx={x} cy={y} rx="7" ry="3" fill="#f2c14e" stroke="#8a5a1c" strokeWidth="1" /><ellipse cx={x} cy={y - 1} rx="4" ry="1.5" fill="#ffe08a" /></g>)}</g>
+    <g transform="translate(320 150) rotate(-24)"><ellipse rx="12" ry="5" fill="#d42a3c" stroke="#fff" strokeWidth="1.5" strokeDasharray="3 2.5" /></g>
+    <Ribbon x={192} y={70} w={150} text="ป๊อก 9 · สองเด้ง!" fill="#c8102e" />
+    <Spark x={110} y={70} /><Spark x={290} y={66} s={1.2} /><Spark x={250} y={124} s={.8} /><Spark x={150} y={118} s={.7} />
+  </>} />;
+const PokerScene = () => <FeltTable id="poker" lamp="#14203f" cone="#9cc4ff" label="โต๊ะโป๊กเกอร์ ไพ่กองกลางเรียงเป็นรอยัลฟลัชโพดำ ปุ่มดีลเลอร์ ไพ่ในมือคู่เอซ ชิปกองโต"
+  cards={[{ x: 112, y: 160, r: 0, rank: 'A', s: 'S' }, { x: 156, y: 160, r: 0, rank: 'K', s: 'S' }, { x: 200, y: 160, r: 0, rank: 'Q', s: 'S' }, { x: 244, y: 160, r: 0, rank: 'J', s: 'S' }, { x: 288, y: 160, r: 0, rank: '10', s: 'S' }]}
+  chips={[{ x: 186, y: 225, c: '#7b3fe4', n: 6 }, { x: 214, y: 228, c: '#d42a3c', n: 4 }, { x: 330, y: 210, c: '#16181d', n: 3 }, { x: 60, y: 168, c: '#2f6fe0', n: 5 }, { x: 78, y: 176, c: '#f2c14e', n: 3 }]}
+  back={<>
+    {/* ไฟสปอตไลต์คาสิโน + เส้นแสงนีออน */}
+    <path d="M40 0 L70 0 L150 150 L90 150 Z" fill="#9cc4ff" opacity=".06" /><path d="M330 0 L360 0 L310 150 L250 150 Z" fill="#9cc4ff" opacity=".06" />
+    <g fill="none" stroke="#7b3fe4" strokeWidth="2" opacity=".35"><path d="M0 60 H60 M340 60 H400" /><path d="M0 66 H40 M360 66 H400" stroke="#2fd6ff" /></g>
+  </>}
+  front={<>
+    {/* แสงรอบไพ่ใบสุดท้าย = ครบรอยัลฟลัช */}
+    <rect className="glow" x="262" y="125" width="52" height="70" rx="8" fill="none" stroke="#ffe08a" strokeWidth="3" opacity=".8" />
+    {/* ไพ่ในมือ: คู่เอซแอบเปิด */}
+    <g transform="translate(342 132) rotate(14)"><MiniCard x={0} y={0} r={-8} rank="A" s="H" /><MiniCard x={16} y={2} r={8} rank="A" s="D" /></g>
+    {/* ปุ่มดีลเลอร์ */}
+    <g transform="translate(138 116)"><ellipse cx="0" cy="3" rx="13" ry="6" fill="#0006" /><ellipse cx="0" cy="0" rx="13" ry="6" fill="#fffdf8" stroke="#16181d" strokeWidth="1.5" /><text x="0" y="4" textAnchor="middle" fontSize="9" fontWeight="900" fill="#16181d" fontFamily="Georgia,serif">D</text></g>
+    <Ribbon x={200} y={70} w={150} text="ROYAL FLUSH" fill="#14203f" color="#ffe08a" />
+    <Spark x={300} y={112} s={1.1} /><Spark x={96} y={118} s={.8} c="#9cc4ff" /><Spark x={316} y={70} c="#9cc4ff" /><Spark x={92} y={66} />
+  </>} />;
 
 const SCENES = { pokdeng: PokdengScene, poker: PokerScene, quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, wordchain: WordchainScene, kwai: KwaiScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }
