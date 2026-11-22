@@ -13,7 +13,7 @@ import { Art } from './play-art.jsx';
 import { makeAv, Avatar, Voters, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Choice, Ambient, TimerRing, freeAv, AvFace, Backdrop } from './ui.jsx';
 import { CharEditor, BODY_COLORS, fixLook, randomLook } from './char.jsx';
 import { SceneArt, HubArt, BrandMark } from './art.jsx';
-import { GangBoard, recordResult, readPin, RichBoard, saveWallet, readWallet, addProfit, WALLET_CAP } from './gangboard.jsx';
+import { GangBoard, recordResult, readPin, isPin, savePinLocal, PinModal, RichBoard, saveWallet, readWallet, addProfit, WALLET_CAP } from './gangboard.jsx';
 import { netOf } from './playcards.jsx';
 import { play as sfx, setSfxTheme, setSfxVolume } from './sfx.js';
 import { setMusic, setMusicVolume, trackName } from './music.js';
@@ -49,7 +49,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.91';
+const APP_VERSION = '1.92';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -298,6 +298,9 @@ function App() {
   const gid=room?(room.game||'spyfall'):(game||'spyfall');const G=GAMES[gid]||GAMES.spyfall;const I=G.item,U=G.unit;
   // อันดับแก๊ง: แต้มของเราในห้องเพิ่มขึ้นตอนจบรอบ = ชนะ (แต่ละเครื่องบันทึกเฉพาะตัวเอง)
   const lbBase=useRef(null);const [pin,setPin]=useState(readPin);const pinRef=useRef(pin);pinRef.current=pin;
+  // เลขแก๊งบังคับ: ไม่มีเลข → ถามก่อนสร้าง/เข้าห้อง แล้วทำต่อให้อัตโนมัติ (เลขซ้ำกันได้)
+  const [pinAsk,setPinAsk]=useState(null);
+  useEffect(()=>{if(pin&&pinAsk){const a=pinAsk;setPinAsk(null);a==='create'?createRoom():joinRoom()}},[pin]);
   useEffect(()=>{if(!room||!roomCode){lbBase.current=null;return}const sc=room.scores||{},prev=lbBase.current;lbBase.current={code:roomCode,sc};if(!prev||prev.code!==roomCode)return;if(!Object.keys({...sc,...prev.sc}).some(id=>(sc[id]||0)!==(prev.sc[id]||0)))return;const me=room.players?.[myId];if(!me||!me.name||room.status==='lobby'&&!room.result)return;const d=(sc[myId]||0)-(prev.sc[myId]||0);if(d<0)return;recordResult(db,{pin:pinRef.current,name:me.name,look:me.look||myLook,av:me.av??myAv,gid:room.game||'spyfall',won:d>0,pts:d})},[room?.scores,roomCode]);
   // กระเป๋าชิปผูกรหัส: เข้าห้องไพ่ครั้งแรก → ตั้งชิปเริ่มของเราเป็นยอดในกระเป๋า • ระหว่างเล่น → บันทึกชิปบนโต๊ะเป็นยอดเดียว (ซื้อเพิ่ม/ชนะ/แพ้/ถูกหัก นับหมด)
   const walletSeed=useRef('');const walletLast=useRef(null);const profitRef=useRef(null);
@@ -376,13 +379,14 @@ function App() {
   async function createRoom(){
     if(!db){msg('ยังไม่ได้ตั้งค่า Firebase ตาม README');return}
     const n=clean(name);if(!n){msg('ใส่ชื่อเล่นก่อนนะ');return}
+    if(!isPin(pinRef.current)){setPinAsk('create');return}
     const code=rid().slice(0,5);const a0=freeAv([],myAv);if(a0!==myAv)saveAv(a0);const player={id:myId,name:n,joinedAt:Date.now(),v:APP_VERSION,av:a0,look:myLook};
     const data={code,game:gid,v:APP_VERSION,hostId:myId,status:'lobby',createdAt:Date.now(),active:serverTimestamp(),players:{[myId]:player},packs:G.packs,round:null,votes:null,settings:{duration}};
     await set(ref(db,`rooms/${code}`),data);localStorage.setItem('sf-name',n);setRoomCode(code);setScreen('room');sfx(sound,'join');
   }
   async function joinRoom(){
     if(!db){msg('ยังไม่ได้ตั้งค่า Firebase ตาม README');return}
-    const n=clean(name),code=joinCode.trim().toUpperCase();if(!n||!code){msg('ใส่ชื่อและรหัสห้องก่อน');return}
+    const n=clean(name),code=joinCode.trim().toUpperCase();if(!n||!code){msg('ใส่ชื่อและรหัสห้องก่อน');return}if(!isPin(pinRef.current)){setPinAsk('join');return}
     const rr=ref(db,`rooms/${code}`);const snap=await get(rr);if(!snap.exists()){msg('ไม่เจอห้องนี้ เช็กรหัสอีกที');return}
     const data=snap.val();
     // หลุดแล้วเข้าใหม่ (คนละแท็บ/เครื่อง) ด้วยชื่อเดิม → กลับเข้าที่นั่งเดิมที่ขึ้นว่าหลุดอยู่ ไม่เกิดตัวซ้ำ (คะแนน/ไพ่/บทบาทยังอยู่)
@@ -567,6 +571,7 @@ function App() {
       </div>}</div></header>
     {newBuild&&<button className="update-bar" onClick={()=>location.reload()}>🔄 มีเวอร์ชันใหม่ — แตะเพื่ออัปเดต</button>}
     {notice&&<div className="toast">{notice}</div>}
+    {pinAsk&&db&&<PinModal db={db} name={name} onSet={p=>{savePinLocal(p);pinRef.current=p;setPin(p)}} onClose={()=>setPinAsk(null)}/>}
     {avOpen&&<CharEditor color={room?av.idxOf(myId):myAv} look={myLook} takenBy={room?Object.fromEntries(players.filter(p=>p.id!==myId).map(p=>[av.idxOf(p.id),p.name])):{}} onSave={saveChar} onClose={()=>setAvOpen(false)}/>}
     {screen==='room'&&room&&<>
       <div className="rx-layer" aria-hidden="true">{floats.map(f=><div key={f.id} className="rx" style={{left:f.x+'%'}}><b>{f.e}</b><span><Avatar id={f.by} av={av} size={22}/>{nameOf(f.by)}</span></div>)}</div>
@@ -588,7 +593,7 @@ function App() {
         </section>
         <aside className="hub-aside">
           <section className="ha-card" id="join"><h3><DoorOpen size={20}/> เข้าห้องของเพื่อน</h3><div className="me-row"><button type="button" className="av-edit big" onClick={openDress} title="แต่งตัวละคร" aria-label="แต่งตัวละคร"><AvFace i={myAv??0} look={myLook} size={44}/><i>✏️</i></button><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="ชื่อเล่นของคุณ" aria-label="ชื่อเล่นของคุณ"/></div><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="ใส่รหัสห้อง…" aria-label="รหัสห้อง"/><button className="ha-join" onClick={joinRoom}>เข้าห้อง <ArrowRight size={16}/></button></div><div className="ha-or"><span>หรือ</span></div><button className="ha-create" onClick={createCta}><Plus size={18}/> สร้างห้องใหม่</button></section>
-          {db&&<GangBoard db={db} pin={pin} setPin={setPin}/>}
+          {db&&<GangBoard db={db} pin={pin} setPin={setPin} name={name}/>}
           {db&&<RichBoard db={db} pin={pin}/>}
           <section className="ha-card"><h3><Sparkles size={18}/> เริ่มเล่นใน 3 ขั้น</h3><ol className="ha-steps"><li><b>เลือกเกม สร้างห้อง</b><span>คนหนึ่งเป็นหัวหน้าห้อง กด “สร้างห้องใหม่”</span></li><li><b>ชวนเพื่อนเข้าห้อง</b><span>ส่งลิงก์ในแชต หรือบอกรหัสห้อง 5 ตัว</span></li><li><b>เข้าห้องเสียงแล้วเล่น</b><span>คุยกันในเว็บได้เลย แต้มสะสมนับต่อทุกรอบ</span></li></ol><p className="ha-ver">เวอร์ชัน {APP_VERSION}</p></section>
         </aside>

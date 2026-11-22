@@ -7,6 +7,7 @@ import { AvFace } from './ui.jsx';
 
 export const isPin = p => /^[0-9]{4}$/.test(p || '');
 export function readPin() { try { const p = localStorage.getItem('sf-pin'); return isPin(p) ? p : ''; } catch { return ''; } }
+export function savePinLocal(p) { try { localStorage.setItem('sf-pin', p); } catch { } }
 
 // เลขสัปดาห์แบบ ISO เช่น w202647 (รีเซ็ตทุกวันจันทร์)
 export function weekId(ts = Date.now()) {
@@ -28,23 +29,23 @@ export function recordResult(db, { pin, name, look, av, gid, won, pts }) {
   for (const p of ['all', weekId()]) runTransaction(ref(db, `lb/${p}/${pin}`), add).catch(() => {});
 }
 
-function PinForm({ db, onSet, onCancel }) {
+export function PinForm({ db, name, onSet, onCancel }) {
   const [v, setV] = useState(''); const [taken, setTaken] = useState(null); const [busy, setBusy] = useState(false);
   async function go(force) {
-    if (!isPin(v)) return;
+    if (!isPin(v) || busy) return;
     if (!force) { setBusy(true); try { const s = await get(ref(db, `lb/all/${v}`)); if (s.exists()) { setTaken(s.val().name || 'มีคนใช้'); setBusy(false); return; } } catch { } setBusy(false); }
     onSet(v);
   }
   return <div className="pin-form">
-    <p>ตั้ง <b>รหัสประจำตัว 4 หลัก</b> ไว้เก็บสถิติ ไม่ต้องสมัคร เปลี่ยนชื่อเล่นได้ตลอด เปลี่ยนเครื่องก็ใส่รหัสเดิม</p>
+    <p>ตั้ง <b>เลขแก๊ง 4 หลัก</b> ไว้เก็บสถิติ ไม่ต้องสมัคร เปลี่ยนชื่อเล่นได้ตลอด เปลี่ยนเครื่องก็ใส่เลขเดิม</p>
     <div className="pin-row"><input inputMode="numeric" maxLength={4} value={v} placeholder="เช่น 2580" aria-label="รหัสประจำตัว 4 หลัก" onChange={e => { setV(e.target.value.replace(/\D/g, '').slice(0, 4)); setTaken(null); }} onKeyDown={e => e.key === 'Enter' && go(false)} />
-      <button disabled={!isPin(v) || busy} onClick={() => go(false)}>ใช้รหัสนี้</button></div>
-    {taken && <div className="pin-taken">รหัส {v} เป็นของ <b>{taken}</b> — ใช่คุณไหม? <button onClick={() => go(true)}>ใช่ ฉันเอง</button><button onClick={() => { setV(''); setTaken(null); }}>ไม่ใช่ ตั้งใหม่</button></div>}
+      <button disabled={!isPin(v) || busy} onClick={() => go(false)}>{busy ? 'กำลังเช็ก…' : 'ใช้เลขนี้'}</button></div>
+    {taken && <div className="pin-taken">เลข {v} เป็นของ <b>{taken}</b> — ใช่คุณไหม? <button onClick={() => go(true)}>ใช่ ฉันเอง</button><button onClick={() => { setV(''); setTaken(null); }}>ไม่ใช่ ตั้งใหม่</button></div>}
     {onCancel && <button className="gang-more" onClick={onCancel}>ยกเลิก</button>}
   </div>;
 }
 
-export function GangBoard({ db, pin, setPin }) {
+export function GangBoard({ db, pin, setPin, name }) {
   const [period, setPeriod] = useState('week');
   const [rows, setRows] = useState(null);
   const [more, setMore] = useState(false);
@@ -54,7 +55,7 @@ export function GangBoard({ db, pin, setPin }) {
     const q = query(ref(db, `lb/${period === 'week' ? weekId() : 'all'}`), orderByChild('wins'), limitToLast(20));
     return onValue(q, s => { const v = s.val() || {}; setRows(Object.entries(v).map(([k, r]) => ({ k, ...r })).sort((a, b) => (b.wins || 0) - (a.wins || 0) || (b.pts || 0) - (a.pts || 0))); }, () => setRows([]));
   }, [db, period]);
-  const save = p => { try { localStorage.setItem('sf-pin', p); } catch { } setPin(p); setEdit(false); };
+  const save = p => { savePinLocal(p); setPin(p); setEdit(false); };
   const shown = (rows || []).slice(0, more ? 20 : 5);
   const myIdx = (rows || []).findIndex(r => r.k === pin);
   return <section className="ha-card gang" id="rank">
@@ -66,7 +67,7 @@ export function GangBoard({ db, pin, setPin }) {
         <span className="gw"><b>{r.wins || 0}</b> ชนะ<small>เล่น {r.games || 0}</small></span></li>)}</ol>}
     {rows && rows.length > 5 && <button className="gang-more" onClick={() => setMore(m => !m)}>{more ? 'ย่อ' : `ดูทั้งหมด (${rows.length})`}</button>}
     {rows && myIdx >= 5 && !more && <p className="gang-me">คุณอยู่อันดับ {myIdx + 1}</p>}
-    {!pin || edit ? <PinForm db={db} onSet={save} onCancel={pin ? () => setEdit(false) : null} /> :
+    {!pin || edit ? <PinForm db={db} name={name} onSet={save} onCancel={pin ? () => setEdit(false) : null} /> :
       <p className="gang-note">รหัสของคุณ <b className="pin-chip">{pin}</b> <button className="pin-edit" onClick={() => setEdit(true)}>เปลี่ยน</button> · จบรอบแล้วได้แต้ม = ชนะ 1 ครั้ง</p>}
   </section>;
 }
@@ -107,4 +108,15 @@ export function RichBoard({ db, pin }) {
     {rows && mine >= 5 && !more && <p className="gang-me">คุณอยู่อันดับ {mine + 1}</p>}
     <p className="gang-note">{pin ? 'จัดอันดับจากกำไรที่เล่นได้จริง ชิปที่ซื้อเพิ่มหรือที่หัวห้องให้ไม่นับ • ชิปที่มีติดตัวข้ามห้องตามรหัสของคุณ' : 'ตั้งรหัส 4 หลักในอันดับแก๊งก่อน ชิปถึงจะติดตัวข้ามห้อง'}</p>
   </section>;
+}
+
+// หน้าต่างบังคับตั้งเลขแก๊งก่อนสร้าง/เข้าห้อง
+export function PinModal({ db, name, onSet, onClose }) {
+  useEffect(() => { const k = e => e.key === 'Escape' && onClose(); document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k); }, []);
+  return <div className="avpick-bg" onClick={onClose} role="dialog" aria-label="ตั้งเลขแก๊ง">
+    <div className="avpick pin-modal" onClick={e => e.stopPropagation()}>
+      <div className="avpick-head"><div><b>ตั้งเลขแก๊งก่อนเข้าห้อง</b><small>ทุกคนต้องมีเลขแก๊งของตัวเอง จะได้นับสถิติชนะ/ชิปให้ครบ</small></div><button className="icon-btn" onClick={onClose} aria-label="ปิด">✕</button></div>
+      <PinForm db={db} name={name} onSet={onSet} />
+    </div>
+  </div>;
 }
