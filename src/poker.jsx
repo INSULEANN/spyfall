@@ -6,7 +6,7 @@ import { ref, runTransaction, update } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { Avatar, SecH, TimerRing, HostBar, Confetti } from './ui.jsx';
-import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup } from './playcards.jsx';
+import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup, SwitchBtn, toLobby } from './playcards.jsx';
 
 export const PK_MIN = 2, PK_MAX = 9, PK_START = 1000;
 export const TURN_MS = 30000, SHOW_MS = 12000;
@@ -40,7 +40,7 @@ export function pkBest(cards) {
 // ---------- รอบ / ตา ----------
 export function makePkRound(ids, set = {}, number = 1, t0 = Date.now(), bank = null) {
   const start = bank?.start || +set.chips || PK_START, bb = +set.bb || 20; const chips = { ...(bank?.chips || {}) }, buys = {};
-  Object.keys(set.per || {}).forEach(id => { if (ids.includes(id) && set.per[id] > 0) chips[id] = +set.per[id]; });
+  Object.keys(set.per || {}).forEach(id => { if (ids.includes(id) && set.per[id] >= 0) chips[id] = +set.per[id]; });
   const r = { number, kind: 'pk', seats: [...ids], start, bb, sb: bb / 2, btn: -1, chips, buys, base: {}, hand: 0, log: [], startedAt: t0 };
   fix(r); ids.forEach(id => seatChips(r, id)); newHand(r, ids, t0); return r;
 }
@@ -146,7 +146,7 @@ export function pkEnd(cur, now) {
   const r = cur.round; if (cur.status !== 'playing') return; const sc = { ...(cur.scores || {}) }, net = {};
   if (r.phase !== 'show' && r.phase !== 'wait') Object.keys(r.tot).forEach(id => { r.chips[id] += r.tot[id]; });  // ตาที่ค้างอยู่ คืนชิปที่ลง
   r.phase = 'done'; Object.keys(r.base).forEach(id => { net[id] = pkNet(r, id); if (cur.players?.[id]) sc[id] = (sc[id] || 0) + net[id]; });
-  cur.bank = { ...(cur.bank || {}), pk: { start: r.start, chips: r.chips } };
+  cur.bank = { ...(cur.bank || {}), cards: { start: r.start, chips: r.chips } };
   r.at = now; cur.status = 'result'; cur.scores = sc; cur.result = { type: 'pk', net }; return cur;
 }
 export function pkTick(cur, now) {
@@ -183,6 +183,7 @@ export function PkGame({ db, room, roomCode, myId, isHost, sound, av, nameOf, on
       <div className="ct-final"><h2>🏁 สรุปผลวงโป๊กเกอร์</h2><p>เล่นไป {r.hand} ตา • ชิปปลอมในเกม ไม่มีเงินจริง</p>
         <ol>{rows.map((id, i) => <li key={id} className={id === myId ? 'me' : ''}><span>{['🥇', '🥈', '🥉'][i] || i + 1}</span><Avatar id={id} av={av} size={30} /><b>{nameOf(id)}</b><small>ชิป {(r.chips[id] || 0).toLocaleString()}{r.buys[id] ? ` • ซื้อเพิ่ม ${r.buys[id]} ครั้ง` : ''}</small><em className={res.net[id] > 0 ? 'up' : res.net[id] < 0 ? 'down' : ''}>{res.net[id] > 0 ? '+' : ''}{res.net[id].toLocaleString()}</em></li>)}</ol></div>
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นวงใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มวงใหม่…</div>}
+      {isHost && <SwitchBtn room={room} n={Object.keys(room.players || {}).length} onGo={g => update(ref(db, `rooms/${roomCode}`), { status: 'lobby', round: null, result: null, game: g })} />}
     </div>;
   }
 
@@ -239,6 +240,7 @@ export function PkGame({ db, room, roomCode, myId, isHost, sound, av, nameOf, on
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>
     <ul className="head-log">{[...r.log].reverse().slice(0, 6).map((e, i) => <li key={i}>{e.text.replace(/\{([^}]+)\}/g, (_, id) => nameOf(id))}</li>)}</ul>
     {isHost && <HostBar>
+      <SwitchBtn room={room} n={Object.keys(room.players || {}).length} mid onGo={g => tx(c => { const x = pkEnd(c, srvNow); return x && toLobby(x, g); })} />
       {(r.phase === 'show' || r.phase === 'wait') && <button className="secondary" onClick={() => tx(c => pkNext(c, srvNow))}>⏩ แจกตาต่อไปเลย</button>}
       {r.toAct && r.toAct !== myId && <button className="secondary" onClick={() => { if (confirm(`ข้ามตา ${nameOf(r.toAct)} (เช็ก/หมอบให้)?`)) tx(c => { c.round.until = 0; return pkTick(c, srvNow); }); }}>⏩ ข้ามตา {nameOf(r.toAct)}</button>}
       <button className="secondary" onClick={() => { if (confirm('จบวง สรุปผลชิปเลย? (ตาที่ค้างคืนชิปให้)')) tx(c => pkEnd(c, srvNow)); }}>🏁 จบวง สรุปผล</button>
@@ -251,7 +253,8 @@ export function PkLobby({ db, roomCode, room, isHost, nameOf }) {
   const set = room.settings?.pk || {};
   const save = patch => runTransaction(ref(db, `rooms/${roomCode}/settings/pk`), c => ({ ...(c || {}), ...patch })).catch(() => {});
   return <div className="uc-lobby">
-    <ChipSetup db={db} roomCode={roomCode} room={room} kind="pk" def={PK_START} isHost={isHost} nameOf={nameOf} />
+    <SwitchBtn room={room} n={Object.keys(room.players || {}).length} onGo={g => update(ref(db, `rooms/${roomCode}`), { game: g })} />
+    <ChipSetup db={db} roomCode={roomCode} room={room} kind="cards" def={PK_START} isHost={isHost} nameOf={nameOf} />
     <label>🎚️ Blinds (เล็ก/ใหญ่)</label>
     <select value={set.bb || 20} disabled={!isHost} onChange={e => save({ bb: +e.target.value })}><option value={10}>5 / 10</option><option value={20}>10 / 20</option><option value={50}>25 / 50</option><option value={100}>50 / 100</option></select>
   </div>;

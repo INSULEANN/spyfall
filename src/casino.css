@@ -140,3 +140,7 @@
 .ct-adds button:active{transform:scale(.94)}
 .ct-addall{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--inset);border:1px dashed var(--accent)}
 .ct-addall small{color:var(--soft)}
+
+.ct-adds button.minus:before{content:"−";color:#ff6b7a}
+.ct-adds button.minus{opacity:.85}
+.ct-switch{width:100%}

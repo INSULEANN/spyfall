@@ -8,7 +8,7 @@ import { ref, runTransaction, update } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { Avatar, SecH, TimerRing, HostBar, Confetti } from './ui.jsx';
-import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup } from './playcards.jsx';
+import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup, SwitchBtn, toLobby } from './playcards.jsx';
 
 export const PD_MIN = 2, PD_MAX = 10, PD_START = 1000;
 export const PD_BETS = [10, 20, 50, 100, 200, 500];
@@ -39,7 +39,7 @@ export const pdCmp = (a, b) => a.cat - b.cat || a.pts - b.pts || a.tb - b.tb;
 // ---------- รอบ / ตา ----------
 export function makePdRound(ids, set = {}, number = 1, t0 = Date.now(), bank = null) {
   const start = bank?.start || +set.chips || PD_START; const chips = { ...(bank?.chips || {}) }, buys = {};
-  Object.keys(set.per || {}).forEach(id => { if (ids.includes(id) && set.per[id] > 0) chips[id] = +set.per[id]; });
+  Object.keys(set.per || {}).forEach(id => { if (ids.includes(id) && set.per[id] >= 0) chips[id] = +set.per[id]; });
   const r = { number, kind: 'pd', seats: [...ids], start, fixed: set.dealer === 'host' ? set.host || ids[0] : null, di: -1, chips, buys, base: {}, hand: 0, log: [], startedAt: t0 };
   ids.forEach(id => seatChips(r, id)); newHand(r, ids, t0); return r;
 }
@@ -110,7 +110,7 @@ export const pdNet = (r, id) => netOf(r, id);
 export function pdEnd(cur, now) {
   const r = cur.round; if (cur.status !== 'playing') return; const sc = { ...(cur.scores || {}) }, net = {};
   Object.keys(r.base).forEach(id => { net[id] = pdNet(r, id); if (cur.players?.[id]) sc[id] = (sc[id] || 0) + net[id]; });
-  cur.bank = { ...(cur.bank || {}), pd: { start: r.start, chips: r.chips } };
+  cur.bank = { ...(cur.bank || {}), cards: { start: r.start, chips: r.chips } };
   r.phase = 'done'; r.at = now; cur.status = 'result'; cur.scores = sc; cur.result = { type: 'pd', net }; return cur;
 }
 export function pdTick(cur, now) {
@@ -149,6 +149,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
       <div className="ct-final"><h2>🏁 สรุปผลวงป๊อกเด้ง</h2><p>เล่นไป {r.hand} ตา • ชิปปลอมในเกม ไม่มีเงินจริง</p>
         <ol>{rows.map((id, i) => <li key={id} className={id === myId ? 'me' : ''}><span>{['🥇', '🥈', '🥉'][i] || i + 1}</span><Avatar id={id} av={av} size={30} /><b>{nameOf(id)}</b><small>ชิป {(r.chips[id] || 0).toLocaleString()}{r.buys[id] ? ` • ซื้อเพิ่ม ${r.buys[id]} ครั้ง` : ''}</small><em className={res.net[id] > 0 ? 'up' : res.net[id] < 0 ? 'down' : ''}>{res.net[id] > 0 ? '+' : ''}{res.net[id].toLocaleString()}</em></li>)}</ol></div>
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเล่นวงใหม่</button> : <div className="waiting">รอหัวหน้าห้องเริ่มวงใหม่…</div>}
+      {isHost && <SwitchBtn room={room} n={Object.keys(room.players || {}).length} onGo={g => update(ref(db, `rooms/${roomCode}`), { status: 'lobby', round: null, result: null, game: g })} />}
     </div>;
   }
 
@@ -197,6 +198,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
     <SecH icon="📜">เกิดอะไรขึ้นบ้าง</SecH>
     <ul className="head-log">{[...r.log].reverse().slice(0, 5).map((e, i) => <li key={i}>{e.text.replace(/\{([^}]+)\}/g, (_, id) => nameOf(id))}</li>)}</ul>
     {isHost && <HostBar>
+      <SwitchBtn room={room} n={Object.keys(room.players || {}).length} mid onGo={g => tx(c => { const x = pdEnd(c, srvNow); return x && toLobby(x, g); })} />
       {r.phase === 'show' && <button className="secondary" onClick={() => tx(c => pdNext(c, srvNow))}>⏩ แจกตาต่อไปเลย</button>}
       {r.phase !== 'show' && <button className="secondary" onClick={() => { if (confirm('ข้ามเวลารอ (คนที่ยังไม่เลือก = ไม่ลง/ไม่จั่ว)?')) tx(c => { c.round.until = 0; return pdTick(c, srvNow); }); }}>⏩ ข้ามเวลารอ</button>}
       <button className="secondary" onClick={() => { if (confirm('จบวง สรุปผลชิปเลย?')) tx(c => pdEnd(c, srvNow)); }}>🏁 จบวง สรุปผล</button>
@@ -209,7 +211,8 @@ export function PdLobby({ db, roomCode, room, isHost, nameOf }) {
   const set = room.settings?.pd || {};
   const save = patch => runTransaction(ref(db, `rooms/${roomCode}/settings/pd`), c => ({ ...(c || {}), ...patch })).catch(() => {});
   return <div className="uc-lobby">
-    <ChipSetup db={db} roomCode={roomCode} room={room} kind="pd" def={PD_START} isHost={isHost} nameOf={nameOf} />
+    <SwitchBtn room={room} n={Object.keys(room.players || {}).length} onGo={g => update(ref(db, `rooms/${roomCode}`), { game: g })} />
+    <ChipSetup db={db} roomCode={roomCode} room={room} kind="cards" def={PD_START} isHost={isHost} nameOf={nameOf} />
     <label>🎩 เจ้ามือ</label>
     <select value={set.dealer || 'rot'} disabled={!isHost} onChange={e => save({ dealer: e.target.value })}><option value="rot">เวียนกันเป็นทุกตา</option><option value="host">หัวหน้าห้องเป็นเจ้ามือตลอด</option></select>
   </div>;

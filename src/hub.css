@@ -1,0 +1,40 @@
+/* หน้ารวมเกม (v1.82): แถบเข้าห้องแบบตั๋ว + ตัวกรองจำนวนคน ต่อจากแบนเนอร์เดิม */
+
+/* ── แถบเข้าห้อง: ตั๋วแนวนอน ต้นขั้วซ้าย รอยฉีกคั่น ── */
+.hub-join{--stub:230px;display:grid;grid-template-columns:var(--stub) 1fr;align-items:center;margin:-6px 0 30px;background:var(--accent);color:var(--on-accent);border-radius:16px;
+  -webkit-mask:radial-gradient(circle 10px at var(--stub) 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at var(--stub) 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 10px at var(--stub) 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at var(--stub) 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  animation:fadeup .5s .08s backwards}
+.hj-stub{padding:18px 22px;display:grid;gap:4px;border-right:2px dashed color-mix(in srgb,var(--on-accent) 30%,transparent);align-self:stretch;align-content:center}
+.hj-stub b{font-family:var(--display);font-size:18px;font-weight:700;line-height:1.25}
+.hj-stub span{font-size:11.5px;opacity:.7;line-height:1.45}
+.hj-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:12px;padding:14px 18px 14px 22px;align-items:center}
+.hj-form .me-row{align-items:center;gap:12px}
+.hub-join input{background:#fff8;border:1.5px solid color-mix(in srgb,var(--on-accent) 22%,transparent);color:var(--on-accent);padding:11px 13px}
+.hub-join input::placeholder{color:color-mix(in srgb,var(--on-accent) 50%,transparent)}
+.hub-join input:focus{border-color:var(--on-accent);box-shadow:none}
+.hub-join .join-inline input{font-weight:700;letter-spacing:2px}
+.hub-join .secondary{background:var(--on-accent);color:var(--accent);border:0;white-space:nowrap}
+.hub-join .av-edit i{box-shadow:0 0 0 2px var(--accent);background:var(--on-accent);color:var(--accent)}
+
+/* ── หัวรายการเกม + ตัวกรอง ── */
+.shelf-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 14px}
+.shelf-head h2{font-family:var(--display);font-weight:var(--display-weight);font-size:23px;margin:0}
+.seg{display:flex;align-items:center;gap:4px;font-size:13px;padding:4px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff08}
+.seg>span{color:var(--dim);margin:0 6px 0 8px;white-space:nowrap}
+.seg button{background:none;border:0;color:var(--muted);padding:7px 12px;border-radius:8px;white-space:nowrap}
+.seg button:hover{transform:none;color:var(--text)}
+.seg button.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+
+@media(max-width:860px){
+  .hub-join{--stub:100%;grid-template-columns:1fr;-webkit-mask:none;mask:none}
+  .hj-stub{border-right:0;border-bottom:2px dashed color-mix(in srgb,var(--on-accent) 30%,transparent);padding:14px 18px 12px}
+  .hj-form{grid-template-columns:1fr;padding:14px 18px 16px}
+}
+@media(max-width:760px){
+  .hub-join{margin:-8px 0 24px}
+  .shelf-head{flex-direction:column;align-items:stretch;gap:10px}
+  .seg{overflow-x:auto;scrollbar-width:none;max-width:100%;justify-content:space-between}
+  .seg>span{display:none}
+  .seg button{padding:7px 8px}
+}
