@@ -1,8 +1,8 @@
-// เกม ไพ่เนียนยาดอง — วงไพ่โกหกในร้านยาดองป้าแป๋ว (แนวเดียวกับเกมไพ่บลัฟ/ไพ่โกหก)
-//   ทุกตาแจกไพ่ 5 ใบ แล้วป้าแป๋วประกาศ "ไพ่ประจำวง" (J / Q / K / A) • โจ๊กเกอร์ = ไพ่แทนอะไรก็ได้
+// เกม ไพ่เนียนซาลูน — วงไพ่โกหกในซาลูนคาวบอยของลุงบิล (id ภายในยังเป็น yadong) (แนวเดียวกับเกมไพ่บลัฟ/ไพ่โกหก)
+//   ทุกตาแจกไพ่ 5 ใบ แล้วลุงบิลประกาศ "ไพ่ประจำวง" (J / Q / K / A) • โจ๊กเกอร์ = ไพ่แทนอะไรก็ได้
 //   ตาเรา: ลงไพ่คว่ำ 1–3 ใบ แล้วบอกว่า "เป็นไพ่ประจำวงทั้งหมด" (โกหกได้)
 //   คนถัดไป: ลงต่อ หรือ ตะโกน "โกหก!" → เปิดไพ่ชุดล่าสุด โกหกจริง = คนลงดื่ม, ไม่โกหก = คนเรียกดื่ม
-//   ดื่ม "แก้วลุ้น": แก้วที่ 1 มีโอกาสฟุบ 1/6, แก้วที่ 2 = 1/5 … ฟุบแล้วออกจากวง • เหลือคนสุดท้าย = ชนะ
+//   ดื่ม "วิสกี้ลุ้น": แก้วที่ 1 มีโอกาสฟุบ 1/6, แก้วที่ 2 = 1/5 … ฟุบแล้วออกจากวง • เหลือคนสุดท้าย = ชนะ
 //   ไม่มีไพ่ในมือตอนถึงตา = ต้องเรียก "โกหก!" (กันเกมค้าง) • เรียกแล้วแจกไพ่ใหม่ทั้งวง คนดื่ม (ถ้ายังรอด) เริ่มก่อน
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -45,7 +45,7 @@ function deal(r, starter, now) {
   ids.forEach((id, j) => { r.hands[id] = deck.slice(j * HAND, (j + 1) * HAND).sort((a, b) => a - b); });
   r.deal = (r.deal || 0) + 1; r.table = rint(NR); r.pile = 0; r.lastPlay = null; r.shot = null;
   r.phase = 'play'; r.turn = starter; r.at = now; r.until = now + 2500 + (r.tmT || PLAY_MS);
-  say(r, `🍶 ป้าแป๋วแจกไพ่ใหม่ — ไพ่ประจำวงคือ “${rk(r.table)}”`);
+  say(r, `🤠 ลุงบิลแจกไพ่ใหม่ — ไพ่ประจำวงคือ “${rk(r.table)}”`);
 }
 
 export function makeYdRound(ids, set = {}, number = 1, t0 = Date.now()) {
@@ -93,7 +93,7 @@ export function ydCall(cur, me, now) {
     r.shot = { caller: me, by: lp.by, cards: lp.cards, lie, who, ko, n: r.shots[who], odds: o, at: now };
   }
   r.phase = 'shot'; r.at = now; r.until = now + SHOT_MS;
-  say(r, `📣 {${me}} ตะโกน “โกหก!” ใส่ {${lp.by}} — ${lie ? 'โกหกจริง!' : 'ไม่ได้โกหก!'}${r.shot.who ? ` {${who}} ต้องดื่มแก้วลุ้น → ${r.shot.ko ? '😵 ฟุบ!' : '😮‍💨 รอด'}` : ''}`);
+  say(r, `📣 {${me}} ตะโกน “โกหก!” ใส่ {${lp.by}} — ${lie ? 'โกหกจริง!' : 'ไม่ได้โกหก!'}${r.shot.who ? ` {${who}} ต้องดื่มวิสกี้ลุ้น → ${r.shot.ko ? '😵 ฟุบ!' : '😮‍💨 รอด'}` : ''}`);
   return cur;
 }
 // หมดเวลา / หัวหน้าห้องกดข้าม
@@ -134,21 +134,21 @@ const O = { stroke: '#2b1608', strokeWidth: 3, strokeLinejoin: 'round', strokeLi
 const ART = [
   ...RANKS.map((x, k) => <g key={k}><text x="50" y="70" textAnchor="middle" fontSize="76" fontWeight="800" fill={x.c} fontFamily="Kanit,sans-serif">{x.n}</text>
     <text x="50" y="99" textAnchor="middle" fontSize="30" fill={x.c}>{x.s}</text></g>),
-  // โจ๊กเกอร์ (ไพ่แทน): หมวกตัวตลก
-  <g key="j" {...O}><path d="M22 60 C18 36 30 18 48 26 C44 12 60 8 66 20 C76 14 88 26 80 38 C74 46 64 48 62 60Z" fill="#8a3ad8" />
-    <path d="M48 26 C52 38 56 48 58 60" fill="none" /><path d="M66 20 C66 34 62 46 60 60" fill="none" stroke="#2b1608" />
-    <circle cx="22" cy="60" r="6" fill="#ffd23f" /><circle cx="48" cy="26" r="0" /><circle cx="80" cy="38" r="6" fill="#ffd23f" /><circle cx="66" cy="18" r="6" fill="#ffd23f" />
-    <rect x="18" y="60" width="64" height="12" rx="4" fill="#d8283a" />
+  // โจ๊กเกอร์ (ไพ่แทน): หมวกคาวบอยสีม่วง
+  <g key="j" {...O}><ellipse cx="50" cy="60" rx="40" ry="10" fill="#7a2ac8" /><path d="M28 60 C26 40 30 24 40 26 C44 27 46 31 50 31 C54 31 56 27 60 26 C70 24 74 40 72 60Z" fill="#8a3ad8" />
+    <path d="M29 50 C40 54 60 54 71 50 L72 58 C60 62 40 62 28 58Z" fill="#ffd23f" />
+    <path d="M50 46 l1.6 3.4 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5Z" fill="#d8283a" strokeWidth="1.4" />
     <text x="50" y="92" textAnchor="middle" fontSize="15" fontWeight="800" fill="#2b1608" stroke="none" fontFamily="Kanit,sans-serif">JOKER</text></g>,
 ];
 export const RankArt = ({ k, size = 64, x, y }) => <svg x={x} y={y} width={size} height={size} viewBox="0 0 100 100" aria-label={CARD_N[k]}>{ART[k]}</svg>;
 export const ShotGlass = ({ size = 40, fill = 1, x, y, ko }) => <svg x={x} y={y} width={size} height={size * 1.2} viewBox="0 0 50 60" aria-hidden="true">
   <path d="M6 6 H44 L39 54 H11Z" fill="#ffffff22" stroke="#fff3" strokeWidth="1" />
-  {fill > 0 && <path d={`M${6 + 5 * (1 - fill)} ${6 + 48 * (1 - fill)} H${44 - 5 * (1 - fill)} L39 54 H11Z`} fill={ko ? '#7a2a6a' : '#c8641e'} opacity=".9" />}
+  {fill > 0 && <path d={`M${6 + 5 * (1 - fill)} ${6 + 48 * (1 - fill)} H${44 - 5 * (1 - fill)} L39 54 H11Z`} fill={ko ? '#7a2a6a' : '#d08a2a'} opacity=".9" />}
   <path d="M6 6 H44 L39 54 H11Z" fill="none" stroke="#2b1608" strokeWidth="3" strokeLinejoin="round" /><path d="M11 12 L14 46" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity=".5" /></svg>;
-const Back = () => <svg viewBox="0 0 100 140" width="100%" height="100%" aria-hidden="true"><rect x="4" y="4" width="92" height="132" rx="10" fill="#6a1a22" stroke="#f3c26a" strokeWidth="3" />
-  <rect x="12" y="12" width="76" height="116" rx="6" fill="none" stroke="#f3c26a" strokeWidth="1.5" strokeDasharray="4 4" opacity=".6" />
-  <g transform="translate(50 70)" fill="#f3c26a"><path d="M-14 -18 H14 L10 18 H-10Z" /><path d="M-10 -8 H10 L8 14 H-8Z" fill="#6a1a22" /><circle cy="-28" r="4" /></g></svg>;
+const STAR = 'M0 -16 L4.1 -5.7 L15.2 -4.9 L6.7 2.2 L9.4 12.9 L0 7 L-9.4 12.9 L-6.7 2.2 L-15.2 -4.9 L-4.1 -5.7Z';
+const Back = () => <svg viewBox="0 0 100 140" width="100%" height="100%" aria-hidden="true"><rect x="4" y="4" width="92" height="132" rx="10" fill="#5a2e14" stroke="#e8c26a" strokeWidth="3" />
+  <rect x="12" y="12" width="76" height="116" rx="6" fill="none" stroke="#e8c26a" strokeWidth="1.5" strokeDasharray="4 4" opacity=".6" />
+  <g transform="translate(50 70) scale(1.5)" fill="#e8c26a"><path d={STAR} />{[[0, -16], [15.2, -4.9], [9.4, 12.9], [-9.4, 12.9], [-15.2, -4.9]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="2.2" />)}<circle r="4" fill="#5a2e14" /></g></svg>;
 export const YdCard = ({ k, back, small, sel, onClick, dim }) => {
   const Tag = onClick ? 'button' : 'div';
   return <Tag type={onClick ? 'button' : undefined} className={'yd-card' + (back ? ' back' : '') + (small ? ' sm' : '') + (sel ? ' sel' : '') + (dim ? ' dim' : '') + (k === WILD ? ' wild' : '')} style={back ? undefined : { '--c': k === WILD ? '#ffe9a6' : '#fffdf6' }} onClick={onClick}>
@@ -156,13 +156,18 @@ export const YdCard = ({ k, back, small, sel, onClick, dim }) => {
   </Tag>;
 };
 const Rank = ({ k }) => <span className="yd-snack">{RANKS[k].n}{RANKS[k].s} <small>({RANKS[k].th})</small></span>;
-// ป้าแป๋ว เจ้าของร้าน (ผมมวย แว่น ผ้ากันเปื้อน)
-export const Paew = ({ size = 90, x, y }) => <svg x={x} y={y} width={size} height={size} viewBox="0 0 100 100" aria-label="ป้าแป๋ว">
-  <g {...O}><path d="M18 100 C18 72 32 62 50 62 C68 62 82 72 82 100Z" fill="#c8384a" /><path d="M36 66 H64 L60 100 H40Z" fill="#fff1c9" />
-    <circle cx="50" cy="14" r="10" fill="#3a2a2a" /><circle cx="50" cy="40" r="24" fill="#f2c39a" /><path d="M26 38 C26 20 74 20 74 38 C66 28 34 28 26 38Z" fill="#3a2a2a" />
-    <circle cx="41" cy="42" r="6" fill="#fff8" strokeWidth="2.2" /><circle cx="59" cy="42" r="6" fill="#fff8" strokeWidth="2.2" /><path d="M47 42 h6" fill="none" strokeWidth="2" />
-    <circle cx="41" cy="42" r="1.8" fill="#2b1608" stroke="none" /><circle cx="59" cy="42" r="1.8" fill="#2b1608" stroke="none" />
-    <path d="M42 52 q8 6 16 0" fill="none" strokeWidth="2.4" /><circle cx="33" cy="50" r="3.5" fill="#ff8a8a" stroke="none" opacity=".5" /><circle cx="67" cy="50" r="3.5" fill="#ff8a8a" stroke="none" opacity=".5" /></g></svg>;
+// ลุงบิล บาร์เทนเดอร์ซาลูน (หมวกคาวบอย หนวดงาม เสื้อกั๊ก โบว์แดง)
+export const Bill = ({ size = 90, x, y }) => <svg x={x} y={y} width={size} height={size} viewBox="0 0 100 100" aria-label="ลุงบิล">
+  <g {...O}><path d="M18 100 C18 74 32 66 50 66 C68 66 82 74 82 100Z" fill="#f3ead6" />
+    <path d="M18 100 C18 77 29 69 41 67 L50 90 L59 67 C71 69 82 77 82 100Z" fill="#6a3a1a" /><circle cx="44" cy="88" r="1.6" fill="#e8c26a" strokeWidth="1" /><circle cx="56" cy="88" r="1.6" fill="#e8c26a" strokeWidth="1" />
+    <circle cx="50" cy="46" r="22" fill="#e8b48a" />
+    <path d="M37 41 q5 -3 9 0 M54 41 q5 -3 9 0" fill="none" strokeWidth="2.2" />
+    <circle cx="42" cy="46" r="2" fill="#2b1608" stroke="none" /><circle cx="58" cy="46" r="2" fill="#2b1608" stroke="none" />
+    <path d="M34 57 C40 50 47 51 50 54 C53 51 60 50 66 57 C60 55 55 59 50 58 C45 59 40 55 34 57Z" fill="#5a3a22" strokeWidth="2" />
+    <circle cx="35" cy="52" r="3.2" fill="#ff8a6a" stroke="none" opacity=".45" /><circle cx="65" cy="52" r="3.2" fill="#ff8a6a" stroke="none" opacity=".45" />
+    <path d="M42 66 L50 70 L42 75Z M58 66 L50 70 L58 75Z" fill="#b8282a" strokeWidth="2" />
+    <ellipse cx="50" cy="28" rx="42" ry="8" fill="#8a5a2a" /><path d="M30 28 C28 12 34 4 42 6 C46 7 47 10 50 10 C53 10 54 7 58 6 C66 4 72 12 70 28Z" fill="#9a6a34" />
+    <path d="M30.5 21 C42 24 58 24 69.5 21 L70 27 C58 30 42 30 30 27Z" fill="#3a2010" strokeWidth="2" /></g></svg>;
 
 // ---------- หน้าจอ ----------
 export function YdGame({ db, room, roomCode, myId, players, isHost, scores, sound, av, nameOf, onBack, srvNow }) {
@@ -199,10 +204,10 @@ export function YdGame({ db, room, roomCode, myId, players, isHost, scores, soun
   if (res) {
     const W = r.winner; const meWin = W === myId;
     return <div className="yd-game">
-      <Outcome art={!W ? 'cross' : meWin ? 'win' : 'lose'} tone={meWin ? 'good' : ''} title={!W ? '🚪 คนเหลือไม่พอ จบวง' : meWin ? '🥃 คุณคือคอแข็งคนสุดท้าย!' : `🥃 ${nameOf(W)} คอแข็งที่สุดในวง!`}>
+      <Outcome art={!W ? 'cross' : meWin ? 'win' : 'lose'} tone={meWin ? 'good' : ''} title={!W ? '🚪 คนเหลือไม่พอ จบวง' : meWin ? '🤠 คุณคือคาวบอยคอแข็งคนสุดท้าย!' : `🤠 ${nameOf(W)} คาวบอยคอแข็งที่สุดในซาลูน!`}>
         {W ? `${name(W)} ยังนั่งตัวตรงเป็นคนสุดท้าย รับ +${YD_SCORE} แต้ม` : 'คนอื่นออกจากห้องไปหมด'}
       </Outcome>
-      <SecH icon="🍶">สภาพวงหลังเลิก</SecH>
+      <SecH icon="🥃">สภาพวงหลังเลิก</SecH>
       <div className="yd-seats">{r.order.map(id => <Seat key={id} id={id} />)}</div>
       <SecH icon="🏅">ตารางคะแนนสะสม</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />
       {isHost ? <button className="primary wide" onClick={onBack}><RotateCcw size={17} /> กลับห้องรอแล้วเปิดวงใหม่</button> : <div className="waiting">รอหัวหน้าห้องเปิดวงใหม่…</div>}
@@ -212,7 +217,7 @@ export function YdGame({ db, room, roomCode, myId, players, isHost, scores, soun
   const lp = r.lastPlay; const s = r.shot;
   const toggle = i => { sfx(sound, 'select'); setSel(v => v.includes(i) ? v.filter(x => x !== i) : v.length < 3 ? [...v, i] : v); };
   return <div className="yd-game">
-    <div className="yd-banner"><Paew size={64} /><div><span className="eyebrow">ตาที่ {r.deal} • วงที่ {r.number}</span><h2>ไพ่ประจำวง: <Rank k={r.table} /></h2><small>ลงคว่ำ 1–3 ใบ แล้วบอกว่าเป็น {RANKS[r.table].n} ทั้งหมด • 🃏 โจ๊กเกอร์แทนอะไรก็ได้</small></div><YdCard k={r.table} small /></div>
+    <div className="yd-banner"><Bill size={64} /><div><span className="eyebrow">ตาที่ {r.deal} • วงที่ {r.number}</span><h2>ไพ่ประจำวง: <Rank k={r.table} /></h2><small>ลงคว่ำ 1–3 ใบ แล้วบอกว่าเป็น {RANKS[r.table].n} ทั้งหมด • 🃏 โจ๊กเกอร์แทนอะไรก็ได้</small></div><YdCard k={r.table} small /></div>
 
     <section className={'yd-stage' + (myTurn ? ' me' : '')}>
       <div className="yd-pile">{Array.from({ length: Math.min(r.pile, 9) }, (_, i) => <span key={i} style={{ '--i': i }}><YdCard back small /></span>)}{!r.pile && <i className="hint">ยังไม่มีใครลงไพ่</i>}</div>
@@ -247,7 +252,7 @@ export function YdGame({ db, room, roomCode, myId, players, isHost, scores, soun
       {s.who ? <div className="yd-drink">
         <Avatar id={s.who} av={av} size={72} dead={revealed && s.ko} />
         <div className="yd-glass-wrap"><ShotGlass size={56} ko={revealed && s.ko} /></div>
-        <div className="yd-dtx"><b>{name(s.who)} ต้องดื่มแก้วลุ้น!</b><small>แก้วที่ {s.n} • โอกาสฟุบ 1/{s.odds}</small>
+        <div className="yd-dtx"><b>{name(s.who)} ต้องดื่มวิสกี้ลุ้น!</b><small>แก้วที่ {s.n} • โอกาสฟุบ 1/{s.odds}</small>
           <strong>{revealed ? (s.ko ? '😵💫 ฟุบ! ออกจากวง' : '😮‍💨 รอด! ยังไหว') : 'อึก… อึก… อึก…'}</strong></div>
       </div> : <p className="hint">คนที่ต้องดื่มออกจากวงไปแล้ว — ข้าม</p>}
     </div></div>, document.body)}
@@ -266,7 +271,7 @@ export function YdLobby({ db, roomCode, room, isHost, sound }) {
   const set = room.settings?.yd || {};
   const save = patch => runTransaction(ref(db, `rooms/${roomCode}/settings/yd`), c => ({ ...(c || {}), ...patch })).catch(() => {});
   return <div className="uc-lobby">
-    <label>🥃 แก้วลุ้นต่อคน {isHost ? '' : '(หัวหน้าห้องตั้ง)'}</label>
+    <label>🥃 วิสกี้ลุ้นต่อคน {isHost ? '' : '(หัวหน้าห้องตั้ง)'}</label>
     <select value={+set.glasses === 4 ? 4 : 6} disabled={!isHost} onChange={e => { sfx(sound, 'select'); save({ glasses: +e.target.value }); }}><option value={6}>6 แก้ว (ปกติ)</option><option value={4}>4 แก้ว (เกมเร็ว)</option></select>
     <div className="yd-hand lobby">{[0, 1, 2, 3, WILD].map(k => <YdCard key={k} k={k} />)}</div>
   </div>;

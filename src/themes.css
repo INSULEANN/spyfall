@@ -182,25 +182,16 @@
 }
 [data-theme="animal"] .hero h1 em{color:#ffc7d4;text-shadow:0 0 22px #f6a5b866}
 
-/* 🥃 ไพ่เนียนยาดอง — ร้านยาดองป้าแป๋ว ไม้แดงเข้ม ไฟหลอดส้ม ยาดองสีอำพัน */
-[data-theme="gold"]{
-  --display:'Mitr',sans-serif;--display-weight:600;--radius:18px;
-  --bg:#17120c;--panel:#261d14;--inset:#1d160f;--chip:#3a2c1c;--glow:#5a4214;
-  --text:#fbf1de;--soft:#e8d8b8;--muted:#b8a07a;--dim:#7a6448;
-  --accent:#f2b62a;--accent-hi:#ffd860;--accent-2:#e8582a;--on-accent:#2a1a0a;
-  --hero-1:#17120c;--hero-2:#4a3420;--hero-3:#c88a12;
-  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M16 34 C14 28 22 24 26 28 C30 22 40 26 38 34Z' fill='%23f2b62a' fill-opacity='.07'/%3E%3C/svg%3E");
-}
-[data-theme="gold"] .hero h1 em{color:#ffd860;text-shadow:0 0 22px #f2b62a66}
+/* 🤠 ไพ่เนียนซาลูน (id: yadong) — ซาลูนไม้เก่า ไฟตะเกียง วิสกี้สีอำพัน โต๊ะสักหลาดเขียว */
 [data-theme="yadong"]{
-  --display:'Mitr',sans-serif;--display-weight:600;--radius:18px;
-  --bg:#1c0e0c;--panel:#2c1614;--inset:#22100e;--chip:#3e201a;--glow:#6a2a14;
-  --text:#fdf0e2;--soft:#ecd6c0;--muted:#c09a84;--dim:#7e5e4c;
-  --accent:#f0a24a;--accent-hi:#ffcf8a;--accent-2:#d8283a;--on-accent:#2b1608;
-  --hero-1:#1c0e0c;--hero-2:#6a1a22;--hero-3:#c8641e;
-  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M18 14 H38 L35 42 H21Z' fill='%23f0a24a' fill-opacity='.06'/%3E%3C/svg%3E");
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:14px;
+  --bg:#1a110a;--panel:#2a1c11;--inset:#20150c;--chip:#3d2a18;--glow:#7a3e12;
+  --text:#fbf0dc;--soft:#ead8b8;--muted:#bf9f78;--dim:#7e6244;
+  --accent:#e8a33a;--accent-hi:#ffd27a;--accent-2:#b8452a;--on-accent:#2a1608;
+  --hero-1:#1a110a;--hero-2:#5a2e14;--hero-3:#d07a2a;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath transform='translate(32 32) scale(.55)' d='M0 -16 L4.1 -5.7 L15.2 -4.9 L6.7 2.2 L9.4 12.9 L0 7 L-9.4 12.9 L-6.7 2.2 L-15.2 -4.9 L-4.1 -5.7Z' fill='%23e8a33a' fill-opacity='.07'/%3E%3C/svg%3E");
 }
-[data-theme="yadong"] .hero h1 em{color:#ffcf8a;text-shadow:0 0 22px #f0a24a66}
+[data-theme="yadong"] .hero h1 em{color:#ffd27a;text-shadow:0 0 22px #e8a33a66}
 
 /* ---------- พื้นฐานที่อ่านจากธีม ---------- */
 html{background:var(--bg)}

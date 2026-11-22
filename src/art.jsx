@@ -2,7 +2,7 @@
 // viewBox 400×260 ทุกฉาก — ของสำคัญอยู่แถบกลาง เพราะการ์ดเกมจะครอปบน-ล่าง
 import React from 'react';
 import { AniArt } from './animal.jsx';
-import { RankArt, ShotGlass, Paew } from './yadong.jsx';
+import { RankArt, ShotGlass, Bill } from './yadong.jsx';
 import { GoldArt, BombArt, Thongdee } from './gold.jsx';
 
 const S = ({ id, children, label }) => <svg className="scene" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label={label} data-scene={id}>{children}</svg>;
@@ -885,29 +885,50 @@ function AnimalScene() {
     <g transform="translate(200 244)"><rect x="-74" y="-12" width="148" height="22" rx="4" fill="#21170f" stroke="#f6a5b8" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffc7d4" fontFamily="Mitr,sans-serif">จริง…หรือไม่จริง?</text></g>
   </S>;
 }
-// ---------- 🥃 ไพ่เนียนยาดอง: ร้านยาดองป้าแป๋ว ชั้นไหดอง โต๊ะไพ่ แก้วลุ้นเรียงแถว ----------
+// ---------- 🤠 ไพ่เนียนซาลูน: ซาลูนไม้ หน้าต่างทะเลทรายยามเย็น ชั้นวิสกี้ ลุงบิลหลังบาร์ โต๊ะสักหลาดเขียว ----------
 function YadongScene() {
-  const jar = (x, y, c, s = 1) => <g key={x} transform={`translate(${x} ${y}) scale(${s})`}><rect x="-8" y="-30" width="16" height="7" rx="2" fill="#5a2a10" /><path d="M-12 -23 H12 C24 -16 24 10 18 18 H-18 C-24 10 -24 -16 -12 -23Z" fill={c} stroke="#2b1608" strokeWidth="2.5" /><rect x="-10" y="-8" width="20" height="12" rx="2" fill="#fff1c9" /></g>;
-  return <S id="yadong" label="ร้านยาดองป้าแป๋ว ชั้นวางไหดอง โต๊ะไม้มีไพ่คว่ำกองกลาง แก้วลุ้นเรียงแถว มีคนตะโกนว่าโกหก">
-    <defs><radialGradient id="yd-lamp" cx=".5" cy=".1" r=".7"><stop offset="0" stopColor="#ffb85a" stopOpacity=".55" /><stop offset="1" stopColor="#ffb85a" stopOpacity="0" /></radialGradient></defs>
-    <rect width="400" height="260" fill="#2a1210" /><rect width="400" height="260" fill="url(#yd-lamp)" />
-    <g fill="#4a2414" stroke="#1a0806" strokeWidth="3"><rect x="10" y="64" width="150" height="8" /><rect x="10" y="118" width="150" height="8" /></g>
-    {jar(30, 60, '#c8641e')}{jar(66, 60, '#8a2a1a')}{jar(104, 60, '#d88a2a')}{jar(140, 60, '#6a1a22')}{jar(40, 114, '#d88a2a')}{jar(80, 114, '#c8641e')}{jar(122, 114, '#8a2a1a')}
-    <g transform="translate(250 0)"><path d="M0 0 V22" stroke="#1a0806" strokeWidth="2" /><path d="M-14 22 H14 L10 34 H-10Z" fill="#f0a24a" stroke="#1a0806" strokeWidth="2" /><circle cy="38" r="5" fill="#fff2b0" className="pulse" /></g>
-    <Paew size={92} x={280} y={70} />
-    <path d="M0 168 H400 V260 H0Z" fill="#6a2e14" /><path d="M0 168 H400" stroke="#2b1608" strokeWidth="4" /><g stroke="#4a1e0c" strokeWidth="2" opacity=".6">{[190, 214, 238].map(y => <path key={y} d={`M0 ${y} H400`} />)}</g>
-    {[0, 1, 2, 3, 4].map(i => <g key={i} transform={`translate(${168 + i * 9} ${190 - i * 2}) rotate(${(i - 2) * 12})`}><rect x="-14" y="-20" width="28" height="40" rx="4" fill="#6a1a22" stroke="#f3c26a" strokeWidth="2" /></g>)}
-    {[0, 1, 2, 3, 4, 5].map(i => <ShotGlass key={i} size={20} x={40 + i * 24} y={180} fill={i < 2 ? 0 : 1} />)}
-    <g className="bob"><g transform="translate(300 196) rotate(10)"><rect x="-17" y="-24" width="34" height="48" rx="5" fill="#fffdf6" stroke="#2b1608" strokeWidth="2.5" /><RankArt k={2} size={30} x={-15} y={-16} /></g></g>
-    <g transform="translate(200 100)"><g className="pulse"><path d="M-62 -26 H62 a10 10 0 0 1 10 10 V12 a10 10 0 0 1 -10 10 H10 L-4 38 L-2 22 H-62 a10 10 0 0 1 -10 -10 V-16 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2b1608" strokeWidth="2.5" /><text y="7" textAnchor="middle" fontSize="22" fontWeight="800" fill="#d8283a" fontFamily="Mitr,sans-serif">โกหก!!</text></g></g>
-    <g transform="translate(200 244)"><rect x="-78" y="-12" width="156" height="22" rx="4" fill="#22100e" stroke="#f0a24a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffcf8a" fontFamily="Mitr,sans-serif">คิง 3 ใบจ้า…จริงนะ</text></g>
-    {/* พริกกระเทียมห้อย ป้ายราคา จิ้งจก ถังน้ำแข็ง จานถั่ว ปฏิทินเก่า */}
-    <g transform="translate(180 0)"><path d="M0 0 V54" stroke="#6a4a2a" strokeWidth="1.6" />{[10, 20, 30, 40, 50].map((y, i) => <g key={y}>{i % 2 ? <ellipse cx={i % 4 ? -4 : 4} cy={y} rx="5" ry="4.5" fill="#f3ead6" stroke="#8a7a5a" strokeWidth="1" /> : <path d={`M0 ${y - 4} q6 2 4 12 q-3 -4 -4 -12Z M0 ${y - 4} q-6 2 -4 12 q3 -4 4 -12Z`} fill="#d6303a" />}</g>)}</g>
-    <g transform="translate(330 22)"><rect x="-38" y="-14" width="76" height="34" rx="3" fill="#1d3a2a" stroke="#c9973a" strokeWidth="2" /><text y="0" textAnchor="middle" fontSize="10" fontWeight="700" fill="#f3e6c0" fontFamily="Mitr,sans-serif">ยาดอง ๑๐฿</text><text y="13" textAnchor="middle" fontSize="8" fill="#ffcf8a" fontFamily="Mitr,sans-serif">เป๊กละ ห้ามโกง</text></g>
-    <g transform="translate(372 120) rotate(-70)"><path d="M0 0 q6 -2 12 0 q6 2 12 0" stroke="#8a9a6a" strokeWidth="4" fill="none" strokeLinecap="round" /><ellipse cx="-2" cy="0" rx="4" ry="3" fill="#8a9a6a" /><path d="M6 0 l-2 -5 M6 0 l-2 5 M16 0 l2 -5 M16 0 l2 5" stroke="#8a9a6a" strokeWidth="1.6" /></g>
-    <g transform="translate(26 196)"><path d="M-14 -10 H14 L11 14 H-11Z" fill="#9aa4b2" stroke="#2b1608" strokeWidth="2" /><path d="M-14 -10 H14" stroke="#c8ccd6" strokeWidth="2" /><g fill="#dff4ff" stroke="#9fc4dc" strokeWidth=".8"><rect x="-9" y="-16" width="7" height="7" rx="1.5" transform="rotate(12)" /><rect x="1" y="-17" width="7" height="7" rx="1.5" transform="rotate(-10)" /></g></g>
-    <g transform="translate(364 214)"><ellipse rx="22" ry="7" fill="#fff4dc" stroke="#2b1608" strokeWidth="2" /><g fill="#c8915a" stroke="#6a4020" strokeWidth=".8">{[[-10, -3], [-3, -5], [4, -3], [11, -4], [0, -1], [-6, 0], [7, 0]].map(([x, y], i) => <ellipse key={i} cx={x} cy={y} rx="3" ry="2" />)}</g></g>
-    <g transform="translate(220 22)"><rect x="-14" y="-12" width="28" height="34" fill="#fbf4e4" stroke="#2b1608" strokeWidth="1.4" /><rect x="-14" y="-12" width="28" height="9" fill="#d6303a" /><text y="15" textAnchor="middle" fontSize="12" fontWeight="900" fill="#2b1608">๑๓</text></g>
+  const bottle = (x, h, c, i) => <g key={i} transform={`translate(${x} 50)`}><path d={`M-6 0 V${-h + 14} C-6 ${-h + 8} -3 ${-h + 6} -3 ${-h + 2} V${-h} H3 V${-h + 2} C3 ${-h + 6} 6 ${-h + 8} 6 ${-h + 14} V0Z`} fill={c} stroke="#1a0c04" strokeWidth="2" /><rect x="-5" y={-h / 2} width="10" height="7" fill="#f3e2b8" opacity=".85" /></g>;
+  const star = (x, y, r, c) => <path transform={`translate(${x} ${y}) scale(${r / 16})`} d="M0 -16 L4.1 -5.7 L15.2 -4.9 L6.7 2.2 L9.4 12.9 L0 7 L-9.4 12.9 L-6.7 2.2 L-15.2 -4.9 L-4.1 -5.7Z" fill={c} stroke="#2b1608" strokeWidth={32 / r} />;
+  return <S id="yadong" label="ซาลูนคาวบอยของลุงบิล หน้าต่างเห็นทะเลทรายยามเย็นกับกระบองเพชร ชั้นวางวิสกี้ ใบประกาศจับตาย โต๊ะสักหลาดเขียวมีไพ่คว่ำกองกลาง แก้ววิสกี้เรียงแถว มีคนตะโกนว่าโกหก">
+    <defs><radialGradient id="yd-lamp" cx=".5" cy=".1" r=".7"><stop offset="0" stopColor="#ffb85a" stopOpacity=".5" /><stop offset="1" stopColor="#ffb85a" stopOpacity="0" /></radialGradient>
+      <linearGradient id="yd-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#e8603a" /><stop offset=".7" stopColor="#ffb85a" /><stop offset="1" stopColor="#ffd98a" /></linearGradient>
+      <radialGradient id="yd-felt" cx=".5" cy=".3" r=".8"><stop offset="0" stopColor="#3f7a46" /><stop offset="1" stopColor="#1e3e24" /></radialGradient></defs>
+    {/* ผนังไม้ */}
+    <rect width="400" height="260" fill="#4a2814" /><g stroke="#2e180a" strokeWidth="2" opacity=".7">{Array.from({ length: 16 }, (_, i) => <path key={i} d={`M${i * 26} 0 V170`} />)}</g>
+    <g fill="#2e180a" opacity=".5">{[[14, 40], [66, 130], [118, 22], [196, 150], [222, 60], [380, 140]].map(([x, y], i) => <ellipse key={i} cx={x} cy={y} rx="2.5" ry="4" />)}</g>
+    <rect width="400" height="260" fill="url(#yd-lamp)" />
+    {/* หน้าต่างทะเลทราย */}
+    <g transform="translate(18 18)"><rect width="104" height="80" fill="url(#yd-sky)" /><circle cx="70" cy="52" r="14" fill="#fff1b0" opacity=".9" />
+      <path d="M0 80 V60 H14 V52 H34 V60 H44 V80Z M60 80 V64 H72 V56 H96 V64 H104 V80Z" fill="#8a3a22" />
+      <g fill="#3a6a3a" stroke="#1e3a1e" strokeWidth="1.5"><path d="M52 80 V50 a4 4 0 0 1 8 0 V80Z" /><path d="M52 66 H46 V58 a3 3 0 0 1 6 0Z" /><path d="M60 62 H66 V54 a3 3 0 0 1 -6 0Z" /></g>
+      <rect width="104" height="80" fill="none" stroke="#2a160a" strokeWidth="6" /><path d="M52 0 V80 M0 40 H104" stroke="#2a160a" strokeWidth="4" /></g>
+    {/* ใบประกาศจับตาย */}
+    <g transform="translate(150 14) rotate(-4)"><rect width="48" height="58" fill="#ead2a0" stroke="#6a4a2a" strokeWidth="1.5" /><text x="24" y="11" textAnchor="middle" fontSize="9" fontWeight="800" fill="#4a2814" fontFamily="Kanit,sans-serif">WANTED</text>
+      <rect x="12" y="15" width="24" height="24" fill="#c9ad7a" /><circle cx="24" cy="25" r="7" fill="#8a6a4a" /><path d="M14 25 H34 M18 25 C18 16 30 16 30 25" stroke="#4a2814" strokeWidth="2.5" fill="#4a2814" /><path d="M14 39 C14 32 34 32 34 39Z" fill="#8a6a4a" />
+      <text x="24" y="51" textAnchor="middle" fontSize="9" fontWeight="800" fill="#8a2a1a" fontFamily="Kanit,sans-serif">$500</text><circle cx="24" cy="3" r="2" fill="#7a7a7a" /></g>
+    {/* เกือกม้า */}
+    <g transform="translate(222 30)"><path d="M-10 -10 C-14 4 -8 14 0 14 C8 14 14 4 10 -10" fill="none" stroke="#9aa0aa" strokeWidth="5" strokeLinecap="round" /><g fill="#2b1608">{[[-11, -4], [-9, 6], [11, -4], [9, 6]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1" />)}</g></g>
+    {/* ชั้นวิสกี้ */}
+    <rect x="244" y="50" width="156" height="7" fill="#2e180a" />{[[256, 34, '#8a4a14'], [276, 40, '#3a5a2a'], [296, 30, '#a8641e'], [354, 38, '#6a2a14'], [374, 32, '#c8841e'], [392, 40, '#3a5a2a']].map(([x, h, c], i) => bottle(x, h, c, i))}
+    {/* ตะเกียงห้อย */}
+    <g transform="translate(200 0)"><path d="M0 0 V12" stroke="#1a0806" strokeWidth="2" /><path d="M-8 12 H8 L6 16 H-6Z" fill="#3a2a1a" stroke="#1a0806" strokeWidth="1.5" /><path d="M-6 16 C-10 24 -8 32 0 34 C8 32 10 24 6 16Z" fill="#ffe2a0" stroke="#1a0806" strokeWidth="1.5" className="pulse" /></g>
+    <Bill size={96} x={278} y={58} />
+    {/* เคาน์เตอร์บาร์ */}
+    <path d="M236 142 H400 V170 H236Z" fill="#6a3a1a" stroke="#1a0c04" strokeWidth="3" /><path d="M232 138 H400 V146 H232Z" fill="#8a5228" stroke="#1a0c04" strokeWidth="2" />
+    {/* โต๊ะสักหลาด */}
+    <path d="M0 168 H400 V260 H0Z" fill="url(#yd-felt)" /><path d="M0 167 H400" stroke="#5a3218" strokeWidth="9" /><path d="M0 172 H400" stroke="#2a160a" strokeWidth="1.5" opacity=".6" />
+    {[0, 1, 2, 3, 4].map(i => <g key={i} transform={`translate(${168 + i * 9} ${194 - i * 2}) rotate(${(i - 2) * 12})`}><rect x="-14" y="-20" width="28" height="40" rx="4" fill="#5a2e14" stroke="#e8c26a" strokeWidth="2" />{star(0, 0, 7, '#e8c26a')}</g>)}
+    {[0, 1, 2, 3, 4, 5].map(i => <ShotGlass key={i} size={20} x={40 + i * 24} y={182} fill={i < 2 ? 0 : 1} />)}
+    <g className="bob"><g transform="translate(300 202) rotate(10)"><rect x="-17" y="-24" width="34" height="48" rx="5" fill="#fffdf6" stroke="#2b1608" strokeWidth="2.5" /><RankArt k={2} size={30} x={-15} y={-16} /></g></g>
+    {/* ชิปโป๊กเกอร์ + หมวกคาวบอยบนโต๊ะ */}
+    <g transform="translate(24 214)">{[0, 1, 2, 3].map(i => <g key={i}><ellipse cy={-i * 5} rx="13" ry="5" fill={['#d8283a', '#fbf4e4', '#2a5ab8', '#d8283a'][i]} stroke="#2b1608" strokeWidth="1.6" /></g>)}</g>
+    <g transform="translate(362 222)"><ellipse rx="30" ry="8" fill="#8a5a2a" stroke="#2b1608" strokeWidth="2.5" /><path d="M-16 0 C-18 -18 -10 -26 -4 -24 C-2 -23 -1 -21 0 -21 C1 -21 2 -23 4 -24 C10 -26 18 -18 16 0Z" fill="#9a6a34" stroke="#2b1608" strokeWidth="2.5" /><path d="M-16.5 -6 C-6 -3 6 -3 16.5 -6 L16 -1 C6 2 -6 2 -16 -1Z" fill="#3a2010" /></g>
+    {/* ดาวนายอำเภอบนโต๊ะ */}
+    <g className="tw">{star(112, 238, 9, '#e8c26a')}</g>
+    {/* ฝุ่นลอยในแสงตะเกียง */}
+    <g fill="#ffe2a0" opacity=".5">{[[150, 110], [250, 90], [118, 140], [276, 128]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.6" className="float" />)}</g>
+    <g transform="translate(200 104)"><g className="pulse"><path d="M-62 -26 H62 a10 10 0 0 1 10 10 V12 a10 10 0 0 1 -10 10 H10 L-4 38 L-2 22 H-62 a10 10 0 0 1 -10 -10 V-16 a10 10 0 0 1 10 -10Z" fill="#fffdf4" stroke="#2b1608" strokeWidth="2.5" /><text y="7" textAnchor="middle" fontSize="22" fontWeight="800" fill="#d8283a" fontFamily="Mitr,sans-serif">โกหก!!</text></g></g>
+    <g transform="translate(200 246)"><rect x="-78" y="-12" width="156" height="22" rx="4" fill="#20150c" stroke="#e8a33a" strokeWidth="2" /><text y="4" textAnchor="middle" fontSize="13" fontWeight="700" fill="#ffd27a" fontFamily="Mitr,sans-serif">คิง 3 ใบจ้า…จริงนะ</text></g>
   </S>;
 }
 // ---------- 💰 ขุดทองหรือตูม: อุโมงค์เหมือง เสาไม้ค้ำ รถเข็นแร่ทอง ระเบิดชนวนติดไฟ กองห่อคว่ำ ----------

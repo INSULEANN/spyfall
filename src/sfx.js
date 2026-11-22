@@ -306,7 +306,7 @@ export const playFilm = (on, id) => { if (!on) return; try { FILMS[id]?.(); } ca
 
 THEMES.animal = THEMES.deal || THEMES.boom; // สัตว์หน้านิ่ง
 THEMES.quiz = THEMES.clue || THEMES.deal; // ศึกควิซไวไฟ
-// ไพ่เนียนยาดอง: ตะโกนโกหก • หัวใจเต้นตอนกระดก • รอด / ฟุบ
+// ไพ่เนียนซาลูน: ตะโกนโกหก • หัวใจเต้นตอนกระดก • รอด / ฟุบ
 THEMES.yadong = { ...(THEMES.deal || {}),
   liar: () => { noise(0.15, { gain: 0.12, freq: 900 }); thump(0, 0.45); tone(520, 0.18, { type: 'square', gain: 0.05 }); tone(390, 0.3, { type: 'square', gain: 0.05, at: 0.16 }); },
   tension: () => { [0, 0.34, 0.9, 1.22, 1.75, 2.03].forEach((at, i) => thump(at, i % 2 ? 0.22 : 0.34)); [1.2, 1.5, 1.8].forEach(at => noise(0.18, { at, gain: 0.05, freq: 300, to: 120 })); },

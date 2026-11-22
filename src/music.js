@@ -298,7 +298,7 @@ function sync() {
 TRACKS.animal = { ...TRACKS.deal, name: 'วงไพ่ใต้ถุนบ้าน' }; // สัตว์หน้านิ่ง
 TRACKS.quiz = { ...TRACKS.clue, name: 'เวทีเกมโชว์' }; // ศึกควิซไวไฟ
 TRACKS.gold = { ...TRACKS.boom, name: 'เหมืองทองร้าง' }; // ขุดทองหรือตูม
-TRACKS.yadong = { ...TRACKS.deal, name: 'ร้านยาดองป้าแป๋ว' }; // ไพ่เนียนยาดอง
+TRACKS.yadong = { ...TRACKS.deal, name: 'ซาลูนลุงบิล' }; // ไพ่เนียนซาลูน
 TRACKS.snake = { ...TRACKS.werewolf, name: 'คฤหาสน์ยามดึก' }; // อีนังงูพิษ ใช้ทำนองกลางคืนเดียวกับแวร์วูฟ
 export const setMusic = id => { want = TRACKS[id] ? id : 'hub'; sync(); };
 export const setMusicVolume = v => { vol = Math.max(0, Math.min(1, v)); sync(); };
