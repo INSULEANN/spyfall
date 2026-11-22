@@ -11,6 +11,7 @@ Thai party board-game website (formerly "Spyfall Thai"). Many online multiplayer
 ## Stack and deploy
 - Vite + React 18 + Firebase Realtime Database (project `spyfall-3a10a`), with plain CSS (mobile-first). Icons come from `lucide-react`.
 - `npm run dev` / `npm run build`. A push to `main` is auto-deployed to Firebase Hosting by GitHub Actions (`.github/workflows/`).
+- Live URL: https://boardgametbaan.web.app (hosting site `boardgametbaan`). `firebase.json` `hosting` is an array of 2 sites; the old site `spyfall-3a10a` only 301-redirects to the new URL (path and query kept).
 - `firebase.json` sets cache headers (`/assets/**` immutable, `/cards/**` 30 days). Firebase is on the free Spark plan: keep assets small (WebP, SVG) and avoid video.
 - **`APP_VERSION` in `src/main.jsx` must be bumped on every change that affects play.** Rooms block players whose version differs from the version in the room.
 

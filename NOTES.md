@@ -8,7 +8,7 @@
 - **โปรเจกต์:** Spyfall Thai (เว็บเกมปาร์ตี้จับสายลับ ธีมไทย 3–12 คน)
 - **Tech Stack:** React 18 + Vite, Lucide React, Firebase Realtime Database, Vanilla CSS (mobile-first)
 - **Firebase project:** `spyfall-3a10a` (RTDB region asia-southeast1) — config ฝังเป็นค่าเริ่มต้นใน `src/main.jsx` (`.env` ทับได้)
-- **Hosting:** Firebase Hosting (`firebase.json`, public = `dist`) + GitHub Actions deploy อัตโนมัติ (`.github/workflows/`) เมื่อ merge / เปิด PR
+- **Hosting:** Firebase Hosting (`firebase.json`, public = `dist`) + GitHub Actions deploy อัตโนมัติ (`.github/workflows/`) เมื่อ merge / เปิด PR — URL หลัก **https://boardgametbaan.web.app** (site `boardgametbaan`); site เก่า `spyfall-3a10a.web.app` redirect 301 ไปที่ใหม่ (ตั้งใน `firebase.json` เป็น hosting array 2 site)
 - **Backup:** `D:\PROJ\Spyfall\backup-v1.0`, `backup-v1.1` (main.jsx / roles.js / style.css)
 
 ## 🗂️ ไฟล์หลัก
