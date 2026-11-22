@@ -15,6 +15,15 @@
         }
       }
     },
+    "kw": {
+      ".read": true,
+      "$cat": {
+        "$word": {
+          ".write": "$cat.matches(/^[a-z0-9]{1,12}$/) && !data.exists() && newData.exists() && $word.length >= 2 && $word.length <= 40",
+          ".validate": "newData.hasChildren(['w','by','at']) && newData.child('w').isString() && newData.child('w').val().length <= 40 && newData.child('by').isString() && newData.child('by').val().length <= 24 && newData.child('at').val() == now"
+        }
+      }
+    },
     "wc": {
       ".read": true,
       "$lang": {

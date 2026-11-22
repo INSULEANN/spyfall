@@ -555,6 +555,28 @@ function ClueScene() {
     <g className="peek"><path d="M8 118 h84 q8 0 8 8 v22 q0 8 -8 8 h-50 l-10 12 l0 -12 h-24 q-8 0 -8 -8 v-22 q0 -8 8 -8 Z" fill="#fff" /><text x="50" y="143" textAnchor="middle" fontSize="15" fontWeight="900" fill="#d8283d" fontFamily="Kanit,sans-serif">“ทะเล” 2</text></g>
   </S>;
 }
+// ---------- ⚡ คำไว: ป้ายหมวดกลางเวที คำพุ่งออกมาเป็นสายฟ้า ตัวไข่รัวคีย์บอร์ด ----------
+function KwaiScene() {
+  const words = [[60, 62, 'มะม่วง', -8], [312, 52, 'ทุเรียน', 7], [92, 128, 'เงาะ', 5], [300, 120, 'ลำไย', -6]];
+  return <S id="kwai" label="ป้ายหมวดผลไม้กลางเวที มีคำ มะม่วง ทุเรียน เงาะ ลำไย ลอยอยู่ ตัวไข่สองตัวพิมพ์แข่งกัน">
+    <defs><radialGradient id="kw-bg" cx=".5" cy=".35" r=".8"><stop offset="0" stopColor="#3a1d5c" /><stop offset="1" stopColor="#120a24" /></radialGradient></defs>
+    <rect width="400" height="260" fill="url(#kw-bg)" />
+    <g className="glow"><path d="M206 20 L176 92 L200 92 L184 150 L236 70 L210 70 L228 20 Z" fill="#ffe14d" opacity=".9" /></g>
+    <rect x="140" y="100" width="120" height="40" rx="12" fill="#ff4f8b" stroke="#120a24" strokeWidth="3" />
+    <text x="200" y="127" textAnchor="middle" fontSize="20" fontWeight="900" fill="#fff" fontFamily="Mitr,sans-serif">🍉 ผลไม้</text>
+    {words.map(([x, y, w, rot], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.4) + 's' }} transform={`rotate(${rot} ${x} ${y})`}>
+      <rect x={x - 38} y={y - 16} width="76" height="30" rx="15" fill="#fff" opacity=".92" />
+      <text x={x} y={y + 5} textAnchor="middle" fontSize="15" fontWeight="800" fill="#3a1d5c" fontFamily="Mitr,sans-serif">{w}</text></g>)}
+    <path d="M0 260 V222 Q200 206 400 222 V260 Z" fill="#0b0618" />
+    {[[90, '#7ae0c3'], [310, '#ffb347']].map(([x, c], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.7) + 's' }}>
+      <ellipse cx={x} cy="194" rx="24" ry="30" fill={c} />
+      <g fill="#fff"><ellipse cx={x - 8} cy="188" rx="5" ry="6" /><ellipse cx={x + 8} cy="188" rx="5" ry="6" /></g>
+      <g fill="#120a24"><circle cx={x - 7} cy="190" r="2.6" /><circle cx={x + 9} cy="190" r="2.6" /></g>
+      <path d={`M${x - 6} 203 Q${x} 207 ${x + 6} 203`} stroke="#120a24" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <rect x={x - 30} y="214" width="60" height="14" rx="4" fill="#2b2147" stroke="#5c4a8f" strokeWidth="2" />
+      <g fill="#8f7fd1">{[0, 1, 2, 3, 4].map(k => <rect key={k} x={x - 26 + k * 11} y="217" width="8" height="4" rx="1" />)}</g></g>)}
+  </S>;
+}
 // ---------- 🔗 ต่อตัวท้าย: ป้ายคำห้อยต่อกันเป็นโซ่ ตัวไข่สองตัวช่วยกันลาก ----------
 function WordchainScene() {
   const words = [[34, 96, 'แมว', '#ff8fb1'], [118, 70, 'วัด', '#ffd23f'], [204, 96, 'ดอกไม้', '#7ae0c3'], [300, 70, 'ยักษ์', '#7aa8ff']];
@@ -891,5 +913,5 @@ const PokerScene = () => <FeltTable id="poker" lamp="#14203f" label="โต๊�
   cards={[{ x: 112, y: 160, r: 0, rank: 'A', s: 'S' }, { x: 156, y: 160, r: 0, rank: 'K', s: 'S' }, { x: 200, y: 160, r: 0, rank: 'Q', s: 'S' }, { x: 244, y: 160, r: 0, rank: 'J', s: 'S' }, { x: 288, y: 160, r: 0, back: true }]}
   chips={[{ x: 186, y: 225, c: '#7b3fe4', n: 6 }, { x: 214, y: 228, c: '#d42a3c', n: 4 }, { x: 330, y: 210, c: '#16181d', n: 3 }]} />;
 
-const SCENES = { pokdeng: PokdengScene, poker: PokerScene, quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, wordchain: WordchainScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+const SCENES = { pokdeng: PokdengScene, poker: PokerScene, quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, wordchain: WordchainScene, kwai: KwaiScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

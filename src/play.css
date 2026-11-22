@@ -442,3 +442,14 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .wc-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent-hi);border:3px solid var(--on-accent);box-shadow:0 2px 8px #0006}
 .wc-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent-hi);border:3px solid var(--on-accent);box-shadow:0 2px 8px #0006}
 .wc-range-lbl{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem;margin-bottom:6px}
+
+/* ---------- คำไว ---------- */
+.kw-cat b{font-size:1.7rem}
+.kw-sugg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.kw-sugg>small{width:100%;color:var(--muted)}
+.kw-sugg button{padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;border:0;font-size:1.02rem;display:inline-flex;gap:6px;align-items:center}
+.kw-sugg button.used{background:var(--chip);color:var(--muted);text-decoration:line-through}
+.kw-sugg button small{font-size:.7rem}
+.kw-group{margin:6px 0 10px}
+.kw-ghead{display:flex;align-items:center;gap:8px;margin:4px 0 6px}
+.kw-ghead small{color:var(--muted);flex:1}
