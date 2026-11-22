@@ -12,6 +12,8 @@ import { Avatar, Phase, Outcome, Leaderboard, HostBar, SecH, TimerRing, ActionSh
 export const WC_MIN = 2, WC_MAX = 12;
 export const WC_SCORE = { win: 3, second: 1 };
 export const WC_VOTE_MS = 12000;
+export const WC_SECS = [5, 60];   // หลอดเวลาต่อตา (วินาที) ทีละ 5
+export const wcSecs = v => { const n = Math.round(+v / 5) * 5; return n >= WC_SECS[0] && n <= WC_SECS[1] ? n : 20; };
 export const WC_LANGS = { th: { n: 'ภาษาไทย', e: '🇹🇭', unit: 'พยัญชนะ' }, en: { n: 'English', e: '🇬🇧', unit: 'ตัวอักษร' } };
 const say = (r, text) => { r.log = [...(r.log || []), { text, t: Date.now() }].slice(-30); };
 const fix = r => { r.order = r.order || []; r.lives = r.lives || {}; r.used = r.used || {}; r.chain = r.chain || []; r.out = r.out || []; r.votes = r.votes || {}; r.log = r.log || []; r.cnt = r.cnt || {}; return r; };
@@ -66,7 +68,7 @@ export function loadWcDict(lang) {
 const START = { th: [...'กคมนสปทบพรลดตขหจชวอย'], en: [...'abcdefghilmnoprstw'] };
 export function makeWcRound(ids, set = {}, number = 1, t0 = Date.now()) {
   const lang = set.lang === 'en' ? 'en' : 'th'; const lives = [1, 2, 3].includes(+set.lives) ? +set.lives : 2;
-  const tmT = [10, 15, 20, 30, 45].includes(+set.secs) ? +set.secs * 1000 : 20000;
+  const tmT = wcSecs(set.secs) * 1000;
   const L = {}; ids.forEach(id => { L[id] = lives; });
   return { number, kind: 'wc', lang, lives: L, maxLives: lives, tmT, order: shuffle(ids), turn: 0, need: START[lang][rint(START[lang].length)], used: {}, chain: [], out: [], cnt: {}, phase: 'turn', at: t0 + 3000, until: t0 + 3000 + tmT, pend: null, votes: null, added: [], log: [], startedAt: t0 };
 }
@@ -249,11 +251,16 @@ export function WcGame({ db, room, roomCode, myId, players, isHost, scores, soun
 export function WcLobby({ db, roomCode, room, isHost, sound }) {
   const st = room.settings?.wc || {}; const lang = st.lang === 'en' ? 'en' : 'th';
   const save = patch => { sfx(sound, 'select'); runTransaction(ref(db, `rooms/${roomCode}/settings/wc`), c => ({ ...(c || {}), ...patch })).catch(() => {}); };
+  // หลอดเวลา: ลากแล้วเห็นเลขทันที บันทึกลงห้องเมื่อหยุดลาก (กันเขียน Firebase ถี่)
+  const [secs, setSecs] = useState(wcSecs(st.secs)); const tm = useRef(null);
+  useEffect(() => { setSecs(wcSecs(st.secs)); }, [st.secs]);
   return <div className="uc-lobby wc-lobby">
     <label>🌐 โหมดภาษา {isHost ? '' : '(หัวหน้าห้องตั้ง)'}</label>
     <div className="wc-langs">{Object.entries(WC_LANGS).map(([k, L]) => <button key={k} type="button" className={'uc-cat' + (lang === k ? ' on' : '')} disabled={!isHost} onClick={() => save({ lang: k })}>{L.e} {L.n}<small>{k === 'th' ? 'ต่อด้วยพยัญชนะตัวท้าย' : 'ต่อด้วยตัวอักษรตัวท้าย'}</small></button>)}</div>
-    <label>⏱️ เวลาต่อตา</label>
-    <select value={st.secs || 20} disabled={!isHost} onChange={e => save({ secs: +e.target.value })}>{[10, 15, 20, 30, 45].map(x => <option key={x} value={x}>{x} วินาที</option>)}</select>
+    <label>⏱️ เวลาต่อตา <b className="wc-secs">{secs} วินาที</b></label>
+    <input type="range" className="wc-range" min={WC_SECS[0]} max={WC_SECS[1]} step={5} value={secs} disabled={!isHost} style={{ '--p': ((secs - WC_SECS[0]) / (WC_SECS[1] - WC_SECS[0]) * 100) + '%' }}
+      onChange={e => { const v = +e.target.value; setSecs(v); clearTimeout(tm.current); tm.current = setTimeout(() => save({ secs: v }), 250); }} />
+    <div className="wc-range-lbl"><span>{WC_SECS[0]} วิ (โหด)</span><span>{WC_SECS[1]} วิ (ชิล)</span></div>
     <label>❤️ หัวใจต่อคน</label>
     <select value={st.lives || 2} disabled={!isHost} onChange={e => save({ lives: +e.target.value })}>{[1, 2, 3].map(x => <option key={x} value={x}>{x} ดวง</option>)}</select>
     <small className="hint">{lang === 'th' ? 'ตัวอย่าง: แมว → วัด → ดอกไม้ → ยักษ์ (ตัวการันต์ไม่นับ ใช้ ก ต่อ)' : 'e.g. apple → elephant → tiger → rabbit'}</small>
