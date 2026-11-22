@@ -160,7 +160,7 @@ export function KwGame({ db, room, roomCode, myId, players, isHost, scores, soun
   const saved = useRef({});
   useEffect(() => { r.added.forEach(({ id, w }) => { const e = r.chain.find(c => kwNorm(c.w) === kwNorm(w)); if (!e || e.by !== myId || saved.current[id] || extra[id]) return; saved.current[id] = 1; set(ref(db, `kw/${cat}/${id}`), { w, by: String(nameOf(myId)).slice(0, 24), at: serverTimestamp() }).catch(() => {}); }); }, [r.added.length]);
 
-  const exact = kwExact(ents, txt); const sugg = myTurn ? kwSuggest(ents, txt) : [];
+  const exact = useMemo(() => kwExact(ents, txt), [ents, txt]); const sugg = useMemo(() => myTurn ? kwSuggest(ents, txt) : [], [ents, txt, myTurn]);
   const usedHit = exact && r.used[exact.id] ? exact : null;
   const myVoter = !res && r.phase === 'vote' && pend && pend.by !== myId && r.alive[myId] && !!room.players?.[myId];
   const tail = r.chain.slice(-12);

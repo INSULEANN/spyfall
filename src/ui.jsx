@@ -161,6 +161,8 @@ export function TimerRing({ secs, total, size = 78, label }) {
 export function ActionSheet({ open, k, icon, title, sub, secs, total, children }) {
   const [min, setMin] = useState(false);
   useEffect(() => { if (open) setMin(false); }, [open, k]);
+  // ป๊อปอัปเปิดเต็มจอ → หยุดแอนิเมชันข้างหลัง (#root) ไว้ก่อน ไม่งั้นมือถือต้องวาดใหม่ทุกเฟรมจนกระตุก
+  useEffect(() => { if (!open || min || typeof document === 'undefined') return; const h = document.documentElement; h.dataset.sheet = (+h.dataset.sheet || 0) + 1; return () => { const n = (+h.dataset.sheet || 1) - 1; if (n > 0) h.dataset.sheet = n; else delete h.dataset.sheet; }; }, [open, min]);
   if (!open || typeof document === 'undefined') return null;
   const ring = secs != null && total ? <TimerRing secs={secs} total={total} size={60} label="วินาที" /> : null;
   return createPortal(min

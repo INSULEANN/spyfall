@@ -241,7 +241,7 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .cv-bar{height:8px;border-radius:8px;background:#ffffff14;overflow:hidden}.cv-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8a5a,#ff5f6d);transition:width .4s}
 .cv-who{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
 /* ป๊อปอัปบังคับเลือก (ActionSheet) */
-.asheet-back{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:#000a;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:vfade .2s}
+.asheet-back{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:#000c;animation:vfade .2s}
 .asheet{width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:2px solid var(--accent);border-radius:20px;padding:18px;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 18%,transparent),0 24px 80px #000a;animation:vpop .25s cubic-bezier(.3,1.5,.6,1)}
 .asheet-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .asheet-ico{font-size:34px;line-height:1;animation:asheet-bob 1.2s ease-in-out infinite}
@@ -453,3 +453,5 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .kw-group{margin:6px 0 10px}
 .kw-ghead{display:flex;align-items:center;gap:8px;margin:4px 0 6px}
 .kw-ghead small{color:var(--muted);flex:1}
+/* ป๊อปอัปเปิดอยู่: หยุดแอนิเมชันทั้งหน้าข้างหลัง (ป๊อปอัปอยู่นอก #root เลยยังขยับได้) */
+html[data-sheet] #root *,html[data-sheet] #root *::before,html[data-sheet] #root *::after{animation-play-state:paused!important}
