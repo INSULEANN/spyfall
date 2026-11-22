@@ -90,6 +90,12 @@
 .ct-chipbtn:disabled{opacity:.3}
 .ct-raise{width:100%;display:flex;flex-direction:column;gap:8px}
 .ct-raise input[type=range]{width:100%;accent-color:var(--accent)}
+.cb{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.cb-sum{display:flex;align-items:center;gap:10px;min-height:34px}.cb-sum i{color:var(--muted);font-size:13px}
+.cb-big b{font-size:22px}.cb-big .chipz-st{transform:scale(1.35);margin:0 4px}
+.cb-min{color:#ff8a6a;font-weight:700}
+.cb-max{font-size:12px;font-weight:700;color:var(--text)}
+.cb-ask{padding:6px 0;font-family:var(--display);font-size:16px}
 .ct-mini-btn{padding:6px 10px;border-radius:10px;background:var(--chip);color:var(--text);font-size:12px}
 .ct-allin{padding:8px 12px;border-radius:12px;background:#9c1626;color:#fff;font-weight:700}
 

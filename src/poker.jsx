@@ -6,7 +6,7 @@ import { ref, runTransaction, update } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { Avatar, SecH, TimerRing, HostBar, Confetti } from './ui.jsx';
-import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup, SwitchBtn, toLobby } from './playcards.jsx';
+import { fullDeck, shuffleDeck, PCard, Chips, ChipBuilder, seatPos, seatChips, netOf, ChipSetup, SwitchBtn, toLobby } from './playcards.jsx';
 
 export const PK_MIN = 2, PK_MAX = 9, PK_START = 1000;
 export const TURN_MS = 30000, SHOW_MS = 12000;
@@ -224,12 +224,8 @@ export function PkGame({ db, room, roomCode, myId, isHost, sound, av, nameOf, on
         {need === 0 ? <button className="secondary" onClick={() => act('check')}>✋ เช็ก</button> : <button className="primary" onClick={() => act('call')}>📞 คอล {Math.min(need, r.chips[myId])}</button>}
       </div>
       {cap > r.maxBet && <div className="ct-raise">
-        {cap > minTo && <input type="range" min={minTo} max={cap} step={r.sb} value={Math.min(cap, Math.max(minTo, amt))} onChange={e => setAmt(+e.target.value)} />}
-        <div className="ct-row">
-          {cap > minTo && [['½ กอง', Math.floor(pot / 2)], ['กองเต็ม', pot]].map(([l, v]) => { const t = Math.min(cap, Math.max(minTo, r.maxBet + v)); return <button key={l} className="ct-mini-btn" onClick={() => setAmt(t)}>{l}</button>; })}
-          {cap > minTo && <button className="primary" onClick={() => act('raise', Math.min(cap, Math.max(minTo, amt)))}>⬆️ {r.maxBet ? 'เรสเป็น' : 'เบ็ต'} {Math.min(cap, Math.max(minTo, amt))}</button>}
-          <button className="ct-allin" onClick={() => { if (confirm(`ออลอิน ${cap}?`)) act('allin'); }}>💥 ออลอิน {cap}</button>
-        </div>
+        {cap > minTo && <ChipBuilder key={hk + r.at} min={minTo} max={cap} verb={r.maxBet ? 'เรสเป็น' : 'เบ็ต'} sound={sound} sfx={sfx} onConfirm={v => act(v >= cap ? 'allin' : 'raise', v)} />}
+        <button className="ct-allin" onClick={() => { if (confirm(`ออลอิน ${cap}?`)) act('allin'); }}>💥 ออลอิน {cap}</button>
       </div>}
       <TimerRing secs={secs(r.until - srvNow)} total={TURN_MS / 1000} size={46} />
     </div>}

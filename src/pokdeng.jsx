@@ -1,6 +1,7 @@
 // ป๊อกเด้ง (แบบไทย) — ชิปปลอมในเกมเท่านั้น ไม่มีเงินจริง
 //   เจ้ามือเวียนทุกตา (หรือหัวหน้าห้องเป็นเจ้ามือตลอด) • ลูกขาลงชิป → แจก 2 ใบ → ป๊อก 8/9 เปิดทันที
 //   ลูกขาป๊อก: ไม่ประกาศ ไม่เปิดให้ ต้องบีบเอง (ข้ามการจั่วอัตโนมัติ)
+//   เจ้ามือป๊อก: ไม่ประกาศ เจ้ามือต้องแตะเปิดเอง ไพ่กลางโต๊ะพลิกตามทีละใบ (r.dshow)
 //   เจ้ามือป๊อก หรือลูกขาป๊อกครบทุกคน → ช่วง "บีบไพ่" ให้ลูกขาค่อย ๆ เปิดไพ่ตัวเองก่อน (ครบทุกคนหรือหมดเวลา) แล้วค่อยสรุป
 //   ลูกขาเลือกจั่วใบที่ 3 / ไม่จั่ว → เจ้ามือเลือกจั่ว → เทียบกับเจ้ามือทีละคน
 // อันดับ: ป๊อก > ตอง (×5) > เรียงดอก (×5) > เรียง (×3) > เซียน JQK (×3) > แต้ม (สองเด้ง ×2 / สามเด้ง ×3)
@@ -10,13 +11,13 @@ import { ref, runTransaction, update } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { Avatar, SecH, TimerRing, HostBar, Confetti } from './ui.jsx';
-import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup, SwitchBtn, toLobby } from './playcards.jsx';
+import { fullDeck, shuffleDeck, PCard, Chips, ChipBuilder, seatPos, seatChips, netOf, ChipSetup, SwitchBtn, toLobby } from './playcards.jsx';
 
 export const PD_MIN = 2, PD_MAX = 10, PD_START = 1000;
 export const PD_BETS = [10, 20, 50, 100, 200, 500];
 export const BET_MS = 20000, DRAW_MS = 15000, SHOW_MS = 15000, DEAL_ANIM = 2000, PEEK_MS = 12000;
 const say = (r, text) => { r.log = [...(r.log || []), { text, t: Date.now() }].slice(-30); };
-export const fix = r => { r.base = r.base || {}; r.seats = r.seats || []; r.chips = r.chips || {}; r.buys = r.buys || {}; r.bets = r.bets || {}; r.hands = r.hands || {}; r.dec = r.dec || {}; r.seen = r.seen || {}; r.deck = r.deck || []; r.log = r.log || []; return r; };
+export const fix = r => { r.base = r.base || {}; r.seats = r.seats || []; r.chips = r.chips || {}; r.buys = r.buys || {}; r.bets = r.bets || {}; r.hands = r.hands || {}; r.dec = r.dec || {}; r.seen = r.seen || {}; r.dshow = r.dshow || {}; r.deck = r.deck || []; r.log = r.log || []; return r; };
 
 // ---------- คิดแต้ม ----------
 const rv = r => 'A23456789TJQK'.indexOf(r) + 1;           // A=1 … K=13
@@ -52,7 +53,7 @@ function newHand(r, present, now) {
   present.filter(id => !r.seats.includes(id)).forEach(id => { r.seats.push(id); const fresh = r.chips[id] == null; seatChips(r, id); if (r.hand) say(r, `🪑 {${id}} นั่งโต๊ะ${fresh ? ` รับชิป ${r.start}` : ''}`); });
   if (r.fixed && r.seats.includes(r.fixed)) r.dealer = r.fixed;
   else { r.di = (r.di + 1) % Math.max(1, r.seats.length); r.dealer = r.seats[r.di]; }
-  r.hand++; r.phase = 'bet'; r.at = now; r.until = now + BET_MS; r.bets = {}; r.hands = {}; r.dec = {}; r.seen = {}; r.deck = []; r.res = null; r.dpok = false;
+  r.hand++; r.phase = 'bet'; r.at = now; r.until = now + BET_MS; r.bets = {}; r.hands = {}; r.dec = {}; r.seen = {}; r.dshow = {}; r.deck = []; r.res = null; r.dpok = false;
 }
 function deal(r, now) {
   const ins = pdIn(r);
@@ -61,7 +62,7 @@ function deal(r, now) {
   for (let k = 0; k < 2; k++) order.forEach(id => { (h[id] = h[id] || []).push(d.pop()); });
   r.hands = h; r.deck = d; r.dec = {}; r.at = now;
   r.dpok = pdEval(h[r.dealer]).cat === 5;
-  if (r.dpok) { say(r, `🎩 เจ้ามือ {${r.dealer}} ${pdEval(h[r.dealer]).label}! ลูกขาบีบไพ่ลุ้นกันก่อน`); r.phase = 'peek'; r.seen = {}; r.until = now + DEAL_ANIM + PEEK_MS; return; }
+  if (r.dpok) { say(r, '🃏 ไม่ต้องจั่ว บีบไพ่ลุ้นกันเลย'); r.phase = 'peek'; r.seen = {}; r.dshow = {}; r.until = now + DEAL_ANIM + PEEK_MS; return; } // ไม่บอกว่าเจ้ามือป๊อก ให้เจ้ามือเปิดเอง
   ins.forEach(id => { if (pdEval(h[id]).cat === 5) r.dec[id] = 'pok'; }); // ไม่ประกาศ ให้เจ้าตัวบีบลุ้นเอง
   if (ins.every(id => r.dec[id])) { say(r, '🃏 ไม่มีใครต้องจั่ว บีบไพ่ลุ้นกันเลย'); r.phase = 'peek'; r.seen = {}; r.until = now + DEAL_ANIM + PEEK_MS; return; }
   r.phase = 'draw'; r.until = now + DEAL_ANIM + DRAW_MS;
@@ -82,7 +83,7 @@ function settle(r, now) {
 // ---------- การกระทำ (เรียกใน transaction) ----------
 export function pdBet(cur, me, amt, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'bet' || me === r.dealer || !r.seats.includes(me) || r.bets[me]) return;
-  if (!PD_BETS.includes(amt) || amt > (r.chips[me] || 0)) return;
+  if (!Number.isInteger(amt) || amt < PD_BETS[0] || amt > (r.chips[me] || 0)) return;
   r.bets = { ...r.bets, [me]: amt };
   if (pdPlayers(r).filter(id => (r.chips[id] || 0) >= PD_BETS[0]).every(id => r.bets[id])) deal(r, now);
   return cur;
@@ -103,7 +104,17 @@ export function pdDealer(cur, me, take, now) {
 export function pdSeen(cur, me, now) {
   const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'peek' || !r.bets[me] || r.seen[me]) return;
   r.seen = { ...r.seen, [me]: true };
-  if (pdIn(r).every(id => r.seen[id])) settle(r, now);
+  if (peekDone(r)) settle(r, now);
+  return cur;
+}
+const dShown = r => (r.hands[r.dealer] || []).every((_, i) => r.dshow[i]);
+const peekDone = r => pdIn(r).every(id => r.seen[id]) && (!r.dpok || dShown(r));
+// เจ้ามือป๊อก: เจ้ามือแตะเปิดไพ่ทีละใบ ไพ่กลางโต๊ะพลิกตาม
+export function pdDShow(cur, me, i, now) {
+  const r = cur.round; if (cur.status !== 'playing' || r.phase !== 'peek' || !r.dpok || me !== r.dealer || !Number.isInteger(i) || i < 0 || i >= (r.hands[me] || []).length || r.dshow[i]) return;
+  r.dshow = { ...r.dshow, [i]: true };
+  if (dShown(r)) say(r, `🎩 เจ้ามือ {${me}} ${pdEval(r.hands[me]).label}!`);
+  if (peekDone(r)) settle(r, now);
   return cur;
 }
 export function pdRebuy(cur, me) {
@@ -150,11 +161,11 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
   const myRes = r.res?.[myId];
   useEffect(() => { if (r.phase === 'show' && myRes) sfx(sound, myRes.delta > 0 ? 'win' : myRes.delta < 0 ? 'lose' : 'reveal'); }, [r.phase === 'show', hk]);
   const showAll = r.phase === 'show';
-  const myUp = i => !!(showAll || peek[i]);
+  const myUp = i => !!(showAll || peek[i] || (isDealer && peeking && r.dshow[i]));
   const myEval = my.length && my.every((_, i) => myUp(i)) ? pdEval(my) : null;
   useEffect(() => { if (peeking && myEval && r.bets[myId] && !r.seen[myId]) tx(c => pdSeen(c, myId, srvNow)); }, [peeking, !!myEval, hk]);
   const n = r.seats.length, me0 = Math.max(0, r.seats.indexOf(myId));
-  const dh = r.hands[r.dealer] || [], dUp = showAll || !!r.dpok;
+  const dh = r.hands[r.dealer] || [], dCardUp = i => showAll || !!(r.dpok && r.dshow[i]), dUp = dh.length > 0 && dh.every((_, i) => dCardUp(i));
 
   if (res) {
     const rows = Object.keys(res.net || {}).sort((a, b) => res.net[b] - res.net[a]);
@@ -166,13 +177,13 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
     </div>;
   }
 
-  const phaseTxt = r.phase === 'bet' ? '💰 ลงชิป' : r.phase === 'draw' ? '🃏 จั่วหรือไม่จั่ว' : r.phase === 'dealer' ? `🎩 เจ้ามือตัดสินใจ` : peeking ? (r.dpok ? '🎩 เจ้ามือป๊อก! บีบไพ่ลุ้นกัน' : '🃏 บีบไพ่ลุ้นกัน') : '🔍 เปิดไพ่';
+  const phaseTxt = r.phase === 'bet' ? '💰 ลงชิป' : r.phase === 'draw' ? '🃏 จั่วหรือไม่จั่ว' : r.phase === 'dealer' ? `🎩 เจ้ามือตัดสินใจ` : peeking ? (r.dpok && dUp ? '🎩 เจ้ามือป๊อก! บีบไพ่ลุ้นกัน' : '🃏 บีบไพ่ลุ้นกัน') : '🔍 เปิดไพ่';
   return <div className="ct-game" data-casino="pd">
     {showAll && myRes?.delta > 0 && <Confetti key={hk} n={50} />}
     <div className="round-top"><span className="eyebrow">ตาที่ {r.hand}</span><span className="cat-tag">🎩 เจ้ามือ: {isDealer ? 'คุณ' : nameOf(r.dealer)}</span></div>
     <div className={'ct-table' + (showAll ? ' pd-show' : '')}>
       <div className="ct-felt"><div className="ct-center">
-        {dh.length > 0 && <div className="pd-dealer"><div className="ct-board">{dh.map((c, i) => <PCard key={hk + 'd' + i} c={c} up={dUp} size="sm" i={i} deal={!showAll} />)}</div><span className="pd-dl">🎩 {r.dealer === myId ? 'ไพ่คุณ (เจ้ามือ)' : 'เจ้ามือ'}{dUp ? <b> • {pdEval(dh).label}</b> : ''}</span></div>}
+        {dh.length > 0 && <div className="pd-dealer"><div className="ct-board">{dh.map((c, i) => <PCard key={hk + 'd' + i} c={c} up={dCardUp(i)} size="sm" i={i} deal={!showAll} />)}</div><span className="pd-dl">🎩 {r.dealer === myId ? 'ไพ่คุณ (เจ้ามือ)' : 'เจ้ามือ'}{dUp ? <b> • {pdEval(dh).label}</b> : ''}</span></div>}
         <b className="ct-phase">{phaseTxt}</b>
         {r.until > srvNow && <TimerRing secs={secs(r.until - srvNow)} total={(r.until - r.at) / 1000} size={50} label="วิ" />}
         <small>{r.phase === 'bet' ? `ลงแล้ว ${pdIn(r).length}/${pdPlayers(r).filter(id => (r.chips[id] || 0) >= PD_BETS[0]).length}` : r.phase === 'draw' ? `ตัดสินใจแล้ว ${pdIn(r).filter(id => r.dec[id]).length}/${pdIn(r).length}` : peeking ? `เปิดแล้ว ${pdIn(r).filter(id => r.seen[id]).length}/${pdIn(r).length}` : r.phase === 'show' ? 'ตาต่อไปเริ่มอัตโนมัติ' : 'รอเจ้ามือ…'}</small>
@@ -186,7 +197,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
           <small className="ct-ch">💰 {(r.chips[id] || 0).toLocaleString()}</small>
           {id !== myId && !dl && h.length > 0 && <div className="ct-mini">{h.map((c, i) => <PCard key={hk + i} c={c} up={up} size="xs" i={i} deal={!showAll} />)}</div>}
           {r.bets[id] ? <Chips n={r.bets[id]} cls="ct-bet" /> : r.phase === 'bet' && !dl && (r.chips[id] || 0) >= PD_BETS[0] ? <span className="ct-tag">🤔 กำลังลง</span> : null}
-          {peeking && r.bets[id] && <span className="ct-tag">{r.seen[id] ? '👀 เปิดแล้ว' : '🤏 กำลังบีบ…'}</span>}
+          {peeking && (r.bets[id] || (dl && r.dpok)) && <span className="ct-tag">{(dl ? dUp : r.seen[id]) ? '👀 เปิดแล้ว' : '🤏 กำลังบีบ…'}</span>}
           {r.dec[id] && r.phase !== 'show' && <span className="ct-tag">{r.dec[id] === 'draw' ? '🃏 จั่ว' : '✋ ไม่จั่ว'}</span>}
           {rs && <span className={'ct-res' + (rs.delta > 0 ? ' up' : rs.delta < 0 ? ' down' : '')}>{rs.label}{!dl && rs.delta !== 0 ? <i>{rs.delta > 0 ? '+' : ''}{rs.delta}</i> : dl ? <i>{rs.delta > 0 ? '+' : ''}{rs.delta}</i> : <i>เสมอ</i>}</span>}
         </div>;
@@ -195,13 +206,13 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
 
     {/* ไพ่ของฉัน */}
     {my.length > 0 && <div className="ct-hand">
-      <div className="ct-cards">{my.map((c, i) => <PCard key={hk + i} c={c} up={myUp(i)} size="lg" i={i} deal onClick={!myUp(i) ? () => { sfx(sound, 'click'); setPeek(p => ({ ...p, [i]: true })); } : undefined} />)}</div>
-      <p className="ct-eval">{myEval ? <><b>{myEval.label}</b>{myEval.mult > 1 && myEval.cat !== 5 && myEval.cat !== 0 ? ` (×${myEval.mult})` : ''}</> : (peeking && r.bets[myId] ? (r.dpok ? '🎩 เจ้ามือป๊อก! ' : '') + '👆 แตะไพ่ค่อย ๆ บีบลุ้นว่าจะรอดไหม' : '👆 แตะไพ่เพื่อค่อย ๆ บีบเปิด')}</p>
+      <div className="ct-cards">{my.map((c, i) => <PCard key={hk + i} c={c} up={myUp(i)} size="lg" i={i} deal onClick={!myUp(i) ? () => { sfx(sound, 'click'); setPeek(p => ({ ...p, [i]: true })); if (isDealer && peeking && r.dpok) tx(c => pdDShow(c, myId, i, srvNow)); } : undefined} />)}</div>
+      <p className="ct-eval">{myEval ? <><b>{myEval.label}</b>{myEval.mult > 1 && myEval.cat !== 5 && myEval.cat !== 0 ? ` (×${myEval.mult})` : ''}</> : (peeking && isDealer && r.dpok ? '👆 แตะไพ่ทีละใบ เปิดให้ทุกคนลุ้นกลางโต๊ะ' : peeking && r.bets[myId] ? (r.dpok && dUp ? '🎩 เจ้ามือป๊อก! ' : '') + '👆 แตะไพ่ค่อย ๆ บีบลุ้นว่าจะรอดไหม' : '👆 แตะไพ่เพื่อค่อย ๆ บีบเปิด')}</p>
     </div>}
 
     {/* ปุ่มที่ต้องกด */}
     {needBet && <div className="ct-act"><b>💰 ลงชิปตานี้ <small>(มี {(r.chips[myId] || 0).toLocaleString()})</small></b>
-      <div className="ct-bets">{PD_BETS.map(b => <button key={b} className="ct-chipbtn" disabled={b > (r.chips[myId] || 0)} onClick={() => { sfx(sound, 'confirm'); tx(c => pdBet(c, myId, b, srvNow)); }}><Chips n={b} /></button>)}</div>
+      <ChipBuilder key={hk} min={PD_BETS[0]} max={r.chips[myId] || 0} verb="ลง" sound={sound} sfx={sfx} onConfirm={b => tx(c => pdBet(c, myId, b, srvNow))} />
       <TimerRing secs={secs(r.until - srvNow)} total={BET_MS / 1000} size={46} /></div>}
     {(needDraw || needDealer) && <div className="ct-act"><b>{needDealer ? '🎩 เจ้ามือ: จั่วใบที่ 3 ไหม?' : '🃏 จั่วใบที่ 3 ไหม?'} {myEval ? <small>(ตอนนี้ {myEval.label})</small> : <small>(แตะไพ่เพื่อดูก่อน)</small>}</b>
       <div className="ct-row"><button className="primary" onClick={() => { sfx(sound, 'click'); tx(c => (needDealer ? pdDealer : pdDraw)(c, myId, true, srvNow)); }}>🃏 จั่ว</button><button className="secondary" onClick={() => { sfx(sound, 'confirm'); tx(c => (needDealer ? pdDealer : pdDraw)(c, myId, false, srvNow)); }}>✋ ไม่จั่ว</button></div>

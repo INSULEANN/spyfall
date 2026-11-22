@@ -138,6 +138,22 @@ export function ChipSetup({ db, roomCode, room, kind, def, isHost, nameOf }) {
 // ---------- สลับป๊อกเด้ง ⇄ โป๊กเกอร์ ในห้องเดิม (ใช้กระเป๋าชิป room.bank.cards ร่วมกัน) ----------
 export const CARD_SWITCH = { pokdeng: { to: 'poker', name: 'โป๊กเกอร์', max: 9 }, poker: { to: 'pokdeng', name: 'ป๊อกเด้ง', max: 10 } };
 export const toLobby = (c, game) => { c.status = 'lobby'; c.round = null; c.result = null; c.votes = null; c.ready = null; c.game = game; return c; };
+// ตัวต่อยอดชิป: กดชิปสะสมยอดเอง (เช่น 100 สามที = 300) → ยืนยัน → โชว์ยอด → ตกลงอีกที
+export const CB_CHIPS = [10, 50, 100, 500, 1000];
+export function ChipBuilder({ min = 1, max, verb = 'ลง', onConfirm, sound, sfx }) {
+  const [total, setTotal] = useState(0); const [ask, setAsk] = useState(false);
+  const click = k => sfx && sfx(sound, k);
+  const add = v => { click('select'); setTotal(t => Math.min(max, t + v)); };
+  const ok = total >= min && total <= max;
+  if (ask) return <div className="cb cb-ask"><span>จะ{verb}</span><Chips n={total} cls="cb-big" /><span>ใช่ไหม?</span>
+    <div className="ct-row"><button className="primary" onClick={() => { click('confirm'); onConfirm(total); }}>✅ ตกลง {verb} {total.toLocaleString()}</button><button className="secondary" onClick={() => { click('click'); setAsk(false); }}>✏️ แก้ไข</button></div></div>;
+  return <div className="cb">
+    <div className="ct-bets">{CB_CHIPS.filter(v => v <= max).map(v => <button key={v} className="ct-chipbtn" onClick={() => add(v)}><Chips n={v} /></button>)}{max > 0 && <button className="ct-chipbtn cb-max" onClick={() => { click('select'); setTotal(max); }}>หมดหน้าตัก</button>}</div>
+    <div className="cb-sum">{total ? <Chips n={total} cls="cb-big" /> : <i>แตะชิปด้านบนเพื่อรวมยอด</i>}{total > 0 && <button className="ct-mini-btn" onClick={() => { click('click'); setTotal(0); }}>↺ ล้าง</button>}</div>
+    {total > 0 && total < min && <small className="cb-min">ขั้นต่ำ {min.toLocaleString()}</small>}
+    <button className="primary" disabled={!ok} onClick={() => { click('click'); setAsk(true); }}>ยืนยันยอด</button>
+  </div>;
+}
 export function SwitchBtn({ room, n, onGo, mid }) {
   const sw = CARD_SWITCH[room.game]; if (!sw) return null; const full = n > sw.max;
   return <button type="button" className="secondary ct-switch" disabled={full} title={full ? `${sw.name}เล่นได้สูงสุด ${sw.max} คน` : ''}
