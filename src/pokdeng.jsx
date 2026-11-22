@@ -1,6 +1,7 @@
 // ป๊อกเด้ง (แบบไทย) — ชิปปลอมในเกมเท่านั้น ไม่มีเงินจริง
 //   เจ้ามือเวียนทุกตา (หรือหัวหน้าห้องเป็นเจ้ามือตลอด) • ลูกขาลงชิป → แจก 2 ใบ → ป๊อก 8/9 เปิดทันที
-//   เจ้ามือป๊อก → ช่วง "บีบไพ่" ให้ลูกขาค่อย ๆ เปิดไพ่ตัวเองก่อน (ครบทุกคนหรือหมดเวลา) แล้วค่อยสรุป
+//   ลูกขาป๊อก: ไม่ประกาศ ไม่เปิดให้ ต้องบีบเอง (ข้ามการจั่วอัตโนมัติ)
+//   เจ้ามือป๊อก หรือลูกขาป๊อกครบทุกคน → ช่วง "บีบไพ่" ให้ลูกขาค่อย ๆ เปิดไพ่ตัวเองก่อน (ครบทุกคนหรือหมดเวลา) แล้วค่อยสรุป
 //   ลูกขาเลือกจั่วใบที่ 3 / ไม่จั่ว → เจ้ามือเลือกจั่ว → เทียบกับเจ้ามือทีละคน
 // อันดับ: ป๊อก > ตอง (×5) > เรียงดอก (×5) > เรียง (×3) > เซียน JQK (×3) > แต้ม (สองเด้ง ×2 / สามเด้ง ×3)
 // ลูกขาที่ป๊อก เทียบกับไพ่ 2 ใบแรกของเจ้ามือ (เจ้ามือจั่วทีหลังไม่มีผลกับคนป๊อก)
@@ -61,8 +62,8 @@ function deal(r, now) {
   r.hands = h; r.deck = d; r.dec = {}; r.at = now;
   r.dpok = pdEval(h[r.dealer]).cat === 5;
   if (r.dpok) { say(r, `🎩 เจ้ามือ {${r.dealer}} ${pdEval(h[r.dealer]).label}! ลูกขาบีบไพ่ลุ้นกันก่อน`); r.phase = 'peek'; r.seen = {}; r.until = now + DEAL_ANIM + PEEK_MS; return; }
-  ins.forEach(id => { if (pdEval(h[id]).cat === 5) { r.dec[id] = 'pok'; say(r, `✨ {${id}} ${pdEval(h[id]).label}!`); } });
-  if (ins.every(id => r.dec[id])) return settle(r, now);
+  ins.forEach(id => { if (pdEval(h[id]).cat === 5) r.dec[id] = 'pok'; }); // ไม่ประกาศ ให้เจ้าตัวบีบลุ้นเอง
+  if (ins.every(id => r.dec[id])) { say(r, '🃏 ไม่มีใครต้องจั่ว บีบไพ่ลุ้นกันเลย'); r.phase = 'peek'; r.seen = {}; r.until = now + DEAL_ANIM + PEEK_MS; return; }
   r.phase = 'draw'; r.until = now + DEAL_ANIM + DRAW_MS;
 }
 function toDealer(r, now) { r.phase = 'dealer'; r.at = now; r.until = now + DRAW_MS; }
@@ -149,7 +150,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
   const myRes = r.res?.[myId];
   useEffect(() => { if (r.phase === 'show' && myRes) sfx(sound, myRes.delta > 0 ? 'win' : myRes.delta < 0 ? 'lose' : 'reveal'); }, [r.phase === 'show', hk]);
   const showAll = r.phase === 'show';
-  const myUp = i => showAll || peek[i] || r.dec[myId] === 'pok';
+  const myUp = i => !!(showAll || peek[i]);
   const myEval = my.length && my.every((_, i) => myUp(i)) ? pdEval(my) : null;
   useEffect(() => { if (peeking && myEval && r.bets[myId] && !r.seen[myId]) tx(c => pdSeen(c, myId, srvNow)); }, [peeking, !!myEval, hk]);
   const n = r.seats.length, me0 = Math.max(0, r.seats.indexOf(myId));
@@ -165,7 +166,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
     </div>;
   }
 
-  const phaseTxt = r.phase === 'bet' ? '💰 ลงชิป' : r.phase === 'draw' ? '🃏 จั่วหรือไม่จั่ว' : r.phase === 'dealer' ? `🎩 เจ้ามือตัดสินใจ` : peeking ? '🎩 เจ้ามือป๊อก! บีบไพ่ลุ้นกัน' : '🔍 เปิดไพ่';
+  const phaseTxt = r.phase === 'bet' ? '💰 ลงชิป' : r.phase === 'draw' ? '🃏 จั่วหรือไม่จั่ว' : r.phase === 'dealer' ? `🎩 เจ้ามือตัดสินใจ` : peeking ? (r.dpok ? '🎩 เจ้ามือป๊อก! บีบไพ่ลุ้นกัน' : '🃏 บีบไพ่ลุ้นกัน') : '🔍 เปิดไพ่';
   return <div className="ct-game" data-casino="pd">
     {showAll && myRes?.delta > 0 && <Confetti key={hk} n={50} />}
     <div className="round-top"><span className="eyebrow">ตาที่ {r.hand}</span><span className="cat-tag">🎩 เจ้ามือ: {isDealer ? 'คุณ' : nameOf(r.dealer)}</span></div>
@@ -178,7 +179,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
       </div></div>
       {r.seats.map((id, k) => {
         const [x, y] = seatPos((k - me0 + n) % n, n); const h = r.hands[id] || []; const rs = r.res?.[id]; const dl = id === r.dealer;
-        const up = showAll || r.dec[id] === 'pok' || (dl && r.dpok);
+        const up = showAll || (dl && r.dpok);
         return <div key={id} className={'ct-seat' + (id === myId ? ' me' : '') + (dl ? ' dealer' : '') + (rs ? (rs.delta > 0 ? ' won' : rs.delta < 0 ? ' lost' : '') : '')} style={{ left: x + '%', top: y + '%' }}>
           <div className="ct-av"><Avatar id={id} av={av} size={34} />{dl && <span className="ct-btn">🎩</span>}</div>
           <b className="ct-nm">{id === myId ? 'คุณ' : nameOf(id)}</b>
@@ -186,7 +187,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
           {id !== myId && !dl && h.length > 0 && <div className="ct-mini">{h.map((c, i) => <PCard key={hk + i} c={c} up={up} size="xs" i={i} deal={!showAll} />)}</div>}
           {r.bets[id] ? <Chips n={r.bets[id]} cls="ct-bet" /> : r.phase === 'bet' && !dl && (r.chips[id] || 0) >= PD_BETS[0] ? <span className="ct-tag">🤔 กำลังลง</span> : null}
           {peeking && r.bets[id] && <span className="ct-tag">{r.seen[id] ? '👀 เปิดแล้ว' : '🤏 กำลังบีบ…'}</span>}
-          {r.dec[id] && r.phase !== 'show' && <span className="ct-tag">{r.dec[id] === 'pok' ? '✨ ป๊อก' : r.dec[id] === 'draw' ? '🃏 จั่ว' : '✋ ไม่จั่ว'}</span>}
+          {r.dec[id] && r.phase !== 'show' && <span className="ct-tag">{r.dec[id] === 'draw' ? '🃏 จั่ว' : '✋ ไม่จั่ว'}</span>}
           {rs && <span className={'ct-res' + (rs.delta > 0 ? ' up' : rs.delta < 0 ? ' down' : '')}>{rs.label}{!dl && rs.delta !== 0 ? <i>{rs.delta > 0 ? '+' : ''}{rs.delta}</i> : dl ? <i>{rs.delta > 0 ? '+' : ''}{rs.delta}</i> : <i>เสมอ</i>}</span>}
         </div>;
       })}
@@ -195,7 +196,7 @@ export function PdGame({ db, room, roomCode, myId, players, isHost, scores, soun
     {/* ไพ่ของฉัน */}
     {my.length > 0 && <div className="ct-hand">
       <div className="ct-cards">{my.map((c, i) => <PCard key={hk + i} c={c} up={myUp(i)} size="lg" i={i} deal onClick={!myUp(i) ? () => { sfx(sound, 'click'); setPeek(p => ({ ...p, [i]: true })); } : undefined} />)}</div>
-      <p className="ct-eval">{myEval ? <><b>{myEval.label}</b>{myEval.mult > 1 && myEval.cat !== 5 && myEval.cat !== 0 ? ` (×${myEval.mult})` : ''}</> : (peeking && r.bets[myId] ? '🎩 เจ้ามือป๊อก! 👆 แตะไพ่ค่อย ๆ บีบลุ้นว่าจะรอดไหม' : '👆 แตะไพ่เพื่อค่อย ๆ บีบเปิด')}</p>
+      <p className="ct-eval">{myEval ? <><b>{myEval.label}</b>{myEval.mult > 1 && myEval.cat !== 5 && myEval.cat !== 0 ? ` (×${myEval.mult})` : ''}</> : (peeking && r.bets[myId] ? (r.dpok ? '🎩 เจ้ามือป๊อก! ' : '') + '👆 แตะไพ่ค่อย ๆ บีบลุ้นว่าจะรอดไหม' : '👆 แตะไพ่เพื่อค่อย ๆ บีบเปิด')}</p>
     </div>}
 
     {/* ปุ่มที่ต้องกด */}
