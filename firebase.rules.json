@@ -1,12 +1,30 @@
 {
   "rules": {
     "rooms": {
-      ".indexOn": ["active"],
+      ".indexOn": [
+        "active"
+      ],
       ".read": "query.orderByChild == 'active' && query.endAt != null && query.endAt <= now - 86400000 && query.limitToFirst != null && query.limitToFirst <= 50",
       "$room": {
         ".read": true,
         ".write": true,
-        "rx": { ".indexOn": ["t"] }
+        "rx": {
+          ".indexOn": [
+            "t"
+          ]
+        }
+      }
+    },
+    "lb": {
+      ".read": true,
+      "$period": {
+        ".indexOn": [
+          "wins"
+        ],
+        "$key": {
+          ".write": "$period.matches(/^(all|w[0-9]{6})$/) && $key.matches(/^[0-9]{4}$/)",
+          ".validate": "newData.hasChildren(['name','wins','games','pts']) && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('wins').isNumber() && newData.child('games').isNumber() && newData.child('pts').isNumber() && newData.child('wins').val() <= newData.child('games').val()"
+        }
       }
     }
   }

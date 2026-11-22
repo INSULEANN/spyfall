@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, goOffline, goOnline, ref, set, get, update, onValue, remove, runTransaction, onDisconnect, serverTimestamp, query, orderByChild, endAt, startAt, limitToFirst, push, onChildAdded } from 'firebase/database';
-import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut, Home, Gamepad2, Shirt, Crown, Shuffle, Dices, ArrowRight, Trophy } from 'lucide-react';
 import './style.css';
 import './themes.css';
 import './play.css';
@@ -13,6 +13,7 @@ import { Art } from './play-art.jsx';
 import { makeAv, Avatar, Voters, Phase, Steps, PlayerGrid, WhoDone, RoleCard, Outcome, RevealGrid, Leaderboard, Ballots, HostBar, SecH, Choice, Ambient, TimerRing, freeAv, AvFace, Backdrop } from './ui.jsx';
 import { CharEditor, BODY_COLORS, fixLook, randomLook } from './char.jsx';
 import { SceneArt, HubArt, BrandMark } from './art.jsx';
+import { GangBoard, recordResult, readPin } from './gangboard.jsx';
 import { play as sfx, setSfxTheme, setSfxVolume } from './sfx.js';
 import { setMusic, setMusicVolume, trackName } from './music.js';
 import { ROLES, GENERIC_ROLES } from './roles.js';
@@ -47,7 +48,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.82';
+const APP_VERSION = '1.84';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -250,6 +251,7 @@ function App() {
   const [sfxVol,setSfxVol]=useState(()=>readNum('sf-sfx',0.8));
   const [mixOpen,setMixOpen]=useState(false);
   const [ppl,setPpl]=useState(0);
+
   // รูปโปรไฟล์ที่เลือกไว้ (จำในเครื่อง ใช้ทุกห้อง)
   const [myAv,setMyAv]=useState(()=>{try{const v=parseInt(localStorage.getItem('sf-av'),10);return isNaN(v)?null:v}catch{return null}});
   const [avOpen,setAvOpen]=useState(false);
@@ -293,6 +295,9 @@ function App() {
   useEffect(()=>{if(!db||!roomCode)return; const code=roomCode;liveCode.current=code; const unsub=onValue(ref(db,`rooms/${code}`),s=>{if(liveCode.current!==code)return;const v=s.val();if(v&&v.players?.[myId]){setRoom(v);setScreen('room')}else{if(v)msg('คุณไม่ได้อยู่ในห้องนี้แล้ว');else if(roomCode)msg('ห้องนี้ถูกปิดแล้ว');setRoom(null);setRoomCode('');setScreen('home')}});return()=>unsub();},[roomCode]);
   const players=room?.players ? Object.values(room.players).filter(p=>p&&p.id&&p.name) : [];
   const gid=room?(room.game||'spyfall'):(game||'spyfall');const G=GAMES[gid]||GAMES.spyfall;const I=G.item,U=G.unit;
+  // อันดับแก๊ง: แต้มของเราในห้องเพิ่มขึ้นตอนจบรอบ = ชนะ (แต่ละเครื่องบันทึกเฉพาะตัวเอง)
+  const lbBase=useRef(null);const [pin,setPin]=useState(readPin);const pinRef=useRef(pin);pinRef.current=pin;
+  useEffect(()=>{if(!room||!roomCode){lbBase.current=null;return}const sc=room.scores||{},prev=lbBase.current;lbBase.current={code:roomCode,sc};if(!prev||prev.code!==roomCode)return;if(!Object.keys({...sc,...prev.sc}).some(id=>(sc[id]||0)!==(prev.sc[id]||0)))return;const me=room.players?.[myId];if(!me||!me.name||room.status==='lobby'&&!room.result)return;const d=(sc[myId]||0)-(prev.sc[myId]||0);if(d<0)return;recordResult(db,{pin:pinRef.current,name:me.name,look:me.look||myLook,av:me.av??myAv,gid:room.game||'spyfall',won:d>0,pts:d})},[room?.scores,roomCode]);
   const me=players.find(p=>p.id===myId);
   // คำนวณรูปใหม่เมื่อมีคนเข้า/ออก หรือเปลี่ยนรูป
   const av=useMemo(()=>makeAv(players),[players.map(p=>p.id+':'+(p.av??'')+':'+(p.joinedAt||0)+':'+JSON.stringify(p.look||'')).join()]);
@@ -536,7 +541,8 @@ function App() {
     setVerdict({right,key:resultKey});sfx(sound,right?'right':'wrong');const t=setTimeout(()=>setVerdict(null),3500);return()=>clearTimeout(t)},[resultKey]);
   if(!configured||!db)return <div className="setup"><div className="brand"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></div><div className="setup-card"><span className="eyebrow">SETUP ก่อนเปิดเกม</span><h1>อีกนิดเดียวก็ได้โป๊ะกับเพื่อนแล้ว</h1><p>เว็บนี้พร้อมรันแล้ว แต่ต้องเชื่อม Firebase Realtime Database เพื่อให้ผู้เล่นคนละเครื่องเห็นข้อมูลห้องเดียวกัน</p><ol><li>สร้างโปรเจกต์ Firebase แล้วเปิด Realtime Database</li><li>คัดลอกค่าการตั้งค่ามาใส่ในไฟล์ <code>.env</code></li><li>ตั้งค่า Database Rules ตาม README แล้วรัน <code>npm run dev</code></li></ol><a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="primary">เปิด Firebase Console ↗</a><p className="muted">อ่าน README.md ในไฟล์โปรเจกต์เพื่อทำทีละขั้นตอน</p></div></div>;
 
-  return <div className="app"><Backdrop theme={themeId}/><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
+  const hubMode=screen==='home'&&!game;const toGames=()=>document.getElementById('games')?.scrollIntoView({behavior:'smooth'});const toId=id=>e=>{e.preventDefault();document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'})};const pickRandom=()=>{const l=Object.values(GAMES).filter(g=>!g.soon);sfx(sound,'click');setGame(l[Math.floor(Math.random()*l.length)].id)};const createCta=()=>{toGames();msg('เลือกเกมก่อน แล้วกด “สร้างห้องใหม่” ในหน้าเกมนั้น')};
+  return <div className={'app'+(hubMode?' is-hub':'')}><Backdrop theme={themeId}/><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
     {intro&&<IntroFilm id={intro} sound={sound} onDone={()=>setIntro(null)} res={room?.result} av={av} nameOf={nameOf}/>}
     <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo"><BrandMark/></span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?G.name:'บอร์ดเกมปาร์ตี้ ภาษาไทย'}</div><div className="sound-wrap" ref={mixRef}><button className={'sound'+(mixOpen?' open':'')} onClick={()=>setMixOpen(o=>!o)} title="ปรับเสียง" aria-label="ปรับเสียง" aria-expanded={mixOpen}>{sound&&(musicVol>0||sfxVol>0)?<Volume2/>:<VolumeX/>}</button>
       {mixOpen&&<div className="mixer" role="dialog" aria-label="ปรับเสียง">
@@ -557,16 +563,25 @@ function App() {
         :<div className="rx-bar" role="toolbar" aria-label="ส่งอีโมจิ">{['😂','😱','🤨','🤔','👀','😡','👏','💀','🔥','🙏'].map(e=><button key={e} type="button" onClick={()=>react(e)} aria-label={'ส่ง '+e}>{e}</button>)}</div>}
     </>}
     {verdict&&<div className={'verdict '+(verdict.right?'right':'wrong')} onClick={()=>setVerdict(null)} key={verdict.key}><div className="verdict-box"><div className="verdict-emoji">{verdict.right?'🧠':'🤡'}</div><div className="verdict-text">{verdict.right?'ฉลาดจริงๆเลยไอโง่':'มึงนี่โง่จริงๆเลยนะ'}</div><small>{verdict.right?'โหวตถูกตัวสายลับ':'โหวตผิดคน'} • แตะเพื่อปิด</small></div></div>}
-    {screen==='home'&&!game&&<main className="home hub">
-      <section className="hub-hero"><HubArt/><span className="eyebrow">PARTY GAMES · เล่นข้ามเครื่อง</span><h1>{BRAND}</h1><p>รวมบอร์ดเกมปาร์ตี้ไว้เล่นกับแก๊งเพื่อน เลือกเกมแล้วสร้างห้อง หรือใส่รหัสห้องที่เพื่อนส่งมาได้เลย</p></section>
-      <section className="hub-join"><div className="hj-stub"><b>มีรหัสห้องจากเพื่อน?</b><span>ใส่ชื่อกับรหัสแล้วเข้าได้เลย · v{APP_VERSION}</span></div><div className="hj-form"><div className="me-row"><button type="button" className="av-edit big" onClick={openDress} title="แต่งตัวละคร" aria-label="แต่งตัวละคร"><AvFace i={myAv??0} look={myLook} size={46}/><i>✏️</i></button><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="ชื่อเล่นของคุณ" aria-label="ชื่อเล่นของคุณ"/></div><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="รหัสห้อง" aria-label="รหัสห้อง"/><button className="secondary" onClick={joinRoom}><DoorOpen size={18}/> เข้าห้อง</button></div></div></section>
-      <section className="shelf-head"><h2>เลือกเกม</h2><div className="seg" role="group" aria-label="กรองตามจำนวนผู้เล่น"><span>มากัน</span>{[[0,'ทั้งหมด'],[2,'2'],[4,'3–4'],[7,'5–7'],[8,'8+']].map(([v,l])=><button key={v} className={ppl===v?'on':''} aria-pressed={ppl===v} onClick={()=>setPpl(v)}>{l}{v?' คน':''}</button>)}</div></section>
-      <section className="game-grid">{Object.values(GAMES).filter(g=>{if(!ppl)return true;const lo={2:2,4:3,7:5,8:8}[ppl],hi={2:2,4:4,7:7,8:99}[ppl];return g.min<=hi&&(g.max||12)>=lo}).map(g=><button key={g.id} data-theme={g.id} className={'game-card'+(g.soon?' soon':'')} disabled={g.soon} aria-disabled={g.soon||undefined} onClick={()=>{if(g.soon)return;sfx(sound,'click');setGame(g.id)}}><div className="card-art"><SceneArt id={g.id}/></div><div className="card-body"><h2>{g.emoji} {g.name}</h2><p>{g.blurb}</p><div className="hero-pills">{g.pills.map(x=><span key={x}>{x}</span>)}</div><span className="game-go">{g.soon?'กำลังพัฒนา เร็ว ๆ นี้':'เล่นเกมนี้ →'}</span></div></button>)}</section>
-      <section className="start3"><h2>เริ่มเล่นใน 3 ขั้น</h2><div className="start3-grid">
-        <article><span className="num">01</span><Art name="crown" size={84}/><h3>เลือกเกม สร้างห้อง</h3><p>คนหนึ่งเป็นหัวหน้าห้อง เลือกเกมแล้วกด “สร้างห้องใหม่”</p></article>
-        <article><span className="num">02</span><Art name="bubble" size={84}/><h3>ชวนเพื่อนเข้าห้อง</h3><p>กด “ชวนเพื่อน” ส่งลิงก์ในแชต หรือบอกรหัสห้อง 5 ตัว</p></article>
-        <article><span className="num">03</span><Art name="win" size={84}/><h3>เข้าห้องเสียงแล้วเล่น</h3><p>คุยกันในห้องเสียงของเว็บได้เลย แต้มสะสมนับต่อทุกรอบ</p></article></div></section>
-      <section className="ceo-card"><div className="ceo-photo"><img src="/ceo-big-dodo.jpg" alt="Big Dodo นั่งหน้ากระดานบอร์ดเกม" loading="lazy"/><span className="ceo-badge">👑 CEO & ผู้ก่อตั้ง</span></div>
+    {hubMode&&<aside className="hub-side" aria-label="เมนู">
+      <button className="hs-brand" onClick={()=>scrollTo({top:0,behavior:'smooth'})}><span className="logo"><BrandMark/></span><span>BOARD GAME<b>T BAAN</b></span></button>
+      <nav className="hs-nav"><a href="#top" className="on" onClick={e=>{e.preventDefault();scrollTo({top:0,behavior:'smooth'})}}><Home size={19}/> หน้าหลัก</a><a href="#games" onClick={toId('games')}><Gamepad2 size={19}/> เกมทั้งหมด</a><a href="#join" onClick={toId('join')}><DoorOpen size={19}/> เข้าห้องเพื่อน</a><button onClick={openDress}><Shirt size={19}/> แต่งตัวละคร</button><a href="#rank" onClick={toId('rank')}><Trophy size={19}/> อันดับแก๊ง</a><a href="#ceo" onClick={toId('ceo')}><Crown size={19}/> คนสร้างเว็บ</a></nav>
+      <div className="hs-mascot"><img src="/bigdodo-sm.webp" alt="" loading="lazy"/><b>ไม่รู้จะเล่นอะไร?</b><span>ให้ Big Dodo สุ่มเกมให้</span><button onClick={pickRandom}>สุ่มเกม <Shuffle size={15}/></button></div>
+    </aside>}
+    {hubMode&&<main className="home hub">
+      <section className="hub-banner"><HubArt/><div className="hb-copy"><span className="hb-kick">PARTY GAMES · เล่นข้ามเครื่อง</span><h1>บอร์ดเกมปาร์ตี้<br/><em>ของแก๊งตัวป่วน</em></h1><p>{Object.values(GAMES).filter(g=>!g.soon).length} เกม เล่นบนมือถือใครมือถือมัน ไม่ต้องลงแอป มีห้องเสียงคุยกันในตัว</p><button className="hb-cta" onClick={createCta}><Users size={18}/> สร้างห้องเลย <ArrowRight size={18}/></button></div><img className="hb-mascot" src="/bigdodo.webp" alt="Big Dodo มาสคอตของเว็บ ถือไพ่"/></section>
+      <div className="hub-cols">
+        <section className="hub-games" id="games"><header className="shelf-head"><h2><Dices size={24}/> เลือกเกมที่อยากเล่น</h2><div className="seg" role="group" aria-label="กรองตามจำนวนผู้เล่น"><span>มากัน</span>{[[0,'ทั้งหมด'],[2,'2'],[4,'3–4'],[7,'5–7'],[8,'8+']].map(([v,l])=><button key={v} className={ppl===v?'on':''} aria-pressed={ppl===v} onClick={()=>setPpl(v)}>{l}{v?' คน':''}</button>)}</div></header>
+          <div className="gt-grid">{Object.values(GAMES).filter(g=>{if(!ppl)return true;const lo={2:2,4:3,7:5,8:8}[ppl],hi={2:2,4:4,7:7,8:99}[ppl];return g.min<=hi&&(g.max||12)>=lo}).map(g=><button key={g.id} data-theme={g.id} className={'gtile'+(g.soon?' soon':'')} disabled={g.soon} title={g.blurb} onClick={()=>{if(g.soon)return;sfx(sound,'click');setGame(g.id)}}><SceneArt id={g.id}/><div className="gt-plate"><b>{g.name}</b><span><Users size={13}/> {g.min}–{g.max||12} คน{g.soon?' · เร็ว ๆ นี้':''}</span></div>{!g.soon&&<i className="gt-go"><ArrowRight size={17}/></i>}</button>)}</div>
+          <section className="hub-random"><img src="/bigdodo-sm.webp" alt="" loading="lazy"/><div><b>ไม่รู้จะเล่นอะไรดี?</b><span>ให้ Big Dodo สุ่มเกมให้วงนี้เลย</span></div><button onClick={pickRandom}>สุ่มเกม <Shuffle size={16}/></button></section>
+        </section>
+        <aside className="hub-aside">
+          <section className="ha-card" id="join"><h3><DoorOpen size={20}/> เข้าห้องของเพื่อน</h3><div className="me-row"><button type="button" className="av-edit big" onClick={openDress} title="แต่งตัวละคร" aria-label="แต่งตัวละคร"><AvFace i={myAv??0} look={myLook} size={44}/><i>✏️</i></button><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="ชื่อเล่นของคุณ" aria-label="ชื่อเล่นของคุณ"/></div><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="ใส่รหัสห้อง…" aria-label="รหัสห้อง"/><button className="ha-join" onClick={joinRoom}>เข้าห้อง <ArrowRight size={16}/></button></div><div className="ha-or"><span>หรือ</span></div><button className="ha-create" onClick={createCta}><Plus size={18}/> สร้างห้องใหม่</button></section>
+          {db&&<GangBoard db={db} pin={pin} setPin={setPin}/>}
+          <section className="ha-card"><h3><Sparkles size={18}/> เริ่มเล่นใน 3 ขั้น</h3><ol className="ha-steps"><li><b>เลือกเกม สร้างห้อง</b><span>คนหนึ่งเป็นหัวหน้าห้อง กด “สร้างห้องใหม่”</span></li><li><b>ชวนเพื่อนเข้าห้อง</b><span>ส่งลิงก์ในแชต หรือบอกรหัสห้อง 5 ตัว</span></li><li><b>เข้าห้องเสียงแล้วเล่น</b><span>คุยกันในเว็บได้เลย แต้มสะสมนับต่อทุกรอบ</span></li></ol><p className="ha-ver">เวอร์ชัน {APP_VERSION}</p></section>
+        </aside>
+      </div>
+      <section className="ceo-card" id="ceo"><div className="ceo-photo"><img src="/ceo-big-dodo.jpg" alt="Big Dodo นั่งหน้ากระดานบอร์ดเกม" loading="lazy"/><span className="ceo-badge">👑 CEO & ผู้ก่อตั้ง</span></div>
         <div className="ceo-text"><span className="eyebrow">รู้จักผู้อยู่เบื้องหลัง</span><h2>Big Dodo</h2><p className="ceo-role">ประธานเจ้าหน้าที่บริหารฝ่ายปั่นประสาท • Board game T baan</p>
           <p>เกิดมาพร้อมลูกเต๋าในมือขวาและคู่มือกติกาในมือซ้าย ว่ากันว่าคำแรกที่พูดไม่ใช่ “พ่อ” หรือ “แม่” แต่เป็น <b>“เดี๋ยว ขออ่านกติกาอีกรอบ”</b></p>
           <p>Big Dodo เริ่มต้นอาชีพจากการเป็นแชมป์เกมเศรษฐีประจำซอย ก่อนจะถูกแบนจากวงญาติทุกงานสงกรานต์ เพราะ <b>ปั่นจนน้าทะเลาะกับป้าไปสามปี</b> จึงตัดสินใจผันตัวมาสร้างเว็บนี้ เพื่อปั่นเพื่อนได้ทุกที่ ไม่ต้องรอวันหยุดยาว</p>
@@ -578,7 +593,7 @@ function App() {
             <li>📜 คติประจำใจ: “แพ้ได้ แต่ต้องปั่นให้คนชนะไม่มีความสุข”</li>
           </ul>
           <p className="muted">* ประวัตินี้แต่งขึ้นเพื่อความฮา ไม่มีมูลความจริงใด ๆ ทั้งสิ้น (มั้ง)</p></div></section>
-    </main>}
+        </main>}
     {screen==='home'&&game&&<main className="home">
       <section className="hero"><div className="hero-copy"><span className="eyebrow">{G.name} · {G.min}–{G.max||12} คน · v{APP_VERSION}</span><h1>{G.h1[0]}<br/><em>{G.h1[1]}</em></h1><p>{G.lead}</p><div className="hero-pills">{G.pills.map(x=><span key={x}>{x}</span>)}</div></div><div className="hero-art"><SceneArt id={G.id}/><div className="floating-card">{G.emoji} <b>{G.float}</b><small>{G.floatSub}</small></div><div className="stamp">{G.stamp}</div></div></section>
       <section className="join-card"><div className="join-head"><div><button className="back-link" onClick={()=>setGame(null)}><ArrowLeft size={14}/> รวมเกม</button><span className="eyebrow">เริ่มเล่น {G.name}</span><h2>{G.joinH}</h2></div><span className="players-chip"><Users size={16}/> {G.min}–{G.max||12} คน</span></div><div className="me-row"><button type="button" className="av-edit big" onClick={openDress} title="แต่งตัวละคร" aria-label="แต่งตัวละคร"><AvFace i={myAv??0} look={myLook} size={54}/><i>✏️</i></button><div className="me-name"><label>ชื่อเล่นของคุณ <small>· แตะตัวละครเพื่อแต่งตัว</small></label><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="เช่น ตัวตึงประจำซอย" onKeyDown={e=>e.key==='Enter'&&createRoom()}/></div></div><div className="join-actions"><button className="primary" onClick={createRoom}><Plus size={18}/> สร้างห้องใหม่</button><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="รหัสห้อง เช่น A7K2Q"/><button className="secondary" onClick={joinRoom}><DoorOpen size={18}/> เข้าห้อง</button></div></div></section>

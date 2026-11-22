@@ -1,40 +1,167 @@
-/* หน้ารวมเกม (v1.82): แถบเข้าห้องแบบตั๋ว + ตัวกรองจำนวนคน ต่อจากแบนเนอร์เดิม */
+/* หน้ารวมเกม: เมนูซ้าย + แบนเนอร์มาสคอต + การ์ดเกมเต็มภาพ + คอลัมน์ขวา (เข้าห้อง / อันดับแก๊ง / วิธีเริ่ม) */
 
-/* ── แถบเข้าห้อง: ตั๋วแนวนอน ต้นขั้วซ้าย รอยฉีกคั่น ── */
-.hub-join{--stub:230px;display:grid;grid-template-columns:var(--stub) 1fr;align-items:center;margin:-6px 0 30px;background:var(--accent);color:var(--on-accent);border-radius:16px;
-  -webkit-mask:radial-gradient(circle 10px at var(--stub) 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at var(--stub) 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
-  mask:radial-gradient(circle 10px at var(--stub) 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at var(--stub) 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
-  animation:fadeup .5s .08s backwards}
-.hj-stub{padding:18px 22px;display:grid;gap:4px;border-right:2px dashed color-mix(in srgb,var(--on-accent) 30%,transparent);align-self:stretch;align-content:center}
-.hj-stub b{font-family:var(--display);font-size:18px;font-weight:700;line-height:1.25}
-.hj-stub span{font-size:11.5px;opacity:.7;line-height:1.45}
-.hj-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:12px;padding:14px 18px 14px 22px;align-items:center}
-.hj-form .me-row{align-items:center;gap:12px}
-.hub-join input{background:#fff8;border:1.5px solid color-mix(in srgb,var(--on-accent) 22%,transparent);color:var(--on-accent);padding:11px 13px}
-.hub-join input::placeholder{color:color-mix(in srgb,var(--on-accent) 50%,transparent)}
-.hub-join input:focus{border-color:var(--on-accent);box-shadow:none}
-.hub-join .join-inline input{font-weight:700;letter-spacing:2px}
-.hub-join .secondary{background:var(--on-accent);color:var(--accent);border:0;white-space:nowrap}
-.hub-join .av-edit i{box-shadow:0 0 0 2px var(--accent);background:var(--on-accent);color:var(--accent)}
+.is-hub{--line:#ffffff17;--hl:var(--accent)}
 
-/* ── หัวรายการเกม + ตัวกรอง ── */
-.shelf-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 14px}
-.shelf-head h2{font-family:var(--display);font-weight:var(--display-weight);font-size:23px;margin:0}
-.seg{display:flex;align-items:center;gap:4px;font-size:13px;padding:4px;border:1px solid #ffffff16;border-radius:12px;background:#ffffff08}
+/* ── เมนูซ้าย (คอมเท่านั้น) ── */
+.hub-side{display:none}
+@media(min-width:1100px){
+  .app.is-hub{max-width:none;padding:0 32px 0 280px}
+  .is-hub>.topbar,.is-hub>main,.is-hub>footer{max-width:1280px}
+  .is-hub .topbar{height:74px;border-bottom:0}
+  .is-hub .topbar .brand{display:none}
+  .hub-side{position:fixed;z-index:6;left:0;top:0;bottom:0;width:248px;display:flex;flex-direction:column;gap:22px;padding:22px 16px 18px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto}
+}
+.hs-brand{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--text);padding:4px 6px;text-align:left}
+.hs-brand:hover{transform:none}
+.hs-brand .logo svg{width:42px;height:42px}
+.hs-brand>span:last-child{display:grid;font-family:var(--display);font-weight:800;font-size:14px;letter-spacing:1px;line-height:1.15}
+.hs-brand b{font-size:22px;color:var(--hl)}
+.hs-nav{display:grid;gap:4px}
+.hs-nav a,.hs-nav button{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:12px;color:var(--soft);text-decoration:none;font-size:15px;background:none;border:0;text-align:left;font-family:inherit}
+.hs-nav a:hover,.hs-nav button:hover{background:var(--chip);color:var(--text);transform:none}
+.hs-nav a.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+.hs-mascot{margin-top:auto;position:relative;display:grid;justify-items:center;text-align:center;gap:3px;padding:0 14px 16px;border-radius:18px;background:linear-gradient(170deg,#3b2559,#24173a);color:#fff;border:1px solid #ffffff1a}
+.hs-mascot img{height:138px;margin-top:-6px}
+.hs-mascot b{font-family:var(--display);font-size:17px;color:#ffc965}
+.hs-mascot span{font-size:12.5px;color:#ddd2ee}
+.hs-mascot button,.hub-random button{margin-top:9px;display:inline-flex;align-items:center;gap:7px;border:0;border-radius:12px;padding:10px 18px;font-weight:700;background:#ffc965;color:#2b1a20;box-shadow:0 3px 0 #b8812b}
+
+/* ── แบนเนอร์ (โทนเข้มเสมอ ทั้งสองโหมด) ── */
+.hub-banner{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:330px;margin:6px 0 26px;padding:38px 42px;border-radius:24px;color:#fff;
+  background:radial-gradient(circle at 78% 30%,#ffc96533,transparent 40%),linear-gradient(115deg,#1b1330 0%,#2e1c4a 55%,#512c3c 100%)}
+.hub-banner .hub-art{position:absolute;z-index:-1;right:22%;top:0;width:72%;height:100%;opacity:.5;animation:none;transform:none;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 60%);mask-image:linear-gradient(90deg,transparent 30%,#000 60%)}
+.hb-copy{max-width:min(560px,58%)}
+.hb-kick{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.4px;color:#ffc965;background:#ffc9651a;border:1px solid #ffc96540;border-radius:20px;padding:5px 11px}
+.hub-banner h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,4.3vw,56px);line-height:1.08;margin:14px 0 12px;letter-spacing:-.5px}
+.hub-banner h1 em{font-style:normal;color:#ffc965}
+.hub-banner p{margin:0 0 22px;color:#e4dbf1;font-size:14.5px;line-height:1.75;max-width:440px}
+.hb-cta{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:14px;padding:14px 24px;font-size:16px;font-weight:700;background:#ffc965;color:#2b1a20;box-shadow:0 4px 0 #b8812b}
+.hb-cta:hover{transform:translateY(-2px)}
+.hb-mascot{position:absolute;right:5%;bottom:-6px;height:116%;max-height:400px;filter:drop-shadow(0 12px 22px #0007);pointer-events:none}
+
+/* ── สองคอลัมน์ ── */
+.hub-cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+.hub-aside{position:sticky;top:16px;display:grid;gap:16px}
+#games,#join,#rank,#ceo{scroll-margin-top:16px}
+
+.shelf-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px}
+.shelf-head h2{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:var(--display-weight);font-size:22px;margin:0}
+.shelf-head h2 svg{color:var(--hl)}
+.seg{display:flex;align-items:center;gap:3px;font-size:13px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .seg>span{color:var(--dim);margin:0 6px 0 8px;white-space:nowrap}
-.seg button{background:none;border:0;color:var(--muted);padding:7px 12px;border-radius:8px;white-space:nowrap}
+.seg button{background:none;border:0;color:var(--muted);padding:7px 11px;border-radius:8px;white-space:nowrap}
 .seg button:hover{transform:none;color:var(--text)}
 .seg button.on{background:var(--accent);color:var(--on-accent);font-weight:600}
 
-@media(max-width:860px){
-  .hub-join{--stub:100%;grid-template-columns:1fr;-webkit-mask:none;mask:none}
-  .hj-stub{border-right:0;border-bottom:2px dashed color-mix(in srgb,var(--on-accent) 30%,transparent);padding:14px 18px 12px}
-  .hj-form{grid-template-columns:1fr;padding:14px 18px 16px}
+/* การ์ดเกม: ภาพเต็มใบ ป้ายชื่อมุมล่าง */
+.gt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.gtile{all:unset;box-sizing:border-box;position:relative;display:block;aspect-ratio:16/10;border-radius:16px;overflow:hidden;cursor:pointer;background:var(--inset);box-shadow:0 0 0 1px var(--line);transition:transform .2s,box-shadow .2s;animation:fadeup .45s backwards}
+.gtile .scene{position:absolute;inset:0;width:100%;height:100%;transition:transform .5s}
+.gtile:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,#000a);pointer-events:none}
+.gtile:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent)}
+.gtile:hover .scene{transform:scale(1.05)}
+.gtile:focus-visible{box-shadow:0 0 0 3px var(--accent)}
+.gt-plate{position:absolute;z-index:1;left:10px;bottom:10px;right:56px;display:grid;gap:2px;color:#fff}
+.gt-plate b{font-family:var(--display);font-weight:var(--display-weight);font-size:19px;line-height:1.2;text-shadow:0 2px 6px #000a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gt-plate span{display:flex;align-items:center;gap:5px;font-size:12px;color:#ffffffd9}
+.gt-go{position:absolute;z-index:1;right:10px;bottom:10px;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent)}
+.gtile.soon{cursor:default;filter:grayscale(.7);opacity:.6}
+.gtile.soon:hover{transform:none;box-shadow:0 0 0 1px var(--line)}
+
+.hub-random{display:flex;align-items:center;gap:16px;margin-top:18px;padding:12px 22px 12px 14px;border-radius:18px;color:#fff;background:linear-gradient(100deg,#2e1c4a,#5b3378 60%,#7a3f63)}
+.hub-random img{height:86px;margin:-6px 0}
+.hub-random b{display:block;font-family:var(--display);font-size:21px;color:#ffc965}
+.hub-random span{font-size:13px;color:#e4dbf1}
+.hub-random button{margin:0 0 0 auto;white-space:nowrap}
+
+/* คอลัมน์ขวา */
+.ha-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+.ha-card h3{display:flex;align-items:center;gap:9px;margin:0 0 14px;font-family:var(--display);font-weight:var(--display-weight);font-size:18px}
+.ha-card h3 svg{color:var(--hl)}
+.ha-card .me-row{align-items:center;gap:12px;margin-bottom:10px}
+.ha-card .join-inline input{font-weight:600;letter-spacing:1px}
+.ha-join{border:0;border-radius:11px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600;background:var(--text);color:var(--bg)}
+.ha-or{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--dim);font-size:12px}
+.ha-or:before,.ha-or:after{content:"";flex:1;height:1px;background:var(--line)}
+.ha-create{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:13px;padding:13px;font-size:15px;font-weight:700;background:var(--accent);color:var(--on-accent);box-shadow:0 3px 0 color-mix(in srgb,var(--accent-2) 70%,#000)}
+.ha-steps{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:st}
+.ha-steps li{display:grid;grid-template-columns:28px 1fr;column-gap:10px;counter-increment:st}
+.ha-steps li:before{content:counter(st);grid-row:span 2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--chip);color:var(--hl)}
+.ha-steps b{font-size:14px}
+.ha-steps span{font-size:12.5px;color:var(--muted);line-height:1.5}
+.ha-ver{margin:14px 0 0;font-size:11px;color:var(--dim)}
+
+/* อันดับแก๊ง */
+.gang-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.gang-head h3{margin:0}
+.gang-tabs{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--inset)}
+.gang-tabs button{background:none;border:0;color:var(--muted);font-size:12px;padding:5px 9px;border-radius:7px}
+.gang-tabs button:hover{transform:none;color:var(--text)}
+.gang-tabs button.on{background:var(--chip);color:var(--text);font-weight:600}
+.gang-list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.gang-list li{display:grid;grid-template-columns:24px 30px 1fr auto;align-items:center;gap:10px;padding:6px 8px;border-radius:10px}
+.gang-list li.me{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.gr{font-weight:700;font-size:13px;color:var(--dim);text-align:center}
+.top1 .gr,.top2 .gr,.top3 .gr{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#2b1a20}
+.top1 .gr{background:#ffc965}.top2 .gr{background:#d5d9e2}.top3 .gr{background:#e3a26f}
+.gn{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gw{display:grid;justify-items:end;font-size:11.5px;color:var(--muted);line-height:1.2}
+.gw b{font-size:15px;color:var(--text)}
+.gw small{font-size:10.5px;color:var(--dim)}
+.gang-empty{margin:4px 0 0;font-size:13px;color:var(--muted);line-height:1.6}
+.gang-more{display:block;margin:8px 0 0 auto;background:none;border:0;color:var(--hl);font-size:13px;padding:4px}
+.gang-more:hover{transform:none;text-decoration:underline}
+.gang-me{margin:6px 0 0;font-size:12px;color:var(--soft)}
+.gang-note{margin:12px 0 0;font-size:11.5px;color:var(--dim);line-height:1.6}
+.pin-chip{font:700 12px ui-monospace,Consolas,monospace;letter-spacing:2px;color:var(--text);background:var(--inset);padding:2px 7px;border-radius:6px}
+.pin-edit{background:none;border:0;padding:0;color:var(--hl);font-size:11.5px;text-decoration:underline}
+.pin-edit:hover{transform:none}
+.pin-form{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.pin-form p{margin:0 0 10px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.pin-form p b{color:var(--text)}
+.pin-row{display:flex;gap:8px}
+.pin-row input{font:700 18px ui-monospace,Consolas,monospace;letter-spacing:6px;text-align:center;padding:9px}
+.pin-row button,.pin-taken button{border:0;border-radius:11px;padding:0 14px;white-space:nowrap;font-weight:600;background:var(--accent);color:var(--on-accent)}
+.pin-row button:disabled{opacity:.45;cursor:default;transform:none}
+.pin-taken{margin-top:10px;font-size:12.5px;color:var(--soft);line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pin-taken button{padding:6px 10px;font-size:12px}
+.pin-taken button+button{background:var(--chip);color:var(--text)}
+
+.is-hub .ceo-card{border-color:var(--line);margin-top:30px}
+
+/* ── แท็บเล็ต / มือถือ ── */
+@media(max-width:1000px){.hub-cols{grid-template-columns:minmax(0,1fr) 290px}}
+@media(max-width:820px){
+  .hub-cols{display:flex;flex-direction:column;gap:20px}
+  .hub-aside{display:contents}
+  #join{order:1}.hub-games{order:2;width:100%}.hub-aside>.ha-card:not(#join){order:3}
+  .hub-banner{min-height:0;padding:26px 22px;margin-bottom:18px}
+  .hb-copy{max-width:64%}
+  .hb-mascot{height:250px;right:-14px}
+  .hub-banner .hub-art{opacity:.3;right:0;width:100%}
 }
 @media(max-width:760px){
-  .hub-join{margin:-8px 0 24px}
+  .is-hub .topbar .brand{font-size:15px;white-space:nowrap;letter-spacing:.5px}
+  .hb-copy{max-width:60%}
+  .hub-banner{padding:22px 18px;border-radius:20px}
+  .hub-banner h1{font-size:28px;margin:10px 0 8px}
+  .hub-banner p{font-size:12.5px;margin-bottom:16px;line-height:1.6}
+  .hb-kick{font-size:9.5px;letter-spacing:1px}
+  .hb-cta{padding:11px 16px;font-size:14px}
+  .hb-mascot{height:215px;right:-22px}
   .shelf-head{flex-direction:column;align-items:stretch;gap:10px}
-  .seg{overflow-x:auto;scrollbar-width:none;max-width:100%;justify-content:space-between}
+  .seg{overflow-x:auto;scrollbar-width:none;justify-content:space-between}
   .seg>span{display:none}
   .seg button{padding:7px 8px}
+  .gt-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .gtile{border-radius:13px}
+  .gt-plate{left:8px;bottom:7px;right:8px}
+  .gt-plate b{font-size:14.5px}
+  .gt-plate span{font-size:11px}
+  .gt-go{display:none}
+  .hub-random{padding:10px 14px 10px 8px;gap:10px}
+  .hub-random img{height:70px}
+  .hub-random b{font-size:16px}
+  .hub-random span{font-size:11.5px}
+  .hub-random button{padding:9px 12px}
 }
