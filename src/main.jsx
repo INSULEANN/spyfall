@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, goOffline, goOnline, ref, set, get, update, onValue, remove, runTransaction, onDisconnect, serverTimestamp, query, orderByChild, endAt, startAt, limitToFirst, push, onChildAdded } from 'firebase/database';
-import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut, Home, Gamepad2, Shirt, Crown, Shuffle, Dices, ArrowRight, Trophy, Coins } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Copy, Users, Plus, DoorOpen, MapPin, Clock3, Volume2, VolumeX, RotateCcw, Vote, Eye, EyeOff, Laugh, Sparkles, LogOut, Home, Gamepad2, Shirt, Crown, Shuffle, Dices, ArrowRight, Trophy, Coins, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import './style.css';
 import './themes.css';
 import './play.css';
@@ -266,6 +266,8 @@ function App() {
   const [sfxVol,setSfxVol]=useState(()=>readNum('sf-sfx',0.8));
   const [mixOpen,setMixOpen]=useState(false);
   const [ppl,setPpl]=useState(0);
+  const [panes,setPanes]=useState(()=>{try{return {l:1,r:1,...JSON.parse(localStorage.getItem('hubPanes')||'{}')}}catch{return {l:1,r:1}}});
+  const togglePane=k=>setPanes(p=>{const n={...p,[k]:p[k]?0:1};try{localStorage.setItem('hubPanes',JSON.stringify(n))}catch{}return n});
 
   // รูปโปรไฟล์ที่เลือกไว้ (จำในเครื่อง ใช้ทุกห้อง)
   const [myAv,setMyAv]=useState(()=>{try{const v=parseInt(localStorage.getItem('sf-av'),10);return isNaN(v)?null:v}catch{return null}});
@@ -575,7 +577,7 @@ function App() {
   if(!configured||!db)return <div className="setup"><div className="brand"><span className="logo">🎲</span> BOARD GAME <b>T BAAN</b></div><div className="setup-card"><span className="eyebrow">SETUP ก่อนเปิดเกม</span><h1>อีกนิดเดียวก็ได้โป๊ะกับเพื่อนแล้ว</h1><p>เว็บนี้พร้อมรันแล้ว แต่ต้องเชื่อม Firebase Realtime Database เพื่อให้ผู้เล่นคนละเครื่องเห็นข้อมูลห้องเดียวกัน</p><ol><li>สร้างโปรเจกต์ Firebase แล้วเปิด Realtime Database</li><li>คัดลอกค่าการตั้งค่ามาใส่ในไฟล์ <code>.env</code></li><li>ตั้งค่า Database Rules ตาม README แล้วรัน <code>npm run dev</code></li></ol><a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="primary">เปิด Firebase Console ↗</a><p className="muted">อ่าน README.md ในไฟล์โปรเจกต์เพื่อทำทีละขั้นตอน</p></div></div>;
 
   const hubMode=screen==='home'&&!game;const toGames=()=>document.getElementById('games')?.scrollIntoView({behavior:'smooth'});const toId=id=>e=>{e.preventDefault();document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'})};const pickRandom=()=>{const l=Object.values(GAMES).filter(g=>!g.soon);sfx(sound,'click');setGame(l[Math.floor(Math.random()*l.length)].id)};const createCta=()=>{toGames();msg('เลือกเกมก่อน แล้วกด “สร้างห้องใหม่” ในหน้าเกมนั้น')};
-  return <div className={'app'+(hubMode?' is-hub':'')}><Backdrop theme={themeId}/><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
+  return <div className={'app'+(hubMode?' is-hub'+(panes.l?'':' side-off')+(panes.r?'':' aside-off'):'')}><Backdrop theme={themeId}/><Ambient theme={themeId}/>{netDown&&<div className="net-down" role="status">📡 เน็ตหลุด — กำลังต่อใหม่… ที่กดไว้จะส่งให้เองเมื่อกลับมา</div>}
     {intro&&<IntroFilm id={intro} sound={sound} onDone={()=>setIntro(null)} res={room?.result} av={av} nameOf={nameOf}/>}
     <header className="topbar"><button className="brand" onClick={()=>{if(screen!=='room')setGame(null)}} title="กลับหน้ารวมเกม"><span className="logo"><BrandMark/></span> BOARD GAME <b>T BAAN</b></button><div className="tagline">{screen==='room'||game?G.name:'บอร์ดเกมปาร์ตี้ ภาษาไทย'}</div><div className="sound-wrap" ref={mixRef}><button className={'sound'+(mixOpen?' open':'')} onClick={()=>setMixOpen(o=>!o)} title="ปรับเสียง" aria-label="ปรับเสียง" aria-expanded={mixOpen}>{sound&&(musicVol>0||sfxVol>0)?<Volume2/>:<VolumeX/>}</button>
       {mixOpen&&<div className="mixer" role="dialog" aria-label="ปรับเสียง">
@@ -602,6 +604,8 @@ function App() {
       <nav className="hs-nav"><a href="#top" className="on" onClick={e=>{e.preventDefault();scrollTo({top:0,behavior:'smooth'})}}><Home size={19}/> หน้าหลัก</a><a href="#games" onClick={toId('games')}><Gamepad2 size={19}/> เกมทั้งหมด</a><a href="#join" onClick={toId('join')}><DoorOpen size={19}/> เข้าห้องเพื่อน</a><button onClick={openDress}><Shirt size={19}/> แต่งตัวละคร</button><a href="#rank" onClick={toId('rank')}><Trophy size={19}/> อันดับแก๊ง</a><a href="#rich" onClick={toId('rich')}><Coins size={19}/> อันดับเศรษฐี</a><a href="#ceo" onClick={toId('ceo')}><Crown size={19}/> คนสร้างเว็บ</a></nav>
       <div className="hs-mascot"><img src="/bigdodo-sm.webp" alt="" loading="lazy"/><b>ไม่รู้จะเล่นอะไร?</b><span>ให้ Big Dodo สุ่มเกมให้</span><button onClick={pickRandom}>สุ่มเกม <Shuffle size={15}/></button></div>
     </aside>}
+    {hubMode&&<button className="pane-tab pt-left" onClick={()=>togglePane('l')} aria-expanded={!!panes.l} aria-label={panes.l?'ซ่อนเมนูซ้าย':'แสดงเมนูซ้าย'} title={panes.l?'ซ่อนเมนูซ้าย':'แสดงเมนูซ้าย'}>{panes.l?<PanelLeftClose size={18}/>:<PanelLeftOpen size={18}/>}</button>}
+    {hubMode&&<button className="pane-tab pt-right" onClick={()=>togglePane('r')} aria-expanded={!!panes.r} aria-label={panes.r?'ซ่อนแถบขวา':'แสดงแถบขวา'} title={panes.r?'ซ่อนแถบขวา':'แสดงแถบขวา'}>{panes.r?<PanelRightClose size={18}/>:<PanelRightOpen size={18}/>}</button>}
     {hubMode&&<main className="home hub">
       <section className="hub-banner"><HubArt/><div className="hb-copy"><span className="hb-kick">PARTY GAMES · เล่นข้ามเครื่อง</span><h1>โลกมันกลม<br/><em>สังคมมันเหลี่ยม</em></h1><p>{Object.values(GAMES).filter(g=>!g.soon).length} เกม เล่นบนมือถือใครมือถือมัน ไม่ต้องลงแอป มีห้องเสียงคุยกันในตัว</p><button className="hb-cta" onClick={createCta}><Users size={18}/> สร้างห้องเลย <ArrowRight size={18}/></button></div><img className="hb-mascot" src="/bigdodo.webp" alt="Big Dodo มาสคอตของเว็บ ถือไพ่"/></section>
       <div className="hub-cols">

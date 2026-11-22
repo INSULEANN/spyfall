@@ -26,6 +26,26 @@
 .hs-mascot span{font-size:12.5px;color:#ddd2ee}
 .hs-mascot button,.hub-random button{margin-top:9px;display:inline-flex;align-items:center;gap:7px;border:0;border-radius:12px;padding:10px 18px;font-weight:700;background:#ffc965;color:#2b1a20;box-shadow:0 3px 0 #b8812b}
 
+/* ── ปุ่มเปิด/ปิดแถบซ้าย-ขวา (คอมเท่านั้น) ── */
+.pane-tab{display:none}
+@media(min-width:821px){
+  .pane-tab{position:fixed;z-index:7;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:26px;height:56px;padding:0;border:1px solid var(--line);background:var(--panel);color:var(--soft);box-shadow:0 4px 14px #0004;transition:left .25s,color .15s}
+  .pane-tab:hover{color:var(--text);transform:translateY(-50%)}
+  .pt-left{left:0;border-left:0;border-radius:0 12px 12px 0}
+  .pt-right{right:0;border-right:0;border-radius:12px 0 0 12px}
+  .aside-off .hub-cols{grid-template-columns:minmax(0,1fr)}
+  .aside-off .hub-aside{display:none}
+}
+@media(max-width:1099px){.pt-left{display:none}}
+@media(min-width:1100px){
+  .app.is-hub{transition:padding-left .25s}
+  .hub-side{transition:transform .25s}
+  .pt-left{left:248px}
+  .side-off.app.is-hub{padding-left:48px}
+  .side-off .hub-side{transform:translateX(-100%)}
+  .side-off .pt-left{left:0}
+}
+
 /* ── แบนเนอร์ (โทนเข้มเสมอ ทั้งสองโหมด) ── */
 .hub-banner{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:330px;margin:6px 0 26px;padding:38px 42px;border-radius:24px;color:#fff;
   background:radial-gradient(circle at 78% 30%,#ffc96533,transparent 40%),linear-gradient(115deg,#1b1330 0%,#2e1c4a 55%,#512c3c 100%)}
