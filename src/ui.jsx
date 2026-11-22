@@ -32,14 +32,14 @@ export function freeAv(players, want, exceptId) {
   const free = BODY_COLORS.map((_, i) => i).filter(i => !taken.has(i));
   return free.length ? free[Math.floor(Math.random() * free.length)] : 0;
 }
-export function Avatar({ id, av, size = 44, dead, title }) {
+export function Avatar({ id, av, size = 44, dead, title, mood }) {
   const a = av(id);
-  return <span className={'av ch' + (dead ? ' dead' : '')} style={{ '--cf': a.f, width: size, height: size, fontSize: Math.round(size * 0.56) }} title={title}><span className="ch-clip"><Char look={a.look} color={a.c} /></span>{dead && <i className="av-x">💀</i>}</span>;
+  return <span className={'av ch' + (dead ? ' dead' : '')} style={{ '--cf': a.f, width: size, height: size, fontSize: Math.round(size * 0.56) }} title={title}><span className="ch-clip"><Char look={a.look} color={a.c} mood={mood || (dead ? 'dead' : undefined)} /></span>{dead && <i className="av-x">💀</i>}</span>;
 }
 // ตัวละครเต็มตัว (ใช้ตามที่นั่งรอบโต๊ะ/ในฉาก) — คนตกรอบเป็นสีเทาล้มลง
-export function Figure({ id, av, size = 40, dead, title }) {
+export function Figure({ id, av, size = 40, dead, title, mood }) {
   const a = av(id);
-  return <span className={'fig' + (dead ? ' dead' : '')} title={title} style={{ width: size, height: size * 1.4 }}><Char look={a.look} color={a.c} full size={size} />{dead && <i className="av-x">💀</i>}</span>;
+  return <span className={'fig' + (dead ? ' dead' : '')} title={title} style={{ width: size, height: size * 1.4 }}><Char look={a.look} color={a.c} full size={size} mood={dead ? 'dead' : mood} />{dead && <i className="av-x">💀</i>}</span>;
 }
 // รูปเดี่ยว ๆ จากเลขรูป (ใช้ในหน้าเลือกรูป/ก่อนเข้าห้อง)
 export const AvFace = ({ i, look, size = 44 }) => { const c = validAv(i) ? i : 0; return <span className="av ch" style={{ '--cf': BODY_COLORS[c].f, width: size, height: size, fontSize: Math.round(size * 0.56) }}><span className="ch-clip"><Char look={look} color={c} /></span></span>; };

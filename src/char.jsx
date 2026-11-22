@@ -1,9 +1,12 @@
 // ตัวละครของผู้เล่น — หัวกลมตัวป้อม คนละสี แต่งได้: ทรงผม สีผม ตา ปาก (วาดเองทั้งหมดด้วย SVG)
 // look = { hair, hc, eyes, mouth } (เลขลำดับในลิสต์ด้านล่าง) • สีตัว = เลข av เดิม (ห้ามซ้ำกันในห้อง)
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useId, useMemo, useState } from 'react';
+import { HATS, FITS, ACCS, HOLDS } from './outfits.jsx';
+import './char.css';
+export { HATS, FITS, ACCS, HOLDS };
 
 const OL = '#2a2340'; // เส้นขอบ (ม่วงเข้ม นุ่มกว่าดำ)
-const SW = 2.2;
+const SW = 2.4;
 
 export const BODY_COLORS = [
   { n: 'ขาว', f: '#f4f4f7' }, { n: 'ชมพู', f: '#ffb6c9' }, { n: 'แดง', f: '#ff8080' }, { n: 'ส้ม', f: '#ffb46e' },
@@ -84,7 +87,7 @@ export const HAIRS = [
 
 // ---------- ตา (ซ้าย x=39 ขวา x=61, y=46) ----------
 const pair = (f, y = 46) => <>{f(39, y, 0)}{f(61, y, 1)}</>;
-const dot = (x, y, r = 3.4) => <g><ellipse cx={x} cy={y} rx={r * 0.85} ry={r * 1.2} fill={OL} /><circle cx={x + 1} cy={y - 1.6} r={r * 0.35} fill="#fff" /></g>;
+const dot = (x, y, r = 4.2) => <g><ellipse cx={x} cy={y} rx={r * 0.88} ry={r * 1.22} fill={OL} /><circle cx={x + r * 0.35} cy={y - r * 0.5} r={r * 0.4} fill="#fff" /><circle cx={x - r * 0.3} cy={y + r * 0.55} r={r * 0.2} fill="#fff" opacity=".85" /></g>;
 const arc = (x, y, up = true) => <path d={up ? `M${x - 5} ${y + 1.5} Q${x} ${y - 5} ${x + 5} ${y + 1.5}` : `M${x - 5} ${y - 1} Q${x} ${y + 4} ${x + 5} ${y - 1}`} fill="none" stroke={OL} strokeWidth="2.6" strokeLinecap="round" />;
 const star = (x, y, r = 5.5) => { const p = Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; return `${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`; }).join(' '); return <polygon points={p} fill="#ffd23f" stroke={OL} strokeWidth="1.4" strokeLinejoin="round" />; };
 const heart = (x, y) => <path d={`M${x} ${y + 4.5} C${x - 7} ${y} ${x - 5} ${y - 6} ${x} ${y - 2.5} C${x + 5} ${y - 6} ${x + 7} ${y} ${x} ${y + 4.5} Z`} fill="#ff4d6d" stroke={OL} strokeWidth="1.4" />;
@@ -159,58 +162,92 @@ export const MOUTHS = [
 ];
 
 const clampI = (v, n) => (Number.isInteger(v) && v >= 0 && v < n ? v : 0);
-export const fixLook = l => ({ hair: clampI(l?.hair, HAIRS.length), hc: clampI(l?.hc, HAIR_COLORS.length), eyes: clampI(l?.eyes, EYES.length), mouth: clampI(l?.mouth, MOUTHS.length) });
-export const randomLook = () => ({ hair: Math.floor(Math.random() * HAIRS.length), hc: Math.floor(Math.random() * HAIR_COLORS.length), eyes: Math.floor(Math.random() * EYES.length), mouth: Math.floor(Math.random() * MOUTHS.length) });
+export const fixLook = l => ({ hair: clampI(l?.hair, HAIRS.length), hc: clampI(l?.hc, HAIR_COLORS.length), eyes: clampI(l?.eyes, EYES.length), mouth: clampI(l?.mouth, MOUTHS.length), hat: clampI(l?.hat, HATS.length), fit: clampI(l?.fit, FITS.length), acc: clampI(l?.acc, ACCS.length), hold: clampI(l?.hold, HOLDS.length) });
+const rnd = n => Math.floor(Math.random() * n), maybe = (n, p) => (Math.random() < p ? rnd(n) : 0);
+export const randomLook = () => ({ hair: rnd(HAIRS.length), hc: rnd(HAIR_COLORS.length), eyes: rnd(EYES.length), mouth: rnd(MOUTHS.length), hat: maybe(HATS.length, .5), fit: maybe(FITS.length, .75), acc: maybe(ACCS.length, .3), hold: maybe(HOLDS.length, .35) });
 // คนที่ยังไม่เคยแต่ง (เช่น เครื่องเวอร์ชันเก่า): สุ่มจาก id ให้ทุกเครื่องเห็นเหมือนกัน
 export const lookFromId = id => { let h = 7; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const r = k => { h = (h * 1103515245 + 12345) >>> 0; return h % k; }; return { hair: r(HAIRS.length), hc: r(HAIR_COLORS.length), eyes: r(EYES.length), mouth: r(MOUTHS.length) }; };
 
-// ตัวละคร: ตัวไข่ชิ้นเดียว (หัวกับตัวเป็นก้อนเดียวกัน) แขนกุดสองข้าง ขาสั้นสองขา — แขน/ขาวาดไว้หลังตัว เส้นเลยต่อกันเป็นโครงเดียว ไม่ซ้อนเป็นชิ้น ๆ
+// ตัวละคร: ตัวไข่ชิ้นเดียว แขน/ขา/ตา แยกชิ้น (class ch-*) ให้ char.css ขยับได้ตาม mood
 // full = ทั้งตัว (หน้าแต่งตัว/ท่าในเกม) • ไม่งั้นครึ่งบน (รูปโปรไฟล์ในวงกลม)
+// mood: idle (ยืนหายใจ) walk wave happy sad shock think talk dead — ตัวเต็มไม่ส่งมา = idle
 const EGG = 'M50 8 C73 8 87 36 87 67 C87 95 71 112 50 112 C29 112 13 95 13 67 C13 36 27 8 50 8 Z';
-const ARM = 'M19 70 C10 73 5.5 86 8 94 C9.6 99.5 16 99 18 94 Z';
-const LEG = 'M36 103 C35.4 111 34.8 118 35.3 124 C35.8 130.5 48.7 130.5 49.2 124 C49.6 118 49.4 111 49 105 Z';
-const ARM_R = flip(ARM), LEG_R = flip(LEG);
+const SHADE = 'M64 6 C84 18 92 44 90 72 C88 100 74 116 46 114 C72 106 82 86 82 64 C82 40 76 20 64 6Z';
+const ARM = 'M21 70 C12 74 7 86 9 94 C10 99 17 99 19 94 Z';
+const LEG = 'M36 102 C35 112 35 118 36 122 L48 122 L49 104 Z';
+const SHOE = 'M32 123 C32 117 50 117 50 124 C50 129 32 129 32 123 Z';
+const ARM_R = flip(ARM), LEG_R = flip(LEG), SHOE_R = flip(SHOE);
 // ผม/หน้าวาดไว้สำหรับหัวกลม (กลางที่ 50,44) → เลื่อน/ขยายให้พอดีปลายไข่
 const HAIR_FIT = 'translate(50 0) scale(1.07 1) translate(-50 -5)';
-function CharImpl({ look, color = 0, full = false, size, x, y }) {
+const EI = n => Math.max(0, EYES.findIndex(x => x.n === n)), MI = n => Math.max(0, MOUTHS.findIndex(x => x.n === n));
+// สีหน้าตามท่า (ทับตา/ปากที่แต่งไว้) — ท่าอื่นใช้หน้าที่ผู้เล่นแต่ง
+const FACE = { happy: ['ยิ้มตาหยี', 'หัวเราะ'], sad: ['ตาเศร้า', 'เศร้า'], shock: ['ตกใจ', 'อ้าปากค้าง'], dead: ['ตา X', 'เบี้ยว'], wave: [null, 'ยิ้มกว้าง'], think: [null, 'ยิ้มมุมปาก'] };
+function CharImpl({ look, color = 0, full = false, size, x, y, mood }) {
   const l = fixLook(look); const body = (BODY_COLORS[color] || BODY_COLORS[0]).f; const hc = HAIR_COLORS[l.hc].f; const H = HAIRS[l.hair];
-  const part = (d, k) => <path key={k} d={d} fill={body} stroke={OL} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />;
-  return <svg viewBox={full ? '0 -8 100 140' : '6 -4 88 88'} width={size} height={full ? size * 1.4 : size} className="char" aria-hidden="true" x={x} y={y}>
-    <g transform={HAIR_FIT}>{H.back?.(hc)}</g>
-    {part(ARM, 'al')}{part(ARM_R, 'ar')}
-    {part(LEG, 'll')}{part(LEG_R, 'lr')}
-    {part(EGG, 'egg')}
-    <g transform="translate(0 6)">
-      <ellipse cx="30" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" /><ellipse cx="70" cy="55" rx="5" ry="2.6" fill="#ff7f99" opacity=".45" />
-      <g transform="translate(0 -1)">{EYES[l.eyes].d()}{MOUTHS[l.mouth].d()}</g>
+  const hat = HATS[l.hat], fit = FITS[l.fit], acc = ACCS[l.acc], hold = HOLDS[l.hold];
+  const cid = 'ce' + useId().replace(/[^a-zA-Z0-9]/g, '');
+  const m = mood || (full ? 'idle' : ''); const fx = FACE[m] || [];
+  const sl = fit.sl || body;
+  const seed = (l.hair * 7 + l.eyes * 13 + l.mouth * 5 + color * 3) % 40;
+  const part = (d, k, f = body) => <path key={k} d={d} fill={f} stroke={OL} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />;
+  const eyes = fx[0] ? EYES[EI(fx[0])].d() : EYES[l.eyes].d();
+  const mouth = fx[1] ? MOUTHS[MI(fx[1])].d() : MOUTHS[l.mouth].d();
+  const vb = full ? '0 -8 100 140' : hat.tall ? '0 -16 100 100' : '6 -4 88 88';
+  return <svg viewBox={vb} width={size} height={full ? size * 1.4 : size} className={'char' + (m ? ' m-' + m : '')} style={{ '--bd': -seed / 10 + 's' }} overflow={full ? 'visible' : undefined} aria-hidden="true" x={x} y={y}>
+    <defs><clipPath id={cid}><path d={EGG} /></clipPath></defs>
+    {full && <ellipse cx="50" cy="128.5" rx="22" ry="3.2" fill="#000" opacity=".16" className="ch-shadow" />}
+    <g className="ch-bd">
+      {fit.bk?.()}
+      <g transform={HAIR_FIT}>{H.back?.(hc)}</g>
+      <g className="ch-ll">{part(LEG, 'l')}{part(SHOE, 's', fit.shoe || '#fff')}</g>
+      <g className="ch-lr">{part(LEG_R, 'l')}{part(SHOE_R, 's', fit.shoe || '#fff')}</g>
+      <g className="ch-al">{part(ARM, 'a', sl)}<circle cx="13" cy="95" r="5.6" fill={body} stroke={OL} strokeWidth="2.2" /></g>
+      <g className="ch-ar">{part(ARM_R, 'a', sl)}{hold.d?.()}<circle cx="87" cy="95" r="5.6" fill={body} stroke={OL} strokeWidth="2.2" /></g>
+      <path d={EGG} fill={body} />
+      <g clipPath={`url(#${cid})`}>{fit.cl?.()}<path d={SHADE} fill={OL} opacity=".13" /><ellipse cx="33" cy="30" rx="9" ry="5" fill="#fff" opacity=".55" transform="rotate(-35 33 30)" /></g>
+      <path d={EGG} fill="none" stroke={OL} strokeWidth={SW} />
+      {fit.fr?.()}
+      <g transform="translate(0 5)">
+        <ellipse cx="30" cy="56" rx="5.6" ry="3" fill="#ff7f99" opacity=".5" /><ellipse cx="70" cy="56" rx="5.6" ry="3" fill="#ff7f99" opacity=".5" />
+        <g className="ch-ey"><g transform={m === 'think' ? 'translate(3 -2)' : undefined}>{eyes}</g></g>
+        {m === 'talk' ? <><g className="ch-mo">{mouth}</g><g className="ch-mo2">{MOUTHS[MI('ปากโอ')].d()}</g></> : mouth}
+        {m === 'sad' && <path className="ch-tear" d="M65 51 C63 56 64 59 66 59 C68 59 69 56 65 51Z" fill="#7cc4ff" stroke={OL} strokeWidth="1" />}
+        {acc.d?.()}
+      </g>
+      <g transform={HAIR_FIT}>{H.front?.(hc)}</g>
+      {hat.d?.(hc)}
+      {m === 'think' && <g className="ch-dots" fill="#fff" stroke={OL} strokeWidth="1.2"><circle cx="88" cy="20" r="2.6" /><circle cx="95" cy="11" r="3.4" /><circle cx="104" cy="0" r="4.4" /></g>}
     </g>
-    <g transform={HAIR_FIT}>{H.front?.(hc)}</g>
   </svg>;
 }
-export const Char = memo(CharImpl, (a, b) => a.color === b.color && a.full === b.full && a.size === b.size && a.x === b.x && a.y === b.y && JSON.stringify(a.look) === JSON.stringify(b.look));
+export const Char = memo(CharImpl, (a, b) => a.color === b.color && a.full === b.full && a.size === b.size && a.x === b.x && a.y === b.y && a.mood === b.mood && JSON.stringify(a.look) === JSON.stringify(b.look));
 
 // ---------- หน้าแต่งตัว ----------
-const TABS = [['color', '🎨 สีตัว'], ['hair', '💇 ทรงผม'], ['hc', '🖌️ สีผม'], ['eyes', '👀 ตา'], ['mouth', '👄 ปาก']];
+const TABS = [['color', '🎨 สีตัว'], ['hair', '💇 ทรงผม'], ['hc', '🖌️ สีผม'], ['eyes', '👀 ตา'], ['mouth', '👄 ปาก'], ['hat', '🎩 หมวก'], ['fit', '👕 ชุด'], ['acc', '🕶️ ของบนหน้า'], ['hold', '🎈 ของถือ']];
+const MOODS = [['idle', '🙂 ยืน'], ['walk', '🚶 เดิน'], ['wave', '👋 โบกมือ'], ['happy', '🎉 ดีใจ'], ['sad', '😢 เสียใจ'], ['shock', '😱 ตกใจ'], ['think', '🤔 คิด']];
 export function CharEditor({ color, look, takenBy = {}, onSave, onClose }) {
-  const [c, setC] = useState(color ?? 0); const [l, setL] = useState(fixLook(look)); const [tab, setTab] = useState('hair'); const [g, setG] = useState('all');
+  const [c, setC] = useState(color ?? 0); const [l, setL] = useState(fixLook(look)); const [tab, setTab] = useState('hair'); const [g, setG] = useState('all'); const [mood, setMood] = useState('idle');
   useEffect(() => { const k = e => e.key === 'Escape' && onClose(); document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k); }, []);
   const set = (k, v) => setL(x => ({ ...x, [k]: v }));
   const freeColors = BODY_COLORS.map((_, i) => i).filter(i => !takenBy[i]);
   const shuffleAll = () => { setL(randomLook()); if (freeColors.length) setC(freeColors[Math.floor(Math.random() * freeColors.length)]); };
   const opt = (key, i, label, node, extra = '') => <button key={i} type="button" className={'chopt' + extra + ((key === 'color' ? c : l[key]) === i ? ' me' : '')} onClick={() => (key === 'color' ? setC(i) : set(key, i))} title={label}>{node}<span>{label}</span></button>;
-  const items = useMemo(() => buildItems(), [tab, g, c, l.hair, l.hc, l.eyes, l.mouth, JSON.stringify(takenBy)]);
+  const items = useMemo(() => buildItems(), [tab, g, c, JSON.stringify(l), JSON.stringify(takenBy)]);
   function buildItems() { let items;
   if (tab === 'color') items = BODY_COLORS.map((x, i) => { const who = takenBy[i]; return <button key={i} type="button" className={'chopt' + (c === i ? ' me' : '') + (who ? ' taken' : '')} disabled={!!who} onClick={() => setC(i)} title={who ? `${x.n} — ${who} ใช้อยู่` : x.n}><Char look={l} color={i} size={56} /><span>{who || x.n}</span></button>; });
   else if (tab === 'hair') items = HAIRS.map((x, i) => (g === 'all' || x.g === g) && opt('hair', i, x.n, <Char look={{ ...l, hair: i }} color={c} size={56} />));
   else if (tab === 'hc') items = HAIR_COLORS.map((x, i) => opt('hc', i, x.n, <Char look={{ ...l, hc: i, hair: l.hair || 2 }} color={c} size={56} />));
   else if (tab === 'eyes') items = EYES.map((x, i) => opt('eyes', i, x.n, <span className="ch-zoom"><Char look={{ ...l, eyes: i }} color={c} size={56} /></span>));
-  else items = MOUTHS.map((x, i) => opt('mouth', i, x.n, <span className="ch-zoom m"><Char look={{ ...l, mouth: i }} color={c} size={56} /></span>));
+  else if (tab === 'mouth') items = MOUTHS.map((x, i) => opt('mouth', i, x.n, <span className="ch-zoom m"><Char look={{ ...l, mouth: i }} color={c} size={56} /></span>));
+  else if (tab === 'hat') items = HATS.map((x, i) => opt('hat', i, x.n, <Char look={{ ...l, hat: i }} color={c} size={56} />));
+  else if (tab === 'acc') items = ACCS.map((x, i) => opt('acc', i, x.n, <span className="ch-zoom"><Char look={{ ...l, acc: i }} color={c} size={56} /></span>));
+  else items = (tab === 'fit' ? FITS : HOLDS).map((x, i) => opt(tab, i, x.n, <span className="ch-full"><Char look={{ ...l, [tab]: i }} color={c} full size={40} mood="still" /></span>));
   return items; }
   return <div className="avpick-bg ch-bg" onClick={onClose} role="dialog" aria-label="แต่งตัวละคร">
     <div className="avpick chedit" onClick={e => e.stopPropagation()}>
       <div className="avpick-head"><div><b>แต่งตัวละคร</b><small>จำไว้ในเครื่องนี้ ใช้ได้ทุกห้องทุกเกม • สีตัวที่คนอื่นในห้องใช้อยู่เลือกไม่ได้</small></div><button className="icon-btn" onClick={onClose} aria-label="ปิด">✕</button></div>
       <div className="ch-main">
-        <div className="ch-stage"><Char look={l} color={c} full size={118} /><button type="button" className="secondary ch-rand" onClick={shuffleAll}>🎲 สุ่ม</button></div>
+        <div className="ch-stage"><Char look={l} color={c} full size={118} mood={mood} /><div className="ch-moods">{MOODS.map(([k, t]) => <button key={k} type="button" className={mood === k ? 'on' : ''} onClick={() => setMood(k)}>{t}</button>)}</div><button type="button" className="secondary ch-rand" onClick={shuffleAll}>🎲 สุ่ม</button></div>
         <div className="ch-side">
           <div className="ch-tabs">{TABS.map(([k, t]) => <button key={k} type="button" className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{t}</button>)}</div>
           {tab === 'hair' && <div className="ch-g">{[['all', 'ทั้งหมด'], ['m', '👦 ชาย'], ['f', '👧 หญิง']].map(([k, t]) => <button key={k} type="button" className={g === k ? 'on' : ''} onClick={() => setG(k)}>{t}</button>)}</div>}

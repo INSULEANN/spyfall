@@ -1,0 +1,82 @@
+/* ท่าทางตัวละครไข่ — แยกขยับ ตัว/แขน/ขา/ตา (จุดหมุนอยู่ในพิกัด viewBox ของตัวละคร) */
+/* ฉากบางไฟล์ตั้ง transform-box:fill-box ให้ทุกชิ้น (stages/intro/cakestage) → บังคับกลับเป็น view-box ไม่งั้นแขนขาหมุนผิดจุดแล้วหลุดจากตัว */
+svg.char [class],svg.char g{transform-box:view-box!important}
+.char .ch-bd{transform-origin:50px 128px}
+.char .ch-al{transform-origin:20px 72px}.char .ch-ar{transform-origin:80px 72px}
+.char .ch-ll{transform-origin:42px 104px}.char .ch-lr{transform-origin:58px 104px}
+.char .ch-ey{transform-origin:50px 46px;animation:ch-blink 4.4s var(--bd,0s) infinite}
+.char .ch-bd,.char .ch-al,.char .ch-ar,.char .ch-ll,.char .ch-lr{transition:transform .4s cubic-bezier(.3,1.5,.5,1)}
+.char .ch-shadow{transform-origin:50px 128px}
+
+/* ยืนหายใจ แขนแกว่งนิด ๆ */
+.m-idle .ch-bd{animation:ch-breathe 2.8s var(--bd) ease-in-out infinite}
+.m-idle .ch-al{animation:ch-swl 2.8s var(--bd) ease-in-out infinite}
+.m-idle .ch-ar{animation:ch-swr 2.8s var(--bd) ease-in-out infinite}
+/* เดิน */
+.m-walk .ch-bd{animation:ch-step .56s ease-in-out infinite}
+.m-walk .ch-ll,.m-walk .ch-ar{animation:ch-leg .56s ease-in-out infinite alternate}
+.m-walk .ch-lr,.m-walk .ch-al{animation:ch-leg .56s ease-in-out infinite alternate-reverse}
+/* โบกมือ / คุย */
+.m-wave .ch-bd,.m-talk .ch-bd{animation:ch-breathe 2.2s var(--bd) ease-in-out infinite}
+.m-wave .ch-ar{animation:ch-wave .42s ease-in-out infinite alternate}
+.m-talk .ch-ar{animation:ch-gest 1.1s ease-in-out infinite alternate}
+.m-talk .ch-mo{animation:ch-talk .36s steps(1) infinite}.m-talk .ch-mo2{animation:ch-talk .36s steps(1) infinite reverse}
+/* ดีใจ: กระโดด ชูมือ */
+.m-happy .ch-bd{animation:ch-jump .46s cubic-bezier(.3,1.4,.5,1) infinite alternate}
+.m-happy .ch-al{animation:ch-cheerl .23s ease-in-out infinite alternate}
+.m-happy .ch-ar{animation:ch-cheerr .23s ease-in-out infinite alternate}
+.m-happy .ch-shadow{animation:ch-shrink .46s cubic-bezier(.3,1.4,.5,1) infinite alternate}
+/* เสียใจ: ยุบ ไหล่ตก น้ำตาไหล */
+.m-sad .ch-bd{transform:translateY(2px) scale(1.05,.93)}
+.m-sad .ch-al{transform:rotate(-10deg)}.m-sad .ch-ar{transform:rotate(10deg)}
+.m-sad .ch-tear{animation:ch-drop 1.3s ease-in infinite}
+/* ตกใจ: สะดุ้ง สั่น ชูแขน */
+.m-shock .ch-bd{animation:ch-shake .08s linear infinite alternate}
+.m-shock .ch-al{transform:rotate(118deg)}.m-shock .ch-ar{transform:rotate(-118deg)}
+/* คิด: เอียงหัว เกาหัว */
+.m-think .ch-bd{animation:ch-tilt 2s ease-in-out infinite alternate}
+.m-think .ch-ar{animation:ch-scratch .5s ease-in-out infinite alternate}
+.m-think .ch-dots circle{animation:ch-pop 1.5s ease-in-out infinite}
+.m-think .ch-dots circle:nth-child(2){animation-delay:.25s}.m-think .ch-dots circle:nth-child(3){animation-delay:.5s}
+/* ตาย/ตกรอบ: ตัวนิ่ง แขนตก */
+.m-dead .ch-ey{animation:none}.m-dead .ch-al{transform:rotate(-14deg)}.m-dead .ch-ar{transform:rotate(14deg)}
+
+/* ของแต่งที่ขยับเอง */
+.char .ch-spin{transform-origin:50px -3px;animation:ch-spin .6s linear infinite}
+.char .ch-float{animation:ch-float 2.4s ease-in-out infinite}
+.char .ch-sway{transform-origin:50px 12px;animation:ch-sway 2.2s ease-in-out infinite alternate}
+.char .ch-flag{transform-origin:91px 60px;animation:ch-flag .7s ease-in-out infinite alternate}
+.char .ch-twinkle{transform-origin:102px 70px;animation:ch-twinkle 1.4s ease-in-out infinite}
+.char .ch-steam{animation:ch-steam 1.6s ease-in-out infinite}
+
+@keyframes ch-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+@keyframes ch-breathe{50%{transform:translateY(-2px) scale(1.02,.98)}}
+@keyframes ch-swl{50%{transform:rotate(7deg)}}@keyframes ch-swr{50%{transform:rotate(-7deg)}}
+@keyframes ch-step{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
+@keyframes ch-leg{from{transform:rotate(-20deg)}to{transform:rotate(20deg)}}
+@keyframes ch-wave{from{transform:rotate(-120deg)}to{transform:rotate(-165deg)}}
+@keyframes ch-gest{from{transform:rotate(-8deg)}to{transform:rotate(-55deg)}}
+@keyframes ch-talk{0%{opacity:1}50%{opacity:0}}
+@keyframes ch-jump{0%{transform:scale(1.08,.9)}100%{transform:translateY(-16px) scale(.96,1.05)}}
+@keyframes ch-shrink{0%{transform:scale(1.1)}100%{transform:scale(.6);opacity:.08}}
+@keyframes ch-cheerl{from{transform:rotate(128deg)}to{transform:rotate(156deg)}}
+@keyframes ch-cheerr{from{transform:rotate(-128deg)}to{transform:rotate(-156deg)}}
+@keyframes ch-drop{from{transform:translateY(0);opacity:1}to{transform:translateY(14px);opacity:0}}
+@keyframes ch-shake{from{transform:translate(-1.6px,-4px)}to{transform:translate(1.6px,-4px)}}
+@keyframes ch-tilt{from{transform:rotate(0)}to{transform:rotate(-6deg)}}
+@keyframes ch-scratch{from{transform:rotate(-140deg)}to{transform:rotate(-154deg)}}
+@keyframes ch-pop{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes ch-spin{to{transform:rotate(360deg)}}
+@keyframes ch-float{50%{transform:translateY(-3px)}}
+@keyframes ch-sway{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+@keyframes ch-flag{from{transform:skewY(-6deg) scaleX(.94)}to{transform:skewY(5deg)}}
+@keyframes ch-twinkle{50%{transform:scale(1.25) rotate(20deg)}}
+@keyframes ch-steam{0%{opacity:0;transform:translateY(2px)}50%{opacity:.8}100%{opacity:0;transform:translateY(-5px)}}
+
+/* ช่องตัวอย่างชุด/ของถือในหน้าแต่งตัว */
+.ch-full{display:block;width:56px;height:56px;overflow:hidden;border-radius:50%;background:#ffffff0d}.ch-full .char{width:56px;height:78px;margin-top:-9px;border-radius:0;background:none}
+.ch-moods{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:200px}
+.ch-moods button{border:1px solid #ffffff1c;background:var(--chip);color:var(--text);border-radius:14px;padding:4px 8px;font-size:11.5px}
+.ch-moods button.on{background:var(--accent);color:var(--on-accent);border-color:transparent}
+
+@media (prefers-reduced-motion:reduce){.char *{animation:none!important}}

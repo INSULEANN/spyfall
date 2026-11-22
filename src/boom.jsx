@@ -206,7 +206,7 @@ function RoundTable({ r, room, myId, av, nameOf, srvNow, res, canDraw, onDraw, p
       return <div key={id} role={canPick ? 'button' : undefined} onClick={canPick ? () => onPick(id) : undefined}
         className={'seat' + (isCur ? ' turn' : '') + (alive ? '' : ' out') + (id === myId ? ' me' : '') + (canPick ? ' pick' : '') + (picked === id ? ' picked' : '') + (P?.target === id ? ' targeted' : '')} style={{ left: x + '%', top: y + '%' }}>
         {isCur && <span className="seat-arrow">▼</span>}
-        <div className="seat-av fig-seat"><Figure id={id} av={av} size={38} dead={!alive} />{isCur && r.turnsLeft > 1 && <em className="seat-x">×{r.turnsLeft}</em>}{gone && alive && <span className="seat-off">📴</span>}{P?.target === id && <span className="seat-tg">🎯</span>}</div>
+        <div className="seat-av fig-seat"><Figure id={id} av={av} size={38} dead={!alive} mood={isCur ? 'think' : P?.target === id ? 'shock' : undefined} />{isCur && r.turnsLeft > 1 && <em className="seat-x">×{r.turnsLeft}</em>}{gone && alive && <span className="seat-off">📴</span>}{P?.target === id && <span className="seat-tg">🎯</span>}</div>
         <b className="seat-name">{id === myId ? 'คุณ' : nameOf(id)}</b>
         {alive ? <span className="seat-cards"><MiniBacks n={cnt} /><em>{cnt}</em></span> : <span className="seat-out">💥 ตกรอบ</span>}
         {b && <span key={b.k} className="seat-bubble">{b.text}</span>}

@@ -99,7 +99,7 @@ const Shadow = ({ cake, chew }) => <g>
     {chew && <path d="M-8 8 q8 6 16 0" stroke="#fff" strokeWidth="2.4" fill="none" strokeLinecap="round" />}</g>
   {cake && <Cake x={32} y={12} s={0.6} bite />}
 </g>;
-const Person = ({ id, color, size = 70, x, y }) => <Char look={lookFromId(id)} color={color} full size={size} x={x - size / 2} y={y - size * 1.4} />;
+const Person = ({ id, color, size = 70, x, y, mood }) => <Char look={lookFromId(id)} color={color} full size={size} x={x - size / 2} y={y - size * 1.4} mood={mood} />;
 const Bang = ({ x, y, t, c = '#ff4d5e', s = 30, cls = '', st = '#fff' }) => <g transform={`translate(${x} ${y})`}><g className={'if-pop ' + cls}><text textAnchor="middle" fontSize={s} fontWeight="900" fill={c} stroke={st} strokeWidth="4" paintOrder="stroke" fontFamily={K}>{t}</text></g></g>;
 const Drop = ({ x, y, cls = '' }) => <g transform={`translate(${x} ${y})`}><g className={'if-sweat ' + cls}><path d="M0 -6 C3 -1 5 2 5 4.5 C5 7.5 2.8 9 0 9 C-2.8 9 -5 7.5 -5 4.5 C-5 2 -3 -1 0 -6 Z" fill="#8fd3ff" stroke={OL} strokeWidth="1.2" /></g></g>;
 const Confetti = ({ from = 2.6 }) => <g>{Array.from({ length: 22 }, (_, i) => <g key={i} transform={`translate(${12 + (i * 37) % 380} -10)`}><rect className="if-conf" style={{ animationDelay: from + (i % 7) * 0.09 + 's', '--x': ((i % 5) - 2) * 14 + 'px', '--r': (i % 2 ? 1 : -1) * (200 + i * 20) + 'deg' }} width="6" height="10" rx="1.5" fill={['#ff4d5e', '#ffd23f', '#3fb56a', '#4da3ff', '#c77dff'][i % 5]} /></g>)}</g>;
@@ -132,15 +132,15 @@ function CakeCaught() {
       <Fridge open lit now />
       {/* ก่อนชุลมุน */}
       <g className="if-pre">
-        <g transform="translate(232 214)"><g className="if-startle"><g className="if-chewing"><Person id="cake-thief" color={13} size={78} x={0} y={0} /></g>
+        <g transform="translate(232 214)"><g className="if-startle"><g className="if-chewing"><Person id="cake-thief" color={13} size={78} x={0} y={0} mood="shock" /></g>
           <ellipse cx="-4" cy="-62" rx="9" ry="5" fill="#fff" /><circle cx="8" cy="-58" r="3" fill="#ffd6e0" /><circle cx="-14" cy="-56" r="2.4" fill="#fff" />
           <g transform="translate(30 -60)"><path d="M0 0 L6 28" stroke="#9aa3b8" strokeWidth="4" strokeLinecap="round" /><path d="M-3 -6 V2 M1 -7 V1 M5 -6 V2" stroke="#9aa3b8" strokeWidth="2.4" strokeLinecap="round" /></g>
           <Drop x={22} y={-96} cls="d06" /></g>
           <Bang x={0} y={-118} t="!" s={34} cls="d04" /></g>
-        <g transform="translate(64 214)"><g className="if-in-l d055"><g className="if-pounce a"><Person id="rm-a" color={8} size={70} x={0} y={0} />
+        <g transform="translate(64 214)"><g className="if-in-l d055"><g className="if-pounce a"><Person id="rm-a" color={8} size={70} x={0} y={0} mood="walk" />
           <g transform="translate(-28 -60)"><path d="M0 0 L-10 -22" stroke="#555" strokeWidth="5" strokeLinecap="round" /><ellipse cx="-14" cy="-30" rx="13" ry="9" fill="#3a3a48" stroke={OL} strokeWidth="2" /></g></g></g>
           <Bang x={0} y={-108} t="!" cls="d055" /></g>
-        <g transform="translate(134 214)"><g className="if-in-l d075"><g className="if-pounce b"><Person id="rm-b" color={4} size={64} x={0} y={0} />
+        <g transform="translate(134 214)"><g className="if-in-l d075"><g className="if-pounce b"><Person id="rm-b" color={4} size={64} x={0} y={0} mood="walk" />
           <path d="M-22 -86 Q0 -110 22 -86 Z" fill="#7a8cff" /><circle cx="20" cy="-104" r="5" fill="#fff" /></g></g>
           <Bang x={0} y={-104} t="!!" cls="d075" /></g>
       </g>
@@ -152,14 +152,14 @@ function CakeCaught() {
       </g></g>
       {/* หลังจับได้ */}
       <g className="if-post">
-        <g transform="translate(200 214)"><g className="if-boing"><Person id="cake-thief" color={13} size={78} x={0} y={0} />
+        <g transform="translate(200 214)"><g className="if-boing"><Person id="cake-thief" color={13} size={78} x={0} y={0} mood="sad" />
           <ellipse cx="-4" cy="-62" rx="9" ry="5" fill="#fff" />
           {[-34, -24, -14].map((y, i) => <path key={i} d={`M-40 ${y} Q0 ${y + 8} 40 ${y}`} stroke="#c98a4a" strokeWidth="5" fill="none" strokeLinecap="round" />)}
           <path d="M34 -26 q10 4 6 14" stroke="#c98a4a" strokeWidth="4" fill="none" strokeLinecap="round" />
           <g className="if-tear"><path d="M-14 -66 q-3 8 0 10 q3 -2 0 -10" fill="#8fd3ff" /></g><g className="if-tear b"><path d="M12 -66 q-3 8 0 10 q3 -2 0 -10" fill="#8fd3ff" /></g></g></g>
-        <g transform="translate(112 214)"><g className="if-cheer"><Person id="rm-a" color={8} size={70} x={0} y={0} />
+        <g transform="translate(112 214)"><g className="if-cheer"><Person id="rm-a" color={8} size={70} x={0} y={0} mood="happy" />
           <g transform="translate(-30 -64)"><path d="M0 0 L-6 -24" stroke="#555" strokeWidth="5" strokeLinecap="round" /><ellipse cx="-8" cy="-32" rx="13" ry="9" fill="#3a3a48" stroke={OL} strokeWidth="2" /></g></g></g>
-        <g transform="translate(296 214)"><g className="if-cheer b"><Person id="rm-b" color={4} size={64} x={0} y={0} /><path d="M-22 -86 Q0 -110 22 -86 Z" fill="#7a8cff" /><circle cx="20" cy="-104" r="5" fill="#fff" />
+        <g transform="translate(296 214)"><g className="if-cheer b"><Person id="rm-b" color={4} size={64} x={0} y={0} mood="happy" /><path d="M-22 -86 Q0 -110 22 -86 Z" fill="#7a8cff" /><circle cx="20" cy="-104" r="5" fill="#fff" />
           <g transform="translate(30 -60)"><circle r="8" fill="#ffd2a8" stroke={OL} strokeWidth="2" /><path d="M-2 -6 V-16" stroke={OL} strokeWidth="5" strokeLinecap="round" /></g></g></g>
       </g>
       <Confetti from={2.5} />
@@ -187,7 +187,7 @@ function CakeEscape() {
       <g transform="translate(226 104)"><g className="if-pop eo"><text textAnchor="middle" fontSize="34" fontWeight="900" fill="#ffd447" stroke="#2a2440" strokeWidth="4" paintOrder="stroke" fontFamily={K}>!</text></g></g>
       <g className="if-speed">{[0, 1, 2, 3].map(i => <path key={i} d={`M${200 + i * 14} ${150 + i * 9} h46`} stroke="#b9b4ff" strokeWidth="3" strokeLinecap="round" />)}</g>
       {/* รูมเมตพุ่งเข้ามา */}
-      <g transform="translate(60 214)"><g className="if-burst"><g className="if-look"><Person id="rm-a" color={8} size={74} x={0} y={0} /></g>
+      <g transform="translate(60 214)"><g className="if-burst"><g className="if-look"><Person id="rm-a" color={8} size={74} x={0} y={0} mood="think" /></g>
         <g transform="translate(30 -56)"><rect x="-4" y="-6" width="22" height="12" rx="3" fill="#ffd23f" stroke={OL} strokeWidth="2" /></g></g>
         <g className="if-qq"><text x="-24" y="-112" fontSize="26" fontWeight="900" fill="#ffd447" stroke="#2a2440" strokeWidth="3" paintOrder="stroke" fontFamily={K}>?</text><text x="10" y="-122" fontSize="32" fontWeight="900" fill="#ffd447" stroke="#2a2440" strokeWidth="3" paintOrder="stroke" fontFamily={K}>?</text></g></g>
       <g className="if-dust2">{[0, 1, 2].map(i => <circle key={i} cx={74 + i * 20} cy={204 - i * 3} r={9 - i * 2} fill="#c9c2dd" opacity=".7" />)}</g>
@@ -230,11 +230,11 @@ function Checkpoint() {
         {/* ล้อหลัง + ท่อ (โผล่ข้างหลัง) */}
         <rect x="-7" y="16" width="14" height="26" rx="6" fill="#0c0c12" /><rect x="-30" y="22" width="16" height="6" rx="3" fill="#9aa3b8" stroke={OL} strokeWidth="1.4" />
         {/* คนซ้อน (นั่งหลัง โผล่หัวเหนือไหล่คนขับ) + กระเป๋าบนหลัง */}
-        <Person id="teen-b" color={11} size={40} x={20} y={2} />
+        <Person id="teen-b" color={11} size={40} x={20} y={2} mood="walk" />
         <g transform="translate(38 -24)"><g className="if-bag"><g className="if-peek"><rect x="-3" y="-30" width="6" height="22" rx="3" fill="#9aa3b8" stroke={OL} strokeWidth="1.6" /><circle cx="6" cy="-20" r="4.5" fill="#ff7a2e" stroke={OL} strokeWidth="1.4" /><path d="M-8 -24 l-4 -6" stroke="#ffd23f" strokeWidth="2" /></g>
           <rect x="-12" y="-14" width="26" height="30" rx="7" fill="#3a8a4a" stroke={OL} strokeWidth="2.4" /><rect x="-6" y="-2" width="14" height="9" rx="2" fill="#2d6b3a" stroke={OL} strokeWidth="1.6" /><path d="M-10 -12 q13 -10 22 0" stroke={OL} strokeWidth="2" fill="none" /></g></g>
         {/* คนขับ: ครึ่งล่างจมหลังบังโคลน = นั่งคร่อม */}
-        <Person id="teen-a" color={3} size={44} x={0} y={22} />
+        <Person id="teen-a" color={3} size={44} x={0} y={22} mood="walk" />
         <path d="M-19 -24 Q-20 -43 0 -44 Q20 -43 19 -24 Q0 -29 -19 -24 Z" fill="#ff3b3b" stroke={OL} strokeWidth="2" /><path d="M-14 -36 Q0 -41 14 -36" stroke="#fff" strokeWidth="2" fill="none" opacity=".6" />
         {/* เท้าวางบนพักเท้า */}
         <ellipse cx="-25" cy="27" rx="7" ry="4" fill="#2a2440" /><ellipse cx="25" cy="27" rx="7" ry="4" fill="#2a2440" />
@@ -319,7 +319,7 @@ function DealWin({ res, av, nameOf }) {
         <text y="-3" textAnchor="middle" fontSize="15" fontWeight="900" fill="#8a5a00" fontFamily={K}>No.1</text></g>
       {/* ผู้ชนะ */}
       <g transform="translate(200 188) scale(.75)"><g className="if-rise"><g className="if-swag">
-        <Char look={a.look} color={a.c} full size={S} x={-S / 2} y={-S * 1.4} />
+        <Char look={a.look} color={a.c} full size={S} x={-S / 2} y={-S * 1.4} mood="happy" />
         <path d="M-22 -86 Q0 -66 22 -86" stroke="#ffcf3a" strokeWidth="4" fill="none" strokeLinecap="round" /><g transform="translate(0 -70)"><circle r="8" fill="url(#ifGold)" stroke="#8a5a00" strokeWidth="1.6" /><text y="3.4" textAnchor="middle" fontSize="10" fontWeight="900" fill="#8a5a00" fontFamily={K}>$</text></g>
         <g transform="translate(46 -46)"><g className="if-fan">{[-30, -12, 6, 24].map((r, i) => <g key={i} transform={`rotate(${r}) translate(0 -12)`}><Bill c={i % 2 ? '#7fd08a' : '#5fbf72'} /></g>)}</g></g>
         <g transform="translate(0 -130)"><g className="if-hatdrop"><BossHat /></g></g>

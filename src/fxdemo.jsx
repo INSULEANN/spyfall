@@ -9,7 +9,8 @@ import { CatScare } from './boom.jsx';
 import { OpenFx, PassFx } from './checkpoint.jsx';
 import { BombFx } from './clue.jsx';
 import { SnakeFx } from './snake.jsx';
-import { randomLook } from './char.jsx';
+import { randomLook, Char } from './char.jsx';
+import { WolfFx } from './wolffx.jsx';
 
 const IDS = ['a', 'b', 'c', 'd', 'e', 'f'];
 const NAMES = { a: 'ต้น', b: 'มายด์', c: 'บอส', d: 'แพร', e: 'เจ', f: 'ฟ้า' };
@@ -26,14 +27,23 @@ function Demo() {
   const [film, setFilm] = useState(null);
   const [pop, setPop] = useState(null);
   const [snake, setSnake] = useState(null);
+  const [wolf, setWolf] = useState([]);
+  const playWolf = kind => setWolf(w => [...w, { key: 'w' + Date.now(), events: [{ kind, who: 'c', role: 'ชาวบ้าน' }] }]);
   const btn = { padding: '10px 14px', margin: 4, fontSize: 15, borderRadius: 10 };
   const close = () => setPop(null);
   return <div style={{ padding: 16, maxWidth: 1100, margin: '0 auto' }}>
-    <h2>อนิเมชัน SVG ทั้งหมดในเว็บ (ไม่รวมแวร์วูฟ)</h2>
+    <h2>อนิเมชัน SVG ทั้งหมดในเว็บ</h2>
     <button style={btn} onClick={() => setLooks(mkLooks())}>🎲 สุ่มหน้าตาตัวละครใหม่</button>
 
     <H>🎬 ฉากเปิด / ฉากจบเต็มจอ — กดเพื่อเล่น</H>
     {[['deal-win', 'ปิดดีล: ฉากจบผู้ชนะ'], ['cake', 'เค้กหายไปไหน: ฉากเปิด'], ['cake-caught', 'เค้ก: ฉากจบ จับขโมยได้'], ['cake-escape', 'เค้ก: ฉากจบ ขโมยหนีรอด'], ['checkpoint', 'ด่านตรวจ: ฉากเปิด']].map(([id, t]) => <button key={id} style={btn} onClick={() => setFilm(id)}>{t}</button>)}
+
+    <H>🥚 ท่าทางตัวละคร</H>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>{[['idle', 'ยืน'], ['walk', 'เดิน'], ['wave', 'โบกมือ'], ['talk', 'พูด'], ['happy', 'ดีใจ'], ['sad', 'เสียใจ'], ['shock', 'ตกใจ'], ['think', 'คิด'], ['dead', 'ตกรอบ']].map(([m, t], i) => <div key={m} style={{ textAlign: 'center', background: '#ffffff0d', borderRadius: 12, padding: '8px 10px' }}><Char look={av(IDS[i % 6]).look} color={av(IDS[i % 6]).c} full size={70} mood={m} /><small style={{ display: 'block' }}>{t}</small></div>)}</div>
+
+    <H>🐺 มนุษย์หมาป่า — กดเพื่อเล่น (ตัวละคร "บอส")</H>
+    {[['bite', 'หมาป่ากัด'], ['save', 'หมอช่วยไว้'], ['vote', 'โหวตประหาร'], ['shot', 'นายพรานยิง'], ['heart', 'คู่รักตายตาม'], ['calm', 'คืนสงบ']].map(([k, t]) => <button key={k} style={btn} onClick={() => playWolf(k)}>{t}</button>)}
+    <WolfFx items={wolf} av={av} nameOf={nameOf} />
 
     <H>💥 ป๊อปอัปเหตุการณ์ในเกม — กดเพื่อเล่น</H>
     <button style={btn} onClick={() => setPop('cat')}>กล่องแมวโมโห: แมวกระโดดใส่</button>

@@ -137,7 +137,7 @@ export function QzGame({ db, room, roomCode, myId, players, isHost, scores, soun
       {ok && <em className="qz-plus" key={'p' + r.cur}>+{a.p}</em>}
       {r.phase === 'q' && a && <span className="qz-lock">✋</span>}
       {no && <span className="qz-x">{a ? '✗' : '💤'}</span>}
-      <Figure id={id} av={av} size={44} />
+      <Figure id={id} av={av} size={44} mood={ok ? 'happy' : no ? 'sad' : r.phase === 'q' && !a ? 'think' : undefined} />
     </div>; })}</div>;
 
   if (res) {
@@ -148,7 +148,7 @@ export function QzGame({ db, room, roomCode, myId, players, isHost, scores, soun
         {r.qs.length} ข้อ • {meI >= 0 ? `คุณได้อันดับ ${meI + 1} (${r.sc[myId]} แต้ม ตอบถูก ${r.hit[myId]} ข้อ)` : ''}
       </Outcome>
       <div className="qz-podium">{podium.map((id, i) => id ? <div key={id} className={'qz-pod p' + [2, 1, 3][i]}>
-        <div className="qz-bub"><b>{r.sc[id]}</b></div><Figure id={id} av={av} size={[52, 64, 48][i]} />
+        <div className="qz-bub"><b>{r.sc[id]}</b></div><Figure id={id} av={av} size={[52, 64, 48][i]} mood={i === 1 ? 'happy' : 'wave'} />
         <div className="qz-block"><span>{['🥈', '🥇', '🥉'][i]}</span><small>{name(id)}</small></div></div> : <div key={i} className="qz-pod empty" />)}</div>
       <ol className="qz-rank">{rank.map((id, i) => <li key={id} className={id === myId ? 'me' : ''}><span>{i + 1}</span><Avatar id={id} av={av} size={26} /><b>{name(id)}</b><small>ถูก {r.hit[id]}/{r.qs.length}</small><em>{r.sc[id]}</em></li>)}</ol>
       <SecH icon="🏅">ตารางคะแนนสะสม (อันดับ 1–3 ได้ +{QZ_SCORE.join('/+')})</SecH><Leaderboard players={players} scores={scores} points={res.points} myId={myId} av={av} />

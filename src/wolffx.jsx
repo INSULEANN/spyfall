@@ -40,7 +40,7 @@ const Arrow = () => <svg viewBox="0 0 80 16" className="wfx-arrow-svg" aria-hidd
 // โครง: .wfx-actor (ตำแหน่ง + ล้ม) > .wfx-body (โยก/สั่น/บี้) — แยกชั้นเพื่อให้ท่าซ้อนกันได้ไม่ทับกัน
 function Actor({ who, av, cls = '', children }) {
   const a = who ? av(who) : { look: { hair: 0, hc: 0, eyes: 13, mouth: 3 }, c: 13 };
-  return <div className={'wfx-actor ' + cls}><i className="wfx-shadow" /><div className="wfx-body"><Char look={a.look} color={a.c} full size={92} />{!who && <b className="wfx-q">?</b>}</div>{children}</div>;
+  return <div className={'wfx-actor ' + cls}><i className="wfx-shadow" /><div className="wfx-body"><Char look={a.look} color={a.c} full size={92} mood={cls.includes('victim') ? 'shock' : undefined} />{!who && <b className="wfx-q">?</b>}</div>{children}</div>;
 }
 
 // ---------- ชิ้นส่วนฉาก (วาดเอง SVG) ----------
