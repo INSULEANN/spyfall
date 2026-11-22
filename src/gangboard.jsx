@@ -19,9 +19,10 @@ export function weekId(ts = Date.now()) {
 
 // สถิติเก็บที่ lbg/<เกม>/<all|สัปดาห์>/<รหัส> และรวมทุกเกมที่ lbg/all/... (เริ่มนับใหม่ v1.97 • ของเก่าที่ lb/all, lb/wXXXX ไม่ใช้แล้ว)
 export const LB_ALL = 'all';
+export const LB_SKIP = ['pokdeng', 'poker'];   // เกมไพ่นับชิปในอันดับเศรษฐีแทน ไม่นับในอันดับแก๊ง
 const lbPath = (gid, period, pin) => `lbg/${gid}/${period}/${pin}`;
 export function recordResult(db, { pin, name, look, av, gid, won, pts }) {
-  if (!isPin(pin) || !name?.trim()) return;
+  if (!isPin(pin) || !name?.trim() || LB_SKIP.includes(gid)) return;
   const add = cur => {
     const c = cur || { wins: 0, games: 0, pts: 0 };
     c.name = name.trim().slice(0, 24); if (look) c.look = look; if (av != null) c.av = av;
@@ -48,9 +49,10 @@ export function PinForm({ db, name, onSet, onCancel }) {
   </div>;
 }
 
-export function GangBoard({ db, pin, setPin, name, games = [] }) {
+export function GangBoard({ db, pin, setPin, name, games: allGames = [] }) {
+  const games = allGames.filter(g => !LB_SKIP.includes(g.id));
   const [period, setPeriod] = useState('week');
-  const [gid, setGid] = useState(() => { try { return localStorage.getItem('sf-lb-game') || LB_ALL; } catch { return LB_ALL; } });
+  const [gid, setGid] = useState(() => { try { const g = localStorage.getItem('sf-lb-game') || LB_ALL; return LB_SKIP.includes(g) ? LB_ALL : g; } catch { return LB_ALL; } });
   const [rows, setRows] = useState(null);
   const [more, setMore] = useState(false);
   const [edit, setEdit] = useState(false);
