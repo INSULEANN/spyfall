@@ -6,7 +6,7 @@ import { ref, runTransaction, update } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { Avatar, SecH, TimerRing, HostBar, Confetti } from './ui.jsx';
-import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, BankInfo } from './playcards.jsx';
+import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup } from './playcards.jsx';
 
 export const PK_MIN = 2, PK_MAX = 9, PK_START = 1000;
 export const TURN_MS = 30000, SHOW_MS = 12000;
@@ -40,6 +40,7 @@ export function pkBest(cards) {
 // ---------- รอบ / ตา ----------
 export function makePkRound(ids, set = {}, number = 1, t0 = Date.now(), bank = null) {
   const start = bank?.start || +set.chips || PK_START, bb = +set.bb || 20; const chips = { ...(bank?.chips || {}) }, buys = {};
+  Object.keys(set.per || {}).forEach(id => { if (ids.includes(id) && set.per[id] > 0) chips[id] = +set.per[id]; });
   const r = { number, kind: 'pk', seats: [...ids], start, bb, sb: bb / 2, btn: -1, chips, buys, base: {}, hand: 0, log: [], startedAt: t0 };
   fix(r); ids.forEach(id => seatChips(r, id)); newHand(r, ids, t0); return r;
 }
@@ -250,9 +251,7 @@ export function PkLobby({ db, roomCode, room, isHost, nameOf }) {
   const set = room.settings?.pk || {};
   const save = patch => runTransaction(ref(db, `rooms/${roomCode}/settings/pk`), c => ({ ...(c || {}), ...patch })).catch(() => {});
   return <div className="uc-lobby">
-    <label>💰 ชิปเริ่มต้นคนละ (ชิปปลอม)</label>
-    {bank && <BankInfo bank={bank} nameOf={nameOf} isHost={isHost} onReset={() => update(ref(db, `rooms/${roomCode}/bank`), { pk: null })} />}
-    {!bank && <select value={set.chips || PK_START} disabled={!isHost} onChange={e => save({ chips: +e.target.value })}><option value={500}>500</option><option value={1000}>1,000</option><option value={2000}>2,000</option><option value={5000}>5,000</option></select>}
+    <ChipSetup db={db} roomCode={roomCode} room={room} kind="pk" def={PK_START} isHost={isHost} nameOf={nameOf} />
     <label>🎚️ Blinds (เล็ก/ใหญ่)</label>
     <select value={set.bb || 20} disabled={!isHost} onChange={e => save({ bb: +e.target.value })}><option value={10}>5 / 10</option><option value={20}>10 / 20</option><option value={50}>25 / 50</option><option value={100}>50 / 100</option></select>
   </div>;

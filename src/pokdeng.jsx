@@ -8,7 +8,7 @@ import { ref, runTransaction, update } from 'firebase/database';
 import { RotateCcw } from 'lucide-react';
 import { play as sfx } from './sfx.js';
 import { Avatar, SecH, TimerRing, HostBar, Confetti } from './ui.jsx';
-import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, BankInfo } from './playcards.jsx';
+import { fullDeck, shuffleDeck, PCard, Chips, seatPos, seatChips, netOf, ChipSetup } from './playcards.jsx';
 
 export const PD_MIN = 2, PD_MAX = 10, PD_START = 1000;
 export const PD_BETS = [10, 20, 50, 100, 200, 500];
@@ -39,6 +39,7 @@ export const pdCmp = (a, b) => a.cat - b.cat || a.pts - b.pts || a.tb - b.tb;
 // ---------- รอบ / ตา ----------
 export function makePdRound(ids, set = {}, number = 1, t0 = Date.now(), bank = null) {
   const start = bank?.start || +set.chips || PD_START; const chips = { ...(bank?.chips || {}) }, buys = {};
+  Object.keys(set.per || {}).forEach(id => { if (ids.includes(id) && set.per[id] > 0) chips[id] = +set.per[id]; });
   const r = { number, kind: 'pd', seats: [...ids], start, fixed: set.dealer === 'host' ? set.host || ids[0] : null, di: -1, chips, buys, base: {}, hand: 0, log: [], startedAt: t0 };
   ids.forEach(id => seatChips(r, id)); newHand(r, ids, t0); return r;
 }
@@ -208,9 +209,7 @@ export function PdLobby({ db, roomCode, room, isHost, nameOf }) {
   const set = room.settings?.pd || {};
   const save = patch => runTransaction(ref(db, `rooms/${roomCode}/settings/pd`), c => ({ ...(c || {}), ...patch })).catch(() => {});
   return <div className="uc-lobby">
-    <label>💰 ชิปเริ่มต้นคนละ (ชิปปลอม)</label>
-    {bank && <BankInfo bank={bank} nameOf={nameOf} isHost={isHost} onReset={() => update(ref(db, `rooms/${roomCode}/bank`), { pd: null })} />}
-    {!bank && <select value={set.chips || PD_START} disabled={!isHost} onChange={e => save({ chips: +e.target.value })}><option value={500}>500</option><option value={1000}>1,000</option><option value={2000}>2,000</option><option value={5000}>5,000</option></select>}
+    <ChipSetup db={db} roomCode={roomCode} room={room} kind="pd" def={PD_START} isHost={isHost} nameOf={nameOf} />
     <label>🎩 เจ้ามือ</label>
     <select value={set.dealer || 'rot'} disabled={!isHost} onChange={e => save({ dealer: e.target.value })}><option value="rot">เวียนกันเป็นทุกตา</option><option value="host">หัวหน้าห้องเป็นเจ้ามือตลอด</option></select>
   </div>;

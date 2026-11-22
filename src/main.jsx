@@ -46,7 +46,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.79';
+const APP_VERSION = '1.80';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -400,9 +400,9 @@ function App() {
     if(G.type==='ani'){const rd=makeAniRound(ids,{...(room.settings?.ani||{}),tmT},(room.round?.number||0)+1,Date.now()+skew,hist);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='pd'){const rd=makePdRound(ids,{...(room.settings?.pd||{}),host:room.hostId},(room.round?.number||0)+1,Date.now()+skew,room.bank?.pd);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null,'settings/pd/per':null});sfx(sound,'start');return}
     if(G.type==='pk'){const rd=makePkRound(ids,room.settings?.pk||{},(room.round?.number||0)+1,Date.now()+skew,room.bank?.pk);
-      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null,'settings/pk/per':null});sfx(sound,'start');return}
     if(G.type==='ins'){const rd=makeInsRound(ids,room.settings?.ins||{},(room.round?.number||0)+1,Date.now()+skew,hist,room.round?.kind==='ins'?room.round.master:null);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([rd.insider]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='uc'){const rd=makeUcRound(ids,room.settings?.uc||{},(room.round?.number||0)+1,Date.now()+skew,hist);

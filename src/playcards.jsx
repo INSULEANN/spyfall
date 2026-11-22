@@ -1,6 +1,7 @@
 // ไพ่มาตรฐาน 52 ใบ วาดด้วย SVG ในโค้ด (ไม่มีไฟล์รูป) + หลังไพ่ CSS + ชิป — ใช้ร่วมกันในป๊อกเด้ง / โป๊กเกอร์
 // รหัสไพ่ = อันดับ + ดอก เช่น 'AS' 'TD' '9H' (T = 10) • S ♠ H ♥ D ♦ C ♣
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ref, update, runTransaction } from 'firebase/database';
 import './casino.css';
 
 export const RANKS = '23456789TJQKA', SUITS = 'SHDC';
@@ -69,7 +70,8 @@ export function PCard({ c, up = true, size = 'md', i = 0, deal, hi, dim, onClick
   </div>;
 }
 // ชิปกองเล็ก ๆ + ตัวเลข
-const CHIP_COL = [[500, '#7b3fe4'], [100, '#16181d'], [25, '#1f8f4e'], [5, '#d42a3c'], [1, '#e9e4d8']];
+export const CHIP_UNITS = [50, 100, 500, 1000];
+const CHIP_COL = [[1000, '#e0a526'], [500, '#7b3fe4'], [100, '#16181d'], [50, '#2f6fd6'], [10, '#d42a3c'], [5, '#1f8f4e'], [1, '#e9e4d8']];
 export function Chips({ n, cls = '' }) {
   if (!n) return null; let left = n; const st = [];
   for (const [v, col] of CHIP_COL) while (left >= v && st.length < 5) { st.push(col); left -= v; }
@@ -92,4 +94,43 @@ export function BankInfo({ bank, nameOf, isHost, onReset }) {
   return <div className="ct-bank"><b>💰 ชิปต่อจากวงก่อน (เริ่มต้นคนละ {bank.start.toLocaleString()} • คนมาใหม่ได้เท่านี้)</b>
     <div>{ids.map(id => <span key={id}>{nameOf ? nameOf(id) : id} <i>{bank.chips[id].toLocaleString()}</i></span>)}</div>
     {isHost && <button type="button" className="link-btn" onClick={() => { if (confirm('รีเซ็ตชิปทุกคนกลับเป็นค่าเริ่มต้น?')) onReset(); }}>รีเซ็ตชิปทุกคน</button>}</div>;
+}
+
+// ---------- ล็อบบี้: ตั้งชิป (หลอดเลื่อน + พิมพ์เลข) และตั้งเฉพาะคน ----------
+// settings[kind].chips = ชิปเริ่มต้น (คนมาใหม่ได้เท่านี้) • settings[kind].per[id] = ชิปที่ตั้งเฉพาะคน (ใช้ตอนเริ่มวงถัดไป แล้วล้างทิ้ง)
+export const CHIP_MIN = 100, CHIP_MAX = 10000, CHIP_CAP = 1000000;
+const clampChip = v => Math.max(10, Math.min(CHIP_CAP, Math.round(+v || 0)));
+function NumBox({ value, disabled, onSave, ph }) {
+  const [t, setT] = useState(value ?? ''); useEffect(() => { setT(value ?? ''); }, [value]);
+  const go = () => { if (t === '' || t == null) return onSave(null); const v = clampChip(t); setT(v); if (v !== value) onSave(v); };
+  return <input className="ct-num" type="number" inputMode="numeric" min={10} max={CHIP_CAP} step={10} value={t} placeholder={ph} disabled={disabled}
+    onChange={e => setT(e.target.value)} onBlur={go} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }} />;
+}
+export function ChipSetup({ db, roomCode, room, kind, def, isHost, nameOf }) {
+  const set = room.settings?.[kind] || {}, bank = room.bank?.[kind], per = set.per || {};
+  const start = bank?.start || set.chips || def;
+  const [slide, setSlide] = useState(start); useEffect(() => { setSlide(start); }, [start]);
+  const tm = useRef(0);
+  const save = patch => update(ref(db, `rooms/${roomCode}/settings/${kind}`), patch).catch(() => {});
+  const slideTo = v => { setSlide(v); clearTimeout(tm.current); tm.current = setTimeout(() => save({ chips: v }), 250); };
+  const ids = Object.keys(room.players || {}).sort((a, b) => (room.players[a].joinedAt || 0) - (room.players[b].joinedAt || 0));
+  const now = id => per[id] ?? bank?.chips?.[id] ?? start;
+  const add = (id, d) => runTransaction(ref(db, `rooms/${roomCode}/settings/${kind}/per/${id}`), c => Math.min(CHIP_CAP, (c ?? now(id)) + d)).catch(() => {});
+  const Adds = ({ on }) => <span className="ct-adds">{CHIP_UNITS.map(d => <button key={d} type="button" onClick={() => on(d)}><Chips n={d} /></button>)}</span>;
+  return <div className="ct-setup">
+    <label>💰 ชิปเริ่มต้นคนละ (ชิปปลอม){bank ? ' — ล็อกไว้ตั้งแต่วงแรก' : ''}</label>
+    <div className="ct-slide">
+      <input type="range" min={CHIP_MIN} max={CHIP_MAX} step={100} value={Math.min(CHIP_MAX, Math.max(CHIP_MIN, slide))} disabled={!isHost || !!bank} onChange={e => slideTo(+e.target.value)} />
+      <NumBox value={slide} disabled={!isHost || !!bank} onSave={v => v && slideTo(v)} />
+    </div>
+    <label>👤 ชิปแต่ละคน {isHost ? '(กดชิปเพื่อเพิ่มให้ กดซ้ำได้ • หรือพิมพ์เลขตรง ๆ • เว้นว่าง = ตามปกติ)' : ''}</label>
+    {isHost && <div className="ct-addall"><small>➕ เพิ่มให้ทุกคน</small><Adds on={d => ids.forEach(id => add(id, d))} /></div>}
+    <div className="ct-per">{ids.map(id => <div key={id} className={'ct-per-row' + (per[id] != null ? ' set' : '')}>
+      <b>{nameOf ? nameOf(id) : id}</b>
+      <small>{per[id] != null ? '✏️ ตั้งเฉพาะ' : bank?.chips?.[id] != null ? 'ต่อจากวงก่อน' : 'เริ่มต้น'}</small>
+      {isHost ? <NumBox value={per[id] ?? null} ph={String(now(id))} onSave={v => save({ ['per/' + id]: v })} /> : <i>{now(id).toLocaleString()}</i>}
+      {isHost && <Adds on={d => add(id, d)} />}
+    </div>)}</div>
+    {isHost && bank && <button type="button" className="link-btn" onClick={() => { if (confirm('รีเซ็ตชิปทุกคนกลับเป็นค่าเริ่มต้น และปลดล็อกให้ตั้งใหม่?')) update(ref(db, `rooms/${roomCode}`), { ['bank/' + kind]: null, ['settings/' + kind + '/per']: null }); }}>รีเซ็ตชิปทุกคน</button>}
+  </div>;
 }
