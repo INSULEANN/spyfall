@@ -74,6 +74,73 @@ Bepo|เบโป
 Kyros|ไคลอส
 Bellamy|เบลลามี่
 Nefertari Cobra|โคบร้า
+Kaya|คายะ
+Gin|กิน
+Zeff|เซฟ|เรด เลก เซฟ
+Nojiko|โนจิโกะ
+Bell-mere|เบลเมล
+Genzo|เก็นโซ
+Daz Bonez|มิสเตอร์วัน|Mr. 1
+Galdino|มิสเตอร์ทรี|Mr. 3
+Miss Goldenweek|มิสโกลเด้นวีค
+Igaram|อิการาม
+Pell|เปล
+Chaka|จาก้า
+Kureha|คุเรฮะ|ด็อกเตอร์คุเรฮะ
+Hiriluk|ฮิรุรุค
+Dalton|ดาลตัน
+Gan Fall|กันฟอล
+Conis|โคนิส
+Wyper|ไวเปอร์
+Paulie|พอลลี่
+Iceburg|ไอซ์เบิร์ก
+Kokoro|โคโคโระ
+Spandam|สแปนดัม
+Jabra|จาบูร่า
+Blueno|บลูโน่
+Absalom|อับซาลอม
+Ryuma|ริวมะ
+Lola|โลล่า
+Shakky|แชคกี้
+Duval|ดูวาล
+Hatchan|ฮัจจัง|Hachi
+Camie|เคมี่
+Magellan|มาเจลลัน
+Hannyabal|ฮันยาบัล
+Inazuma|อินาสึมะ
+Crocus|โครคัส
+Kozuki Hiyori|ฮิโยริ
+Denjiro|เด็นจิโร่
+Kawamatsu|คาวามัตสึ
+Raizo|ไรโซ
+Kanjuro|คันจูโร่
+Kikunojo|คิคุ|คิคุโนโจ
+Kurozumi Orochi|โอโรจิ
+Jack|แจ็ค
+Who's-Who|ฮูส์ฮู
+Ulti|อุลติ
+Koala|โคอาล่า
+Hack|แฮ็ค
+Belo Betty|เบโล่ เบ็ตตี้
+Ryokugyu|เรียวคุกิว
+Stussy|สตัสซี่
+Jewelry Bonney|บอนนี่|จูเวลรี่ บอนนี่
+Saint Jaygarcia Saturn|ซาเทิร์น
+Shiryu|ชิริว
+Van Augur|แวน ออเกอร์
+Jesus Burgess|เบอร์เจส
+Laffitte|ลาฟิตต์
+Charlotte Pudding|พุดดิ้ง
+Charlotte Cracker|แคร็กเกอร์
+Charlotte Smoothie|สมูทตี้
+Charlotte Perospero|เพรอสเปโร่
+Pekoms|เปคอมส์
+Capone Bege|คาโปเน่ เบจ
+Gaimon|ไกมอน
+Alvida|อัลวิด้า
+Morgan|มอร์แกน
+Kuina|คุอินะ
+Makino|มาคิโนะ
 `) },
   { id: 'ajjk', name: '🤞 ตัวละครมหาเวทย์ผนึกมาร', words: L(`
 Yuji Itadori|อิตาโดริ|ยูจิ|อิตาโดริ ยูจิ
@@ -127,6 +194,35 @@ Hana Kurusu|คุรุสุ|Angel
 Tsumiki Fushiguro|สึมิกิ
 Eso|เอโซ
 Kechizu|เคจิซุ
+Ui Ui|อุยอุย
+Arata Nitta|นิตตะ อาราตะ
+Akari Nitta|นิตตะ อาคาริ
+Shigemo Haruta|ฮารุตะ
+Riko Amanai|อามาไน ริโกะ|ริโกะ
+Misato Kuroi|คุโรอิ
+Yu Haibara|ไฮบาระ ยู
+Juzo Kumiya|คุมิยะ
+Granny Ogami|โอกามิ
+Mimiko Hasaba|มิมิโกะ
+Nanako Hasaba|นานาโกะ
+Larue|ลารู
+Mahoraga|มาโฮรากะ
+Remi|เรมี
+Reggie Star|เรจจี้ สตาร์
+Iori Hazenoki|ฮาเซโนกิ
+Kurourushi|คุโรอุรุชิ
+Dhruv Lakdawalla|ดรูฟ
+Takuma Ino|อิโนะ ทาคุมะ
+Jinichi Zenin|จินอิจิ
+Ogi Zenin|โองิ
+Ranta|รันตะ
+Rin Amai|อามาอิ ริน
+Kogane|โคกาเนะ
+Charles Bernard|ชาร์ลส์
+Wasuke Itadori|อิตาโดริ วาสุเกะ|ปู่อิตาโดริ
+Kaori Itadori|คาโอริ
+Jin Itadori|จิน อิตาโดริ
+Shiu Kong|ชิว คง
 `) },
   { id: 'anrt', name: '🍥 ตัวละครนารูโตะ', words: L(`
 Naruto Uzumaki|นารูโตะ|อุซึมากิ นารูโตะ
@@ -189,6 +285,69 @@ Mei Terumi|เมย์ เทรุมิ
 Onoki|โอโนกิ
 Rin Nohara|ริน
 Sarada Uchiha|ซาราดะ
+Hanabi Hyuga|ฮานาบิ
+Hiashi Hyuga|ฮิอาชิ
+Fugaku Uchiha|ฟุงาคุ
+Mikoto Uchiha|มิโคโตะ
+Izuna Uchiha|อิซึนะ
+Indra Otsutsuki|อินทรา
+Asura Otsutsuki|อาชูร่า
+Hagoromo Otsutsuki|ฮาโกโรโมะ|เซียนหกวิถี
+Hamura Otsutsuki|ฮามุระ
+Momoshiki Otsutsuki|โมโมชิกิ
+Kinshiki Otsutsuki|คินชิกิ
+Isshiki Otsutsuki|อิชชิกิ
+Toneri Otsutsuki|โทเนริ
+Kawaki|คาวากิ
+Mitsuki|มิตสึกิ
+Himawari Uzumaki|ฮิมาวาริ
+Chocho Akimichi|โจโจ
+Inojin Yamanaka|อิโนจิน
+Shikadai Nara|ชิกาได
+Sumire Kakei|สุมิเระ
+Metal Lee|เมทัล ลี
+Shizune|ชิซุเนะ
+Anko Mitarashi|อันโกะ
+Ibiki Morino|อิบิกิ
+Genma Shiranui|เก็นมะ
+Hayate Gekko|ฮายาเตะ
+Kotetsu Hagane|โคเท็ตสึ
+Izumo Kamizuki|อิซึโมะ
+Ebisu|เอบิสึ
+Teuchi|เทอุจิ|ลุงร้านราเม็ง
+Ayame|อายาเมะ
+Tazuna|ทาซึนะ
+Inari|อินาริ
+Gato|กาโต้
+Dosu Kinuta|โดสุ
+Kidomaru|คิโดมารุ
+Tayuya|ทายูย่า
+Sakon|ซาคอน
+Jirobo|จิโรโบ
+Guren|กุเร็น
+Utakata|อุทาคาตะ
+Fu|ฟู
+Han|ฮัน
+Roshi|โรชิ
+Yugito Nii|ยูกิโตะ
+Yagura|ยางุระ
+Darui|ดารุย
+Ay|ไรคาเงะ|A
+Chojuro|โจจูโร่
+Kurotsuchi|คุโรสึจิ
+Mifune|มิฟุเนะ
+Rasa|ราสะ
+Baki|บากิ
+Chiyo|ชิโยะ
+Ebizo|เอบิโซ
+Shukaku|ชูคาคุ
+Matatabi|มาทาทาบิ
+Gyuki|กิวกิ
+Kashin Koji|คาชิน โคจิ
+Jigen|จิเก็น
+Delta|เดลต้า
+Eida|เอดะ
+Daemon|ดีม่อน
 `) },
   { id: 'adb', name: '🐉 ตัวละครดราก้อนบอล', words: L(`
 Son Goku|โงกุน|ซน โกคู|โกคู|Kakarot|คาคาร็อต
@@ -248,6 +407,57 @@ Cooler|คูลเลอร์
 Launch|ลันช์
 Korin|เทพแมวคาริน
 Pilaf|พิลาฟ
+Grandpa Gohan|ปู่โกฮัง
+Fortuneteller Baba|บาบาเฒ่า
+Mercenary Tao|เถาไป่ไป่|Tao Pai Pai
+Crane Hermit|เซียนนกกระเรียน
+Commander Red|ผู้บัญชาการเรด
+General Blue|เจนเนอรัลบลู
+Android 8|หมายเลข 8
+Dr. Gero|ด็อกเตอร์เกโร|หมายเลข 20
+Android 19|หมายเลข 19
+Android 21|หมายเลข 21
+King Piccolo|ราชาพิคโกโร่|ปีศาจพิคโกโร่
+Tambourine|แทมบูรีน
+Garlic Jr.|การ์ลิคจูเนียร์
+Turles|ทาเลส
+Lord Slug|สลัก
+Janemba|จาเนมบะ
+Bojack|โบแจ็ค
+Baby|เบบี้
+Omega Shenron|โอเมก้าเสินหลง
+Bulla|บูร่า|Bra
+Marron|มารอน
+Mai|ไม
+Shu|ชู
+Gine|กีเน่
+King Vegeta|ราชาเบจิต้า
+Champa|แชมป่า
+Vados|วาดอส
+Frost|ฟรอส
+Toppo|ท็อปโป้
+Dyspo|ดิสโป้
+Kefla|เคฟล่า
+Moro|โมโร่
+Granolah|กราโนล่า
+Gamma 1|แกมม่า 1
+Gamma 2|แกมม่า 2
+Cell Max|เซลล์แม็กซ์
+Dr. Hedo|ด็อกเตอร์เฮโดะ
+Supreme Kai|ไคโอชิน
+Kibito|คิบิโตะ
+Old Kai|ไคโอชินผู้เฒ่า
+Grand Priest|มหาปุโรหิต|Daishinkan
+Spopovich|สโปโปวิช
+Yamu|ยามุ
+Pui Pui|ปุยปุย
+Yakon|ยาคอน
+Guldo|กูลโด้
+Recoome|รีคูม
+Burter|บาเตอร์
+Jeice|จีส
+Nail|เนล
+Guru|ผู้เฒ่าใหญ่|Grand Elder Guru
 `) },
   { id: 'ads', name: '🗡️ ตัวละครดาบพิฆาตอสูร', words: L(`
 Tanjiro Kamado|ทันจิโร่|คามาโดะ ทันจิโร่
@@ -292,6 +502,44 @@ Kyogai|เคียวไก
 Susamaru|ซูซามารุ
 Yahaba|ยาฮาบะ
 Yoriichi Tsugikuni|โยริอิจิ
+Kie Kamado|คิเอะ
+Takeo Kamado|ทาเคโอะ
+Hanako Kamado|ฮานาโกะ
+Shigeru Kamado|ชิเงรุ
+Rokuta Kamado|โรคุตะ
+Tanjuro Kamado|ทันจูโร่
+Saburo|ซาบุโร่
+Kiriya Ubuyashiki|คิริยะ
+Amane Ubuyashiki|อามาเนะ
+Sumi|ซูมิ
+Kiyo|คิโยะ
+Naho|นาโฮะ
+Goto|โกโตะ
+Ozaki|โอซากิ
+Kotetsu|โคเท็ตสึ
+Hinatsuru|ฮินาสึรุ
+Makio|มาคิโอะ
+Suma|ซูมะ
+Senjuro Rengoku|เซ็นจูโร่
+Shinjuro Rengoku|ชินจูโร่
+Kaburamaru|คาบุรามารุ
+Chachamaru|ชาชามารุ
+Sekido|เซกิโดะ
+Karaku|คาราคุ
+Aizetsu|ไอเซ็ตสึ
+Urogi|อุโรงิ
+Zohakuten|โซฮาคุเท็น
+Kamanue|คามานุเอะ
+Rokuro|โรคุโระ
+Wakuraba|วาคุราบะ
+Mukago|มุคาโกะ
+Mother Spider Demon|แม่แมงมุม
+Father Spider Demon|พ่อแมงมุม
+Swamp Demon|อสูรบึง
+Koyuki|โคยูกิ
+Keizo|เคโซ
+Tsutako Tomioka|สึทาโกะ
+Kotoha|โคโตฮะ
 `) },
   { id: 'aaot', name: '🧱 ตัวละครผ่าพิภพไททัน', words: L(`
 Eren Yeager|เอเรน|เอเรน เยเกอร์|Eren Jaeger
@@ -339,6 +587,39 @@ Ymir Fritz|ยมิร์ ฟริตซ์
 Kiyomi Azumabito|คิโยมิ
 Theo Magath|มากาธ
 Colt Grice|โคลท์
+Dina Fritz|ไดน่า
+Faye Yeager|เฟย์
+Tom Xaver|ทอม ซาเวอร์
+Eren Kruger|ครูเกอร์|นกฮูก
+Frieda Reiss|ฟรีดา
+Uri Reiss|อูริ
+Karl Fritz|คาร์ล ฟริตซ์
+Hitch Dreyse|ฮิทช์
+Marlowe Freudenberg|มาร์โลว์
+Thomas Wagner|โทมัส วากเนอร์
+Mina Carolina|มีน่า
+Franz Kefka|ฟรานซ์
+Hanna Diamant|ฮันนา
+Samuel Linke-Jackson|ซามูเอล
+Daz|ดาซ
+Rico Brzenska|ริโก้
+Ian Dietrich|เอียน
+Mitabi Jarnach|มิตาบิ
+Dimo Reeves|ดิโม รีฟส์
+Flegel Reeves|เฟลเกล
+Nifa|นิฟา
+Djel Sannes|ซานเนส
+Traute Carven|ทราวเทอ
+Kaya|คายะ
+Louise|หลุยส์
+Udo|อูโด้
+Zofia|โซเฟีย
+Calvi|คาลวี
+Gross|กรอส
+Kuchel Ackerman|คูเชล
+Ilse Langnar|อิลเซ
+Kitz Woermann|คิทซ์
+Nicolo|นิโคโล่
 `) },
   { id: 'acon', name: '🔍 ตัวละครโคนัน', words: L(`
 Conan Edogawa|โคนัน|เอโดงาวะ โคนัน
@@ -382,6 +663,44 @@ Kansuke Yamato|ยามาโตะ คันสึเกะ
 Akemi Miyano|อาเคมิ
 Saguru Hakuba|ฮาคุบะ
 Momiji Ooka|โมมิจิ
+Misao Yamamura|ยามามูระ
+Sango Yokomizo|โยโคมิโซะ ซันโกะ
+Jugo Yokomizo|โยโคมิโซะ จูโกะ
+Goro Otaki|โอตากิ
+Heizo Hattori|ฮัตโตริ เฮโซ
+Shizuka Hattori|ฮัตโตริ ชิซึกะ
+Ginshiro Toyama|โทยามะ กินชิโร่
+Fusae Campbell|ฟุซาเอะ
+Sumiko Kobayashi|ครูโคบายาชิ
+Kenji Hagiwara|ฮางิวาระ
+Jinpei Matsuda|มัตสึดะ
+Hiromitsu Morofushi|โมโรฟุชิ ฮิโรมิตสึ|สก็อตช์|Scotch
+Wataru Date|ดาเตะ
+Takaaki Morofushi|โคเมย์|โมโรฟุชิ ทาคาอากิ
+Yui Uehara|อุเอะฮาระ
+Naeko Miike|มิอิเกะ
+Mary Sera|แมรี่
+Shukichi Haneda|ฮาเนดะ ชูคิจิ
+Calvados|คาลวาโดส
+Pisco|พิสโก้
+Irish|ไอริช
+Tequila|เตกีล่า
+Curacao|คูราเซา
+Renya Karasuma|คาราสึมะ|บอสองค์กรชุดดำ
+Andre Camel|คาเมล
+Tomoaki Araide|อาไรเดะ
+Rumi Wakasa|ครูรูมิ|วาคาสะ รูมิ
+Hyoe Kuroda|คุโรดะ
+Yuya Kazami|คาซามิ
+Eisuke Hondou|ฮอนโด เอสุเกะ
+Tsutomu Akai|อาคาอิ สึโตมุ
+Aoko Nakamori|อาโอโกะ
+Ginzo Nakamori|สารวัตรนากาโมริ
+Jirokichi Suzuki|ซูซูกิ จิโรคิจิ
+Ayako Suzuki|อายาโกะ
+Elena Miyano|มิยาโนะ เอเลน่า
+Atsushi Miyano|มิยาโนะ อัตสึชิ
+Ryusuke Higo|ฮิโกะ ริวสุเกะ
 `) },
   { id: 'amha', name: '🦸 ตัวละครมายฮีโร่', words: L(`
 Izuku Midoriya|มิโดริยะ|เดกุ|Deku
@@ -432,6 +751,64 @@ Eri|เอริ
 Gentle Criminal|เจนเทิลคริมินอล
 Lady Nagant|เลดี้นากันต์
 Muscular|มัสคิวลาร์
+Neito Monoma|โมโนมะ
+Itsuka Kendo|เคนโด
+Tetsutetsu Tetsutetsu|เท็ตสึเท็ตสึ
+Ibara Shiozaki|ชิโอซากิ
+Kinoko Komori|โคโมริ
+Pony Tsunotori|โพนี่
+Juzo Honenuki|โฮเนนุกิ
+Yosetsu Awase|อาวาเซะ
+Setsuna Tokage|โทคาเงะ
+Hiryu Rin|ฮิริว ริน
+Mei Hatsume|ฮัตสึเมะ
+Mt. Lady|เมาท์เลดี้
+Kamui Woods|คามุยวูดส์
+Edgeshot|เอดจ์ช็อต
+Fat Gum|แฟตกัม
+Ryukyu|ริวคิว
+Sir Nighteye|เซอร์ไนท์อาย
+Gang Orca|แก๊งออร์ก้า
+Snipe|สไนป์
+Midnight|มิดไนท์
+Cementoss|ซีเมนทอส
+Ectoplasm|เอ็กโทพลาสซึม
+Power Loader|พาวเวอร์โหลดเดอร์
+Thirteen|ธีร์ทีน
+Vlad King|วลาดคิง
+Hound Dog|ฮาวด์ด็อก
+Lunch Rush|ลันช์รัช
+Crust|ครัสต์
+Manual|แมนนวล
+Pixie-Bob|พิกซี่บ็อบ
+Mandalay|แมนดาเลย์
+Ragdoll|แร็กดอลล์
+Tiger|ไทเกอร์
+Kota Izumi|โคตะ
+Inko Midoriya|อินโกะ
+Mitsuki Bakugo|มิตสึกิ
+Rei Todoroki|เร โทโดโรกิ
+Fuyumi Todoroki|ฟุยุมิ
+Natsuo Todoroki|นัตสึโอะ
+Nana Shimura|นานะ ชิมูระ
+Inasa Yoarashi|โยอาราชิ
+Camie Utsushimi|คามิเอะ
+Seiji Shishikura|ชิชิคุระ
+Mustard|มัสตาร์ด
+Moonfish|มูนฟิช
+Magne|แม็กเน่
+Re-Destro|รีเดสโตร
+Gigantomachia|จิกันโตมาเคีย
+Geten|เกเท็น
+Skeptic|สเคปติก
+Curious|คิวเรียส
+Nine|ไนน์
+Star and Stripe|สตาร์แอนด์สไตรป์
+Rappa|รัปปะ
+Mimic|มิมิค
+Chronostasis|โครโนสตาซิส
+Nomu|โนมุ
+Oboro Shirakumo|ชิราคุโมะ
 `) },
   { id: 'ablc', name: '⚔️ ตัวละครบลีช', words: L(`
 Ichigo Kurosaki|อิจิโกะ|คุโรซากิ อิจิโกะ
@@ -478,6 +855,59 @@ Kukaku Shiba|คูคาคุ
 Kaien Shiba|ไคเอน
 Nanao Ise|นานาโอะ
 Tessai|เทสไซ
+Kensei Muguruma|มุงุรุมะ
+Mashiro Kuna|มาชิโระ
+Rojuro Otoribashi|โรส
+Love Aikawa|เลิฟ
+Lisa Yadomaru|ลิสะ
+Hachigen Ushoda|ฮาจิ
+Karin Kurosaki|คาริน
+Yuzu Kurosaki|ยูซุ
+Masaki Kurosaki|มาซากิ
+Ryuken Ishida|ริวเคน
+Keigo Asano|เคย์โกะ
+Mizuiro Kojima|มิซุอิโระ
+Tatsuki Arisawa|ทัตสึกิ
+Don Kanonji|ดอน คันนอนจิ
+Jinta|จินตะ
+Ururu|อุรุรุ
+Hanataro Yamada|ฮานาทาโร่
+Isane Kotetsu|อิซาเนะ
+Kiyone Kotetsu|คิโยเนะ
+Sentaro Kotsubaki|เซ็นทาโร่
+Nemu Kurotsuchi|เนมุ
+Marechiyo Omaeda|โอมาเอดะ
+Tetsuzaemon Iba|อิบะ
+Chojiro Sasakibe|ซาซากิเบะ
+Szayelaporro Granz|ซาเยลอาโปโร
+Aaroniero Arruruerie|อาโรนิเอโร
+Zommari Rureaux|โซมาริ
+Yammy Llargo|ยามี่
+Baraggan Louisenbairn|บาราแกน
+Tier Harribel|ฮาริเบล
+Lilynette Gingerbuck|ลิลีเน็ต
+Luppi|ลุปปิ
+Wonderweiss|วันเดอร์ไวส์
+Ichibe Hyosube|อิจิเบ
+Senjumaru Shutara|เซ็นจูมารุ
+Kirio Hikifune|ฮิกิฟุเนะ
+Tenjiro Kirinji|คิรินจิ
+Oetsu Nimaiya|นิไมยะ
+Jugram Haschwalth|ฮาชวาลท์
+Bambietta Basterbine|บัมบิเอตต้า
+As Nodt|อัส น็อดท์
+Bazz-B|บาซซ์บี
+Askin Nakk Le Vaar|แอสกิน
+Gremmy Thoumeaux|เกรมมี่
+Lille Barro|ลิลล์ บาร์โร
+Gerard Valkyrie|เจราร์ด
+Quilge Opie|ควิลเก้
+Kugo Ginjo|กินโจ
+Shukuro Tsukishima|สึกิชิมะ
+Riruka Dokugamine|ริรุกะ
+Kazui Kurosaki|คาซุย
+Ichika Abarai|อิจิกะ
+Grand Fisher|แกรนด์ฟิชเชอร์
 `) },
   { id: 'ahq', name: '🏐 ตัวละครไฮคิว', words: L(`
 Shoyo Hinata|ฮินาตะ|ฮินาตะ โชโย
@@ -515,6 +945,56 @@ Yuji Terushima|เทรุชิมะ
 Kentaro Kyotani|เคียวทานิ
 Taketora Yamamoto|ยามาโมโตะ ทาเคโทระ
 Saeko Tanaka|ซาเอโกะ
+Kazuhito Narita|นาริตะ
+Hisashi Kinoshita|คิโนชิตะ
+Ikkei Ukai|ปู่อุไค|อุไค อิคเคย์
+Makoto Shimada|ชิมาดะ
+Yusuke Takinoue|ทาคิโนอุเอะ
+Akiteru Tsukishima|อาคิเทรุ
+Natsu Hinata|นัตสึ
+Yui Michimiya|มิจิมิยะ
+Nobuyuki Kai|ไค โนบุยูกิ
+Shohei Fukunaga|ฟุคุนากะ
+So Inuoka|อินุโอกะ
+Yuki Shibayama|ชิบายามะ
+Manabu Naoi|นาโออิ
+Yasufumi Nekomata|เนโคมาตะ
+Alisa Haiba|อลิซ่า
+Akane Yamamoto|อาคาเนะ
+Akinori Konoha|โคโนฮะ
+Tatsuki Washio|วาชิโอะ
+Haruki Komi|โคมิ
+Yamato Sarukui|ซารุคุอิ
+Wataru Onaga|โอนากะ
+Yukie Shirofuku|ชิโรฟุคุ
+Issei Matsukawa|มัตสึคาวะ
+Takahiro Hanamaki|ฮานามากิ
+Shinji Watari|วาตาริ
+Yutaro Kindaichi|คินไดจิ
+Akira Kunimi|คุนิมิ
+Shigeru Yahaba|ยาฮาบะ
+Eita Semi|เซมิ
+Kenjiro Shirabu|ชิราบุ
+Reon Ohira|โอฮิระ
+Hayato Yamagata|ยามากาตะ
+Taichi Kawanishi|คาวานิชิ
+Tsutomu Goshiki|โกชิกิ
+Tanji Washijo|วาชิโจ
+Rintaro Suna|สึนะ
+Ren Omimi|โอมิมิ
+Aran Ojiro|โอจิโระ
+Michinari Akagi|อาคางิ
+Hitoshi Ginjima|กินจิมะ
+Motoya Komori|โคโมริ โมโตยะ
+Tsukasa Iizuna|อิอิซุนะ
+Sachiro Hirugami|ฮิรุงามิ
+Yudai Hyakuzawa|ฮยาคุซาวะ
+Takanobu Aone|อาโอเนะ
+Kaname Moniwa|โมนิวะ
+Kosuke Sakunami|ซาคุนามิ
+Daisuke Nakashima|นากาชิมะ
+Suguru Daisho|ไดโช
+Miwa Kageyama|มิวะ
 `) },
   { id: 'apkm', name: '⚡ โปเกมอน', words: L(`
 Pikachu|พิคาชู
@@ -602,5 +1082,31 @@ Rowlet|โมคุโร
 Litten|เนียบี
 Popplio|อาชิมาริ
 Mimikyu|มิมิคคิว
+Clefairy|ปิปปี
+Zubat|ซูแบท
+Diglett|ดิกดา
+Ponyta|โพนีตา
+Magnemite|คอยล์
+Farfetch'd|คาโมเนกิ
+Voltorb|บิริริดามะ
+Koffing|โดกาส
+Staryu|ฮิโตเดมัน
+Starmie|สตาร์มี
+Mr. Mime|บาเรียด
+Electabuzz|เอเลบู
+Magmar|บูเบอร์
+Tauros|เคนทารอส
+Aerodactyl|พเทอรา
+Porygon|โพลีกอน
+Pidgeot|พิเจียต
+Ekans|อาร์โบ
+Arbok|อาร์บ็อก
+Paras|พารัส
+Weedle|บีเดิล
+Beedrill|สเปียร์
+Togekiss|โทเกคิส
+Wobbuffet|โซนาโนะ
+Zacian|ซาเชียน
+Zamazenta|ซามาเซนตา
 `) },
 ];

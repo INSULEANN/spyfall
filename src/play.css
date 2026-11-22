@@ -455,3 +455,8 @@ button,a,.tick,.ptile,.tm-cell{touch-action:manipulation;-webkit-tap-highlight-c
 .kw-ghead small{color:var(--muted);flex:1}
 /* ป๊อปอัปเปิดอยู่: หยุดแอนิเมชันทั้งหน้าข้างหลัง (ป๊อปอัปอยู่นอก #root เลยยังขยับได้) */
 html[data-sheet] #root *,html[data-sheet] #root *::before,html[data-sheet] #root *::after{animation-play-state:paused!important}
+.kw-used{margin-top:12px;padding-top:10px;border-top:1px dashed var(--chip)}
+.kw-used>small{color:var(--muted);display:block;margin-bottom:6px}
+.kw-used-list{display:flex;flex-wrap:wrap;gap:5px;max-height:96px;overflow-y:auto}
+.kw-used-list span{padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--soft);font-size:.88rem;text-decoration:line-through;text-decoration-color:#ff8a8a99}
+.kw-used-list span.hit{background:#6a2430;color:#fff;text-decoration:none;outline:2px solid #ff8a8a}

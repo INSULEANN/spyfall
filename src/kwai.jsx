@@ -34,8 +34,11 @@ function lev(a, b, cap) {
 // คลังของหมวด: [{ w: ชื่อที่แสดง, id: key, keys: [คำที่พิมพ์แล้วนับว่าใช่] }]
 export function kwEntries(cat, extra = {}) {
   const c = KW_CATS.find(x => x.id === cat); const out = [];
+  // ชื่อฝรั่ง: พิมพ์คำเดียวในชื่อก็ได้ (Messi) — เฉพาะคำที่มีคนเดียวในหมวด (Uchiha / Kamado มีหลายคน → ต้องพิมพ์ชื่อเต็ม)
+  const toks = s => [...new Set(s.split('|').flatMap(n => n.split(/\s+/)).map(kwNorm).filter(k => /^[a-z]/.test(k) && k.length >= 4))];
+  const tc = {}; (c?.words || []).forEach(s => toks(s).forEach(k => { tc[k] = (tc[k] || 0) + 1; }));
   (c?.words || []).forEach(s => { const names = s.split('|'); const keys = new Set(names.map(kwNorm));
-    names.forEach(n => n.split(/\s+/).forEach(t => { const k = kwNorm(t); if (/^[a-z]/.test(k) && k.length >= 4) keys.add(k); }));   // ชื่อฝรั่ง: พิมพ์นามสกุลอย่างเดียวก็ได้ (Messi)
+    toks(s).forEach(k => { if (tc[k] === 1) keys.add(k); });
     out.push({ w: names.find(n => /[฀-๿]/.test(n)) || names[0], id: kwNorm(names[0]), keys: [...keys] }); });   // แสดงชื่อไทยถ้ามี
   Object.entries(extra || {}).forEach(([id, v]) => { if (!out.some(e => e.id === id)) out.push({ w: v?.w || id, id, keys: [id] }); });
   return out;
@@ -214,6 +217,8 @@ export function KwGame({ db, room, roomCode, myId, players, isHost, scores, soun
       {err && <div className="wc-err">⚠️ {err}</div>}
       <button className="primary wide" disabled={!txt.trim() || busy} onClick={enter}>{exact || (sugg.length === 1 && !r.used[sugg[0].id]) ? '📨 ส่งคำ' : sugg.length ? '📨 ส่งแบบที่พิมพ์ (ให้เพื่อนโหวต)' : '📨 ส่งคำ'}</button>
       <button className="secondary wide" onClick={() => { if (confirm('ยอมแพ้? (ตกรอบทันที)')) tx(c => kwGiveUp(c, myId, srvNow)); }}>🏳️ คิดไม่ออก ยอมแพ้</button>
+      <div className="kw-used"><small>🚫 ใช้ไปแล้ว {r.chain.length} คำ {r.chain.length ? '(ห้ามซ้ำ)' : '— ยังไม่มี เริ่มคำแรกเลย'}</small>
+        {r.chain.length > 0 && <div className="kw-used-list">{[...r.chain].reverse().map((c, i) => <span key={i} className={kwNorm(c.w) === kwNorm(txt) || (exact && kwNorm(c.w) === kwNorm(exact.w)) ? 'hit' : ''}>{c.w}</span>)}</div>}</div>
     </ActionSheet>
     <ActionSheet open={myVoter && r.votes[myId] == null} k={'v' + r.at} icon="🗳️" title={`“${pend?.w}” อยู่ในหมวดนี้ไหม?`} sub={`หมวด ${kwCatName(cat)} • ${nameOf(pend?.by)} ส่งคำนี้ แต่ไม่มีในคลัง`} secs={secs(r.until - srvNow)} total={KW_VOTE_MS / 1000}>
       <div className="wc-big">{pend?.w}</div>
