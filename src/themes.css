@@ -373,3 +373,13 @@ body{min-height:100vh}
   --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='8' y='26' font-size='18' fill='%23e9c25a' fill-opacity='.05'%3E♠%3C/text%3E%3Ctext x='32' y='50' font-size='18' fill='%23e0424f' fill-opacity='.05'%3E♥%3C/text%3E%3C/svg%3E");
 }
 [data-theme="poker"] .hero h1 em{color:#e9c25a;text-shadow:0 0 22px #3aa86666}
+
+[data-theme="wordchain"]{
+  --display:'Mitr',sans-serif;--display-weight:700;--radius:18px;
+  --bg:#0f1330;--panel:#181d44;--inset:#121637;--chip:#252b5e;--glow:#3b2f86;
+  --text:#f4f2ff;--soft:#d8d4f5;--muted:#9c97c9;--dim:#6b679a;
+  --accent:#ffb347;--accent-hi:#ffcb7a;--accent-2:#7ae0c3;--on-accent:#2a1600;
+  --hero-1:#141c3d;--hero-2:#2b2160;--hero-3:#6b3b12;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cellipse cx='20' cy='32' rx='9' ry='6' fill='none' stroke='%23ffb347' stroke-opacity='.06' stroke-width='3'/%3E%3Cellipse cx='36' cy='32' rx='9' ry='6' fill='none' stroke='%23ffb347' stroke-opacity='.06' stroke-width='3'/%3E%3C/svg%3E");
+}
+[data-theme="wordchain"] .hero h1 em{color:#ffb347;text-shadow:0 0 22px #7ae0c366}

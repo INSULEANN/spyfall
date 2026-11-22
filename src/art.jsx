@@ -555,6 +555,26 @@ function ClueScene() {
     <g className="peek"><path d="M8 118 h84 q8 0 8 8 v22 q0 8 -8 8 h-50 l-10 12 l0 -12 h-24 q-8 0 -8 -8 v-22 q0 -8 8 -8 Z" fill="#fff" /><text x="50" y="143" textAnchor="middle" fontSize="15" fontWeight="900" fill="#d8283d" fontFamily="Kanit,sans-serif">“ทะเล” 2</text></g>
   </S>;
 }
+// ---------- 🔗 ต่อตัวท้าย: ป้ายคำห้อยต่อกันเป็นโซ่ ตัวไข่สองตัวช่วยกันลาก ----------
+function WordchainScene() {
+  const words = [[34, 96, 'แมว', '#ff8fb1'], [118, 70, 'วัด', '#ffd23f'], [204, 96, 'ดอกไม้', '#7ae0c3'], [300, 70, 'ยักษ์', '#7aa8ff']];
+  return <S id="wordchain" label="ป้ายคำ แมว วัด ดอกไม้ ยักษ์ ต่อกันเป็นโซ่ มีตัวไข่สองตัวยืนเชียร์">
+    <defs><linearGradient id="wc-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#141c3d" /><stop offset="1" stopColor="#2b2160" /></linearGradient></defs>
+    <rect width="400" height="260" fill="url(#wc-bg)" />
+    <g fill="#fff" opacity=".35">{[[30, 30], [90, 22], [170, 36], [250, 18], [330, 34], [372, 60]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? 1.6 : 2.4} />)}</g>
+    {words.slice(1).map(([x, y], i) => { const [px, py] = words[i]; const ax = px + 62, ay = py + 20, bx = x, by = y + 20; return <g key={i} stroke="#ffb347" strokeWidth="5" fill="none"><ellipse cx={(ax * 2 + bx) / 3} cy={(ay * 2 + by) / 3} rx="11" ry="7" /><ellipse cx={(ax + bx * 2) / 3} cy={(ay + by * 2) / 3} rx="11" ry="7" /></g>; })}
+    {words.map(([x, y, w, c], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.5) + 's' }}>
+      <rect x={x} y={y} width="66" height="40" rx="12" fill={c} stroke="#1a1533" strokeWidth="3" />
+      <text x={x + 33} y={y + 27} textAnchor="middle" fontSize={w.length > 4 ? 15 : 18} fontWeight="800" fill="#1a1533" fontFamily="Mitr,sans-serif">{w}</text></g>)}
+    <path d="M0 260 V222 Q200 204 400 222 V260 Z" fill="#1a1533" />
+    {[[70, '#ffd23f', -1], [330, '#ff8fb1', 1]].map(([x, c, d], i) => <g key={i} className="bob" style={{ animationDelay: (-i * 0.8) + 's' }}>
+      <ellipse cx={x} cy="196" rx="24" ry="30" fill={c} />
+      <g fill="#fff"><ellipse cx={x - 8} cy="190" rx="5" ry="6" /><ellipse cx={x + 8} cy="190" rx="5" ry="6" /></g>
+      <g fill="#1a1533"><circle cx={x - 7 - d} cy="191" r="2.6" /><circle cx={x + 9 - d} cy="191" r="2.6" /></g>
+      <path d={`M${x - 7} 204 Q${x} 211 ${x + 7} 204`} stroke="#1a1533" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <text x={x - d * 30} y="160" textAnchor="middle" fontSize="24" fontWeight="900" fill="#ffb347" fontFamily="Mitr,sans-serif">{d < 0 ? 'ว?' : 'ก!'}</text></g>)}
+  </S>;
+}
 // ---------- 🤫 Insider: Master ใต้โคมไฟ เพื่อนล้อมถาม มีคนหนึ่งยิ้มรู้ทัน ----------
 function InsiderScene() {
   const ppl = [[70, '#2fd6a0', 0], [140, '#7aa8ff', 0], [260, '#ff8fb1', 1], [330, '#ffd23f', 0]];
@@ -871,5 +891,5 @@ const PokerScene = () => <FeltTable id="poker" lamp="#14203f" label="โต๊�
   cards={[{ x: 112, y: 160, r: 0, rank: 'A', s: 'S' }, { x: 156, y: 160, r: 0, rank: 'K', s: 'S' }, { x: 200, y: 160, r: 0, rank: 'Q', s: 'S' }, { x: 244, y: 160, r: 0, rank: 'J', s: 'S' }, { x: 288, y: 160, r: 0, back: true }]}
   chips={[{ x: 186, y: 225, c: '#7b3fe4', n: 6 }, { x: 214, y: 228, c: '#d42a3c', n: 4 }, { x: 330, y: 210, c: '#16181d', n: 3 }]} />;
 
-const SCENES = { pokdeng: PokdengScene, poker: PokerScene, quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+const SCENES = { pokdeng: PokdengScene, poker: PokerScene, quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, wordchain: WordchainScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }
