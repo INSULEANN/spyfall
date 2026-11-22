@@ -30,6 +30,8 @@ import { CheckpointGame, CheckpointLobby, makeCpRound, lapsFor, CP_MIN, CP_MAX, 
 import { ClueTurns, CallVote } from './spyturns.jsx';
 import { UcGame, UcLobby, makeUcRound, UC_MIN, UC_MAX, UC_SCORE } from './undercover.jsx';
 import { InsGame, InsLobby, makeInsRound, INS_MIN, INS_MAX, INS_SCORE } from './insider.jsx';
+import { PdGame, PdLobby, makePdRound, PD_MIN, PD_MAX } from './pokdeng.jsx';
+import { PkGame, PkLobby, makePkRound, PK_MIN, PK_MAX } from './poker.jsx';
 import { DigGame, DigLobby, makeDigRound, DIG_MIN, DIG_MAX, DIG_SCORE } from './dig.jsx';
 import { AniGame, AniLobby, makeAniRound, ANI_MIN, ANI_MAX, ANI_SCORE } from './animal.jsx';
 import { QzGame, QzLobby, makeQzRound, QZ_MIN, QZ_MAX, QZ_SCORE } from './quiz.jsx';
@@ -44,7 +46,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.77';
+const APP_VERSION = '1.79';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -185,6 +187,16 @@ const GAMES = {
     lead:'คนบอกคำตั้งคำลับ ทุกคนรู้คำ ยกเว้นคนเดียว…ลงภาพให้เข้ากับคำ แล้วจับให้ได้ว่าใครลงภาพแบบเดามั่ว',
     pills:['🖼️ การ์ดภาพปริศนา','🗝️ คนบอกคำ','🕵️ คนไม่รู้คำ'],
     how:[['ตั้งคำลับ','คนบอกคำ (เวียนกันทุกรอบ) ตั้งคำ 1 คำ ทุกคนเห็นคำ ยกเว้น 🕵️ คนไม่รู้คำ 1 คน — คนบอกคำรู้ว่าเป็นใคร'],['ลงภาพคนละ 2 ใบ','ไล่ลงภาพจากมือทีละคน 2 รอบ ให้เข้ากับคำ • คนไม่รู้คำต้องดูภาพเพื่อนแล้วเดาให้เนียน'],['เฉลยคำ อธิบาย แล้วโหวต','ลงภาพครบแล้วเฉลยคำให้ทุกคนรู้ (รวมถึงคนไม่รู้คำ) แล้วทุกคนอธิบายว่าทำไมเลือกภาพนี้ แล้วโหวตหาคนไม่รู้คำ • จับได้: คนโหวตถูก +2 คนบอกคำ +2 • รอด: คนไม่รู้คำ +4 คนที่โหวตถูก +1']] },
+  pokdeng: { id:'pokdeng', type:'pd', name:'ป๊อกเด้ง', emoji:'🃏', packs:[], item:'ไพ่', unit:'ใบ', roles:false, min:PD_MIN, max:PD_MAX, h1:['ป๊อกเด้ง','วงไพ่ชิปปลอม'], art:'🃏', float:'ป๊อก 9 สองเด้ง!',
+    blurb:'วงไพ่ป๊อกเด้งแบบไทย มีเจ้ามือ จั่วใบที่ 3 ได้ ลุ้นป๊อก ตอง เรียง เซียน และเด้ง! ใช้ชิปปลอมในเกมเท่านั้น ไม่มีเงินจริง',
+    lead:'ลงชิปแล้วรับไพ่ 2 ใบ แตะบีบไพ่ค่อย ๆ เปิด ได้ 8–9 = ป๊อก เปิดชนะทันที ไม่งั้นเลือกจั่วใบที่ 3 แล้วเทียบแต้มกับเจ้ามือ ดอกเหมือนหรือคู่ = เด้ง ได้หลายเท่า (ชิปปลอม ไม่มีเงินจริง)',
+    pills:['🎩 มีเจ้ามือ','✨ ป๊อก 8/9','💰 ชิปปลอม'],
+    how:[['ลงชิป','เจ้ามือเวียนกันทุกตา (ตั้งให้หัวหน้าห้องเป็นตลอดได้) ลูกขาเลือกลงชิป 10–500 • ชิปหมดกดซื้อเพิ่มได้ (ชิปปลอม)'],['รับไพ่ 2 ใบ','แต้ม = ผลรวมหลักหน่วย (A=1, 10 J Q K = 0) • 8 หรือ 9 จาก 2 ใบ = ป๊อก เปิดทันที • เจ้ามือป๊อก = ทุกคนเปิดเลย • ไม่ป๊อกเลือกจั่วใบที่ 3 หรือไม่จั่ว แล้วเจ้ามือเลือกจั่ว'],['เทียบกับเจ้ามือ','ป๊อก > ตอง (×5) > เรียงดอก (×5) > เรียง (×3) > เซียน J Q K (×3) > แต้มสูงกว่า • 2 ใบดอกเหมือน/คู่ = สองเด้ง ×2 • 3 ใบดอกเหมือน = สามเด้ง ×3 • แต้มเท่ากัน = เสมอ']] },
+  poker: { id:'poker', type:'pk', name:'โป๊กเกอร์', emoji:'♠️', packs:[], item:'ไพ่', unit:'ใบ', roles:false, min:PK_MIN, max:PK_MAX, h1:['โป๊กเกอร์','เท็กซัสโฮลเด็ม'], art:'♠️', float:'ออลอิน!',
+    blurb:'โป๊กเกอร์ Texas Hold’em ไพ่ในมือ 2 ใบ + กองกลาง 5 ใบ เช็ก คอล เรส ออลอิน มี blinds และ side pot ครบ ใช้ชิปปลอมในเกมเท่านั้น',
+    lead:'รับไพ่ 2 ใบ แล้วเดิมพันกัน 4 รอบ ระหว่างเปิดกองกลางทีละชุด ใครมี 5 ใบที่ดีที่สุดชนะกอง หรือกดดันจนคนอื่นหมอบหมด (ชิปปลอม ไม่มีเงินจริง)',
+    pills:['🃏 2+5 ใบ','💥 ออลอิน','💰 ชิปปลอม'],
+    how:[['Blinds แล้วแจก','ดีลเลอร์ (D) เวียนทุกตา คนถัดไปลง small blind / big blind • ทุกคนได้ไพ่ 2 ใบ'],['เดิมพัน 4 รอบ','ก่อนฟล็อป → ฟล็อป (เปิด 3 ใบ) → เทิร์น → ริเวอร์ • ตาตัวเอง: หมอบ / เช็ก / คอล / เรส / ออลอิน • หมดเวลา = เช็ก หรือหมอบ'],['เปิดไพ่','เลือก 5 ใบที่ดีที่สุดจาก 7 ใบ: รอยัลฟลัช > สเตรทฟลัช > โฟร์ > ฟูลเฮาส์ > ฟลัช > สเตรท > ตอง > ทูแพร์ > วันแพร์ > ไพ่สูง • คนออลอินชนะได้ไม่เกินกองที่ตัวเองลง (side pot)']] },
 };
 // เทียบคำตอบแบบไม่สนตัวพิมพ์ เว้นวรรค และเครื่องหมายเน้นเสียง (Mbappe = Mbappé)
 const GUESS_NORM = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s\-.'’]/g,'');
@@ -210,6 +222,8 @@ const COPY = {
   checkpoint:{stamp:'หยุดตรวจ!',floatSub:'หมูปิ้งล้วน ๆ ครับจ่า',joinH:'รวมแก๊งซิ่งผ่านด่าน',howH:'กติกาหน้าด่าน'},
   tam:{stamp:'ไม่ไว้หน้าใคร!',floatSub:'ซ้อนบวกได้ไม่จำกัด',joinH:'เรียกแก๊งมาล้อมวงไพ่',howH:'กติกาสี่สีป่วน'},
   curse:{stamp:'ปอปอยู่ในหมู่บ้าน!',floatSub:'ซุบซิบให้ถึง 7 แต้ม',joinH:'ตีกลองเรียกชาวบ้านมาศาลา',howH:'กฎบ้านนาดง'},
+  pokdeng:{stamp:'ป๊อก!',floatSub:'บีบไพ่ลุ้นเด้ง',joinH:'ล้อมวงป๊อกเด้ง',howH:'กติกาป๊อกเด้ง'},
+  poker:{stamp:'All-in!',floatSub:'หน้านิ่งไว้ อย่าให้ใครอ่านออก',joinH:'เปิดโต๊ะโป๊กเกอร์',howH:'กติกาโป๊กเกอร์'},
 };
 Object.keys(COPY).forEach(k=>Object.assign(GAMES[k],COPY[k]));
 const pickHost = list => { const on = list.filter(p => p.online !== false); return ([...(on.length ? on : list)].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0))[0] || {}).id || null; };
@@ -355,7 +369,7 @@ function App() {
     const data=snap.val();
     // หลุดแล้วเข้าใหม่ (คนละแท็บ/เครื่อง) ด้วยชื่อเดิม → กลับเข้าที่นั่งเดิมที่ขึ้นว่าหลุดอยู่ ไม่เกิดตัวซ้ำ (คะแนน/ไพ่/บทบาทยังอยู่)
     const ghost=data.players?.[myId]?null:Object.values(data.players||{}).find(p=>p&&p.id&&p.name===n&&p.online===false);const pid=ghost?ghost.id:myId;
-   if((data.v||'1.0')!==APP_VERSION){msg(`ห้องนี้ใช้เวอร์ชัน ${data.v||'เก่า'} แต่เครื่องคุณเป็น ${APP_VERSION} — ให้ทุกคนรีเฟรชหน้าเว็บก่อน`);return}if(data.status!=='lobby' && !data.players?.[pid]){msg('เกมเริ่มแล้ว รอรอบหน้าก่อนนะ');return}
+   if((data.v||'1.0')!==APP_VERSION){msg(`ห้องนี้ใช้เวอร์ชัน ${data.v||'เก่า'} แต่เครื่องคุณเป็น ${APP_VERSION} — ให้ทุกคนรีเฟรชหน้าเว็บก่อน`);return}if(data.status!=='lobby' && !data.players?.[pid] && !['pokdeng','poker'].includes(data.game)){msg('เกมเริ่มแล้ว รอรอบหน้าก่อนนะ');return}
     const cap=GAMES[data.game]?.max||12;if(Object.keys(data.players||{}).length>=cap && !data.players?.[pid]){msg(`ห้องเต็มแล้ว (สูงสุด ${cap} คน)`);return}
     const a1=freeAv(Object.values(data.players||{}),myAv??data.players?.[pid]?.av,pid);if(myAv==null)saveAv(a1);
     await update(ref(db,`rooms/${code}/players/${pid}`),{id:pid,name:n,joinedAt:data.players?.[pid]?.joinedAt||Date.now(),v:APP_VERSION,av:a1,look:myLook,online:true});update(ref(db,`rooms/${code}`),{active:serverTimestamp()}).catch(()=>{});if(myAv!=null&&a1!==myAv){saveAv(a1);msg(`สีตัวที่คุณใช้มีคนใช้แล้ว ได้สี${BODY_COLORS[a1].n}แทน (แตะตัวละครเพื่อเปลี่ยน)`)}
@@ -385,6 +399,10 @@ function App() {
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='ani'){const rd=makeAniRound(ids,{...(room.settings?.ani||{}),tmT},(room.round?.number||0)+1,Date.now()+skew,hist);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='pd'){const rd=makePdRound(ids,{...(room.settings?.pd||{}),host:room.hostId},(room.round?.number||0)+1,Date.now()+skew,room.bank?.pd);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
+    if(G.type==='pk'){const rd=makePkRound(ids,room.settings?.pk||{},(room.round?.number||0)+1,Date.now()+skew,room.bank?.pk);
+      await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:rd,badHist:nextHist([]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='ins'){const rd=makeInsRound(ids,room.settings?.ins||{},(room.round?.number||0)+1,Date.now()+skew,hist,room.round?.kind==='ins'?room.round.master:null);
       await update(ref(db,`rooms/${roomCode}`),{status:'playing',round:tm(rd),badHist:nextHist([rd.insider]),votes:null,ready:null,spyGuess:null,result:null});sfx(sound,'start');return}
     if(G.type==='uc'){const rd=makeUcRound(ids,room.settings?.uc||{},(room.round?.number||0)+1,Date.now()+skew,hist);
@@ -773,10 +791,26 @@ function App() {
         {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
         {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>👻 แจกไพ่ดวง ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องแจกไพ่ดวงอยู่</div>}</>})()}
       {G.type==='curse'&&room.status!=='lobby'&&room.round?.kind==='curse'&&<CurseGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} msg={msg} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='pd'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=PD_MIN&&n<=PD_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>ล้อมวง…ใครจะป๊อก?</h2>
+        <p className="hint">เล่นได้ {PD_MIN}–{PD_MAX} คน • 🎩 เจ้ามือ 1 คน ที่เหลือเป็นลูกขา • ชิปปลอมในเกมเท่านั้น ไม่มีเงินจริง</p>
+        {n>PD_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {PD_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <PdLobby db={db} roomCode={roomCode} room={room} isHost={isHost} nameOf={nameOf}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>จบวงแล้ว กำไร/ขาดทุนชิป (หักที่ซื้อเพิ่ม) บวกเข้าคะแนนสะสม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>🃏 เริ่มแจกไพ่ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='pd'&&room.status!=='lobby'&&room.round?.kind==='pd'&&<PdGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby} srvNow={srvNow}/>}
+      {G.type==='pk'&&room.status==='lobby'&&(()=>{const n=players.length,ok=n>=PK_MIN&&n<=PK_MAX;return <><span className="eyebrow">พร้อมยัง?</span><h2>โต๊ะพร้อม…ใครจะออลอิน?</h2>
+        <p className="hint">เล่นได้ {PK_MIN}–{PK_MAX} คน • Texas Hold'em มี blinds และ side pot • ชิปปลอมในเกมเท่านั้น ไม่มีเงินจริง</p>
+        {n>PK_MAX&&<div className="warn">⚠️ เกมนี้เล่นได้สูงสุด {PK_MAX} คน — ตอนนี้มี {n} คน</div>}
+        <PkLobby db={db} roomCode={roomCode} room={room} isHost={isHost} nameOf={nameOf}/>
+        <div className="score-rules"><b>🏅 คะแนน</b><span>จบวงแล้ว กำไร/ขาดทุนชิป (หักที่ซื้อเพิ่ม) บวกเข้าคะแนนสะสม</span>{isHost&&Object.keys(scores).length>0&&<button className="link-btn" onClick={resetScores}>ล้างคะแนนสะสม</button>}</div>
+        {outdated.length>0&&<div className="warn">⚠️ {outdated.map(p=>p.name).join(', ')} ใช้เวอร์ชันเก่า ให้รีเฟรชหน้าเว็บแล้วเข้าห้องใหม่ก่อนเริ่มเกม</div>}
+        {isHost?<button className="primary wide" disabled={!ok||outdated.length>0} onClick={startGame}>♠️ เริ่มแจกไพ่ ({n} คน)</button>:<div className="waiting">⏳ รอหัวหน้าห้องเริ่มเกมอยู่</div>}</>})()}
+      {G.type==='pk'&&room.status!=='lobby'&&room.round?.kind==='pk'&&<PkGame db={db} room={room} roomCode={roomCode} myId={myId} players={players} isHost={isHost} scores={scores} sound={sound} av={av} nameOf={nameOf} onBack={backToLobby} srvNow={srvNow}/>}
       {room.status==='lobby'&&<TimingSet gid={G.id} db={db} roomCode={roomCode} room={room} isHost={isHost}/>}
       </section>{!G.type&&(room.status==='playing'||room.status==='voting')&&room.round&&<PlaceBoard key={roomCode+'-'+room.round.number} places={room.round.pool||[]} I={I} U={U}/>}</div>
-      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb','qz'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
-      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb','qz'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
+      {room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb','qz','pd','pk'].includes(G.type)&&<PlacePicker I={I} U={U} packs={packs} isOn={isOn} packOnCount={packOnCount} total={placePool.length} canEdit={canEdit} onTogglePlace={togglePlace} onTogglePack={togglePack} onSetAll={setAll} onAddPlace={addPlace}/>}
+      {isHost&&room.status==='lobby'&&!['explore','wolf','cake','boom','curse','tam','deal','checkpoint','clue','uc','ins','pic','dig','snake','ani','yd','gb','qz','pd','pk'].includes(G.type)&&<section className="panel pack-panel"><h2><MapPin size={20}/> สร้างชุด{I}ใหม่</h2><p>สร้างชุด{I}เฉพาะแก๊งได้ เช่น มุกในกลุ่ม เพื่อนในห้อง หรือร้านประจำ</p><div className="pack-form"><div><label>ชื่อชุด</label><input value={packName} onChange={e=>setPackName(e.target.value)} placeholder="เช่น มุกในแก๊งเรา"/></div><div><label>{I} (หนึ่งบรรทัดต่อหนึ่ง{U})</label><textarea rows="4" value={packPlaces} onChange={e=>setPackPlaces(e.target.value)} placeholder={'บ้านไอ้บอส\nร้านหมูกระทะร้านเดิม\nห้องเรียนคาบเช้า'}/></div><button className="secondary" onClick={addPack}><Plus size={16}/> สร้างชุดนี้</button></div></section>}
     </main>}
     <footer><span>🎲 {BRAND} • เวอร์ชัน {APP_VERSION}</span><span>ทำมาให้แก๊งเพื่อนจับโป๊ะกัน 🇹🇭</span></footer>
   </div>

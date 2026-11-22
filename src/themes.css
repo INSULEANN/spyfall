@@ -351,3 +351,25 @@ body{min-height:100vh}
   --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M30 8 L20 30 H28 L24 48 L38 24 H30 Z' fill='%23ffcf3a' fill-opacity='.05'/%3E%3C/svg%3E");
 }
 [data-theme="quiz"] .hero h1 em{color:#ffe37a;text-shadow:0 0 22px #ffcf3a66}
+
+/* 🃏 ป๊อกเด้ง — วงไพ่ใต้ไฟโคม สักหลาดเขียว ขอบไม้ ชิปแดงทอง */
+[data-theme="pokdeng"]{
+  --display:'Mitr',sans-serif;--display-weight:600;--radius:18px;
+  --bg:#07140d;--panel:#10251a;--inset:#0b1c13;--chip:#1b3a28;--glow:#14532f;
+  --text:#f3fbf5;--soft:#d2ead9;--muted:#93b7a0;--dim:#5d806a;
+  --accent:#ffcf5a;--accent-hi:#ffe08a;--accent-2:#e0424f;--on-accent:#1f1400;
+  --hero-1:#062012;--hero-2:#14532f;--hero-3:#6a1420;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M14 8L19 14L14 20L9 14Z' fill='%23e0424f' fill-opacity='.06'/%3E%3Ccircle cx='40' cy='40' r='6' fill='none' stroke='%23ffcf5a' stroke-opacity='.06' stroke-width='2' stroke-dasharray='3 2'/%3E%3C/svg%3E");
+}
+[data-theme="pokdeng"] .hero h1 em{color:#ffcf5a;text-shadow:0 0 22px #e0424f66}
+
+/* ♠️ โป๊กเกอร์ — คาสิโนกลางคืน กรมท่า + สักหลาดเขียว + ทอง */
+[data-theme="poker"]{
+  --display:'Trirong',serif;--display-weight:800;--radius:16px;
+  --bg:#070b16;--panel:#111a2c;--inset:#0c1322;--chip:#1c2945;--glow:#1f3a6a;
+  --text:#f2f5fb;--soft:#d3dbec;--muted:#8d9bb8;--dim:#5a6784;
+  --accent:#e9c25a;--accent-hi:#ffd97a;--accent-2:#3aa866;--on-accent:#1a1300;
+  --hero-1:#070b16;--hero-2:#123d27;--hero-3:#1f2d5a;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='8' y='26' font-size='18' fill='%23e9c25a' fill-opacity='.05'%3E♠%3C/text%3E%3Ctext x='32' y='50' font-size='18' fill='%23e0424f' fill-opacity='.05'%3E♥%3C/text%3E%3C/svg%3E");
+}
+[data-theme="poker"] .hero h1 em{color:#e9c25a;text-shadow:0 0 22px #3aa86666}

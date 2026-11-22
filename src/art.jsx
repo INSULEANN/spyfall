@@ -838,5 +838,38 @@ function GoldScene() {
     <g fill="#ffd34d" stroke="#8a5a10" strokeWidth="1">{[[180, 162], [196, 158], [212, 164], [226, 160]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="5" />)}</g>
   </S>;
 }
-const SCENES = { quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
+
+// ---------- 🃏 ป๊อกเด้ง / ♠️ โป๊กเกอร์: โต๊ะสักหลาดเขียว ไพ่หงาย ชิปกอง (วาดด้วย SVG) ----------
+const SUITD = { H: 'M5 9.4C5 9.4 0 6 0 3C0 1.3 1.3 0 2.8 0C3.8 0 4.6.6 5 1.5C5.4.6 6.2 0 7.2 0C8.7 0 10 1.3 10 3C10 6 5 9.4 5 9.4Z', S: 'M5 0C5 0 10 3.4 10 6.2C10 7.8 8.8 8.8 7.5 8.8C6.6 8.8 5.9 8.4 5.5 7.8C5.6 8.8 6.2 9.6 7 10H3C3.8 9.6 4.4 8.8 4.5 7.8C4.1 8.4 3.4 8.8 2.5 8.8C1.2 8.8 0 7.8 0 6.2C0 3.4 5 0 5 0Z', D: 'M5 0L9 5L5 10L1 5Z' };
+function MiniCard({ x, y, r = 0, rank, s, back }) {
+  const red = s !== 'S';
+  return <g transform={`translate(${x} ${y}) rotate(${r})`}>
+    <rect x="-22" y="-31" width="44" height="62" rx="5" fill={back ? '#b3202e' : '#fffdf8'} stroke={back ? '#fffdf8' : '#0003'} strokeWidth={back ? 3 : 1} />
+    {back ? <path d="M0 -12L9 0L0 12L-9 0Z" fill="#ffcf5a" /> : <>
+      <text x="-17" y="-16" fontSize="13" fontWeight="700" fontFamily="Georgia,serif" fill={red ? '#c8102e' : '#16181d'}>{rank}</text>
+      <path d={SUITD[s]} transform="translate(0 4) scale(2.2) translate(-5 -5)" fill={red ? '#c8102e' : '#16181d'} /></>}
+  </g>;
+}
+const ChipStack = ({ x, y, c, n }) => <g>{Array.from({ length: n }, (_, i) => <g key={i}><ellipse cx={x} cy={y - i * 4} rx="13" ry="5" fill={c} stroke="#fff" strokeWidth="1.5" strokeDasharray="3 2.5" /></g>)}</g>;
+function FeltTable({ id, label, cards, chips, lamp }) {
+  return <S id={id} label={label}>
+    <defs>
+      <radialGradient id={id + '-bg'} cx=".5" cy=".2" r="1"><stop offset="0" stopColor={lamp} /><stop offset="1" stopColor="#05070c" /></radialGradient>
+      <radialGradient id={id + '-felt'} cx=".5" cy=".4" r=".7"><stop offset="0" stopColor="#3aa866" /><stop offset=".6" stopColor="#1c7a43" /><stop offset="1" stopColor="#0f5730" /></radialGradient>
+    </defs>
+    <rect width="400" height="260" fill={`url(#${id}-bg)`} />
+    <ellipse cx="200" cy="175" rx="196" ry="86" fill="#3e1f0c" /><ellipse cx="200" cy="172" rx="186" ry="78" fill="#c8963c" /><ellipse cx="200" cy="172" rx="180" ry="74" fill={`url(#${id}-felt)`} />
+    <ellipse cx="200" cy="172" rx="150" ry="56" fill="none" stroke="#ffffff22" strokeWidth="1.5" />
+    {chips.map((c, i) => <ChipStack key={i} {...c} />)}
+    <g className="bob">{cards.map((c, i) => <MiniCard key={i} {...c} />)}</g>
+  </S>;
+}
+const PokdengScene = () => <FeltTable id="pokdeng" lamp="#4a2a10" label="วงป๊อกเด้งบนโต๊ะสักหลาดเขียว ไพ่ป๊อกเก้าสองเด้ง ชิปกองแดงทอง"
+  cards={[{ x: 170, y: 150, r: -12, rank: '4', s: 'H' }, { x: 214, y: 146, r: 10, rank: '5', s: 'H' }, { x: 300, y: 186, r: 18, back: true }, { x: 92, y: 190, r: -20, back: true }]}
+  chips={[{ x: 120, y: 150, c: '#d42a3c', n: 5 }, { x: 146, y: 214, c: '#1f8f4e', n: 3 }, { x: 268, y: 222, c: '#16181d', n: 4 }]} />;
+const PokerScene = () => <FeltTable id="poker" lamp="#14203f" label="โต๊ะโป๊กเกอร์ ไพ่กองกลางห้าใบ เอซโพดำ ชิปกองโต"
+  cards={[{ x: 112, y: 160, r: 0, rank: 'A', s: 'S' }, { x: 156, y: 160, r: 0, rank: 'K', s: 'S' }, { x: 200, y: 160, r: 0, rank: 'Q', s: 'S' }, { x: 244, y: 160, r: 0, rank: 'J', s: 'S' }, { x: 288, y: 160, r: 0, back: true }]}
+  chips={[{ x: 186, y: 225, c: '#7b3fe4', n: 6 }, { x: 214, y: 228, c: '#d42a3c', n: 4 }, { x: 330, y: 210, c: '#16181d', n: 3 }]} />;
+
+const SCENES = { pokdeng: PokdengScene, poker: PokerScene, quiz: QuizScene, gold: GoldScene, yadong: YadongScene, animal: AnimalScene, spyfall: SpyfallScene, spy: SpyScene, headword: HeadScene, explore: ExploreScene, werewolf: WolfScene, cake: CakeScene, boom: BoomScene, curse: CurseScene, tam: TamScene, deal: DealScene, checkpoint: CheckpointScene, clue: ClueScene, insider: InsiderScene, pics: PicsScene, dig: DigScene, snake: SnakeScene };
 export function SceneArt({ id }) { const C = SCENES[id] || SpyfallScene; return <C />; }

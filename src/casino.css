@@ -1,0 +1,125 @@
+/* ---------- เกมไพ่ธรรมดา: ป๊อกเด้ง / โป๊กเกอร์ (โต๊ะสักหลาด ไพ่ SVG ชิป) ---------- */
+
+/* ===== ไพ่ ===== */
+.pc{--w:64px;position:relative;flex:none;width:var(--w);aspect-ratio:5/7;perspective:700px;transition:transform .18s}
+.pc-xs{--w:24px}.pc-sm{--w:min(56px,10.5cqw)}.pc-lg{--w:clamp(74px,22vw,104px)}
+.pc-in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,1.3,.5,1);transform:rotateY(180deg)}
+.pc.up .pc-in{transform:none}
+.pc-f,.pc-b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:calc(var(--w)*.1);overflow:hidden;box-shadow:0 2px 0 #0003,0 4px 10px #0007}
+.pc-f{background:#fffdf8}
+.pc-svg{display:block;width:100%;height:100%}
+.pc-idx{font:700 19px Georgia,'Times New Roman',serif;letter-spacing:-1px}
+.pc-b{transform:rotateY(180deg);border:calc(var(--w)*.06) solid #fffdf8;
+  background:repeating-linear-gradient(45deg,#ffffff26 0 1.5px,transparent 1.5px 6px),repeating-linear-gradient(-45deg,#ffffff26 0 1.5px,transparent 1.5px 6px),radial-gradient(circle at 50% 45%,#e0424f,#9c1626 75%)}
+.pc-b span{position:absolute;inset:calc(var(--w)*.05);border:1px solid #ffffff6b;border-radius:calc(var(--w)*.06)}
+.pc-b span:after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--w)*.3);height:calc(var(--w)*.3);transform:translate(-50%,-50%) rotate(45deg);background:linear-gradient(135deg,#ffe39a,#c99528);border:1px solid #fff8;box-shadow:0 0 6px #0006}
+.pc-xs .pc-b span:after{display:none}
+.pc.deal{animation:pcDeal .5s cubic-bezier(.2,.8,.3,1) calc(var(--i)*.16s) backwards}
+@keyframes pcDeal{from{transform:translate(0,-150px) rotate(-28deg) scale(.45);opacity:0}}
+.pc.tap{cursor:pointer}.pc.tap:hover{transform:translateY(-5px)}
+.pc.tap .pc-b{animation:pcWiggle 1.6s ease-in-out infinite}
+@keyframes pcWiggle{0%,80%,100%{filter:none}90%{filter:brightness(1.25)}}
+.pc.hi .pc-f{box-shadow:0 0 0 2px #ffd34d,0 0 16px #ffd34dcc}
+.pc.hi{transform:translateY(-4px)}
+.pc.dim{opacity:.45;filter:grayscale(.5)}
+
+/* ===== ชิป ===== */
+.chipz{display:inline-flex;align-items:center;gap:5px;line-height:1}
+.chipz-st{position:relative;width:18px;height:18px;flex:none}
+.chipz-st i{position:absolute;left:0;bottom:calc(var(--k)*3px);width:18px;height:18px;border-radius:50%;background:var(--c);border:2.5px dashed #fffd;box-shadow:0 1px 0 #000a,inset 0 0 0 2px var(--c)}
+.chipz b{font-weight:800;font-size:12px;color:#ffe08a;text-shadow:0 1px 2px #000}
+.ct-bet{animation:chipIn .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chipIn{from{transform:translateY(18px) scale(.5);opacity:0}}
+.ct-pot{padding:4px 10px;border-radius:20px;background:#0006}
+.ct-pot b{font-size:15px}
+
+/* ===== โต๊ะ ===== */
+.ct-game{display:flex;flex-direction:column;gap:12px}
+.ct-table{container-type:inline-size;position:relative;width:100%;max-width:640px;margin:26px auto 30px;aspect-ratio:4/5}
+@media (min-width:700px){.ct-table{aspect-ratio:16/11}}
+.ct-felt{position:absolute;inset:14% 11%;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 40%,#3aa866 0,#1c7a43 45%,#0f5730 80%),#1c7a43;
+  box-shadow:0 0 0 9px #5b2f14,0 0 0 11px #c8963c,0 0 0 15px #3e1f0c,inset 0 0 40px #000a,0 16px 34px #000b}
+.ct-felt:before{content:"";position:absolute;inset:7%;border-radius:50%;border:1.5px solid #ffffff1f}
+.ct-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;text-align:center;width:88%}
+.ct-center small{font-size:11px;color:#e3f5ea;opacity:.85}
+.ct-phase{font-family:var(--display);font-size:15px;text-shadow:0 1px 3px #000}
+.ct-board{display:flex;gap:3px;justify-content:center}
+.ct-slot{width:min(56px,10.5cqw);aspect-ratio:5/7;border:1.5px dashed #ffffff40;border-radius:6px}
+.ct-seat{position:absolute;transform:translate(-50%,-50%);z-index:2;width:80px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 3px 5px;border-radius:12px;background:#000000a6;border:2px solid #ffffff1a;color:#fff;text-align:center;transition:opacity .3s,box-shadow .3s}
+.ct-seat.me{border-color:var(--accent)}
+.ct-seat.turn{border-color:#ffd34d;box-shadow:0 0 0 3px #ffd34d55,0 0 18px #ffd34d88;animation:seatPulse 1.2s ease-in-out infinite}
+@keyframes seatPulse{50%{box-shadow:0 0 0 5px #ffd34d33,0 0 26px #ffd34daa}}
+.ct-seat.won{border-color:#4ee08a;box-shadow:0 0 18px #4ee08a99}
+.ct-seat.lost{opacity:.75}
+.ct-seat.fold{opacity:.5}
+.ct-seat.dealer{background:#3a1d08d9}
+.ct-av{position:relative}
+.ct-btn{position:absolute;right:-8px;bottom:-4px;min-width:20px;height:20px;border-radius:50%;background:#fff;color:#111;font:800 11px/20px sans-serif;box-shadow:0 1px 3px #000}
+.ct-tm{position:absolute;left:-8px;top:-6px;min-width:20px;height:20px;border-radius:10px;background:#ffd34d;color:#000;font:800 11px/20px sans-serif}
+.ct-nm{font-size:11px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-ch{font-size:10px;color:#ffe08a}
+.ct-mini{display:flex}.ct-mini .pc+.pc{margin-left:-7px}
+.ct-tag{font-size:10px;padding:1px 6px;border-radius:10px;background:#ffffff26}
+.ct-tag.hot{background:#d42a3c}
+.ct-res{display:flex;flex-direction:column;font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;background:#ffffff26;animation:chipIn .4s .3s backwards}
+.ct-res i{font-style:normal;font-size:12px}
+.ct-res.up{background:#1f8f4e}.ct-res.down{background:#9c1626}
+
+/* ===== มือของฉัน + ปุ่ม ===== */
+.ct-hand{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ct-cards{display:flex;gap:10px;justify-content:center;padding-top:6px}
+.ct-eval{margin:0;font-size:14px;color:var(--soft)}
+.ct-eval b{color:var(--accent);font-size:17px}
+.ct-act{position:sticky;bottom:66px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;padding:12px;border-radius:16px;background:var(--panel);border:2px solid var(--accent);box-shadow:0 10px 30px #000a;animation:chipIn .3s}
+.ct-act>b{width:100%;text-align:center;font-family:var(--display)}
+.ct-act>b small{font-weight:400;color:var(--muted)}
+.ct-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.ct-row button{min-width:96px}
+.ct-bets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ct-chipbtn{padding:8px 10px;border-radius:12px;background:#0005;border:1.5px solid #ffffff2a}
+.ct-chipbtn:disabled{opacity:.3}
+.ct-raise{width:100%;display:flex;flex-direction:column;gap:8px}
+.ct-raise input[type=range]{width:100%;accent-color:var(--accent)}
+.ct-mini-btn{padding:6px 10px;border-radius:10px;background:var(--chip);color:var(--text);font-size:12px}
+.ct-allin{padding:8px 12px;border-radius:12px;background:#9c1626;color:#fff;font-weight:700}
+
+/* ===== สรุปผล ===== */
+.ct-final{padding:16px;border-radius:18px;background:var(--panel);text-align:center}
+.ct-final h2{margin:0 0 4px}.ct-final p{margin:0 0 12px;color:var(--muted);font-size:13px}
+.ct-final ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ct-final li{display:grid;grid-template-columns:28px 32px 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:8px;padding:8px 10px;border-radius:12px;background:var(--inset);text-align:left}
+.ct-final li>span{grid-row:span 2;font-size:18px}.ct-final li>.av,.ct-final li>:nth-child(2){grid-row:span 2}
+.ct-final li small{grid-column:3;color:var(--muted);font-size:11px}
+.ct-final li em{grid-row:1/3;grid-column:4;font-style:normal;font-weight:800;font-size:17px}
+.ct-final li em.up{color:#4ee08a}.ct-final li em.down{color:#ff6b7a}
+.ct-final li.me{outline:2px solid var(--accent)}
+
+/* ===== จอคอม: โต๊ะเต็มความกว้าง รายชื่อห้องไปไว้ล่าง ===== */
+.room-grid.playing:has(.ct-game){grid-template-columns:minmax(0,1fr)}
+.room-grid.playing:has(.ct-game) .game-panel{order:-1}
+.room-grid.playing:has(.ct-game) .players-panel{order:3;position:static;max-height:none;overflow:visible}
+@media (min-width:700px){
+  .ct-table{max-width:min(1150px,calc((100dvh - 210px)*1.6));aspect-ratio:16/10;margin-bottom:46px}
+  .ct-felt{inset:12% 9%}
+  .pc-sm{--w:min(86px,8.5cqw)}.ct-slot{width:min(86px,8.5cqw)}.pc-xs{--w:34px}.pc-lg{--w:112px}
+  .ct-board{gap:8px}
+  .ct-seat{width:118px;padding:6px 6px 8px;gap:3px}
+  .ct-nm{font-size:14px;max-width:110px}.ct-ch{font-size:12px}.ct-tag,.ct-res{font-size:12px}.ct-res i{font-size:14px}
+  .ct-phase{font-size:20px}.ct-center small{font-size:13px}.ct-pot b{font-size:19px}
+  .ct-act{max-width:760px;margin:0 auto;width:100%}
+}
+
+.ct-bank{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:12px;background:var(--inset);border:1px solid var(--chip);font-size:13px}
+.ct-bank>div{display:flex;flex-wrap:wrap;gap:6px}
+.ct-bank span{padding:3px 8px;border-radius:10px;background:var(--chip)}.ct-bank i{font-style:normal;font-weight:700;color:var(--accent)}
+@media (min-width:700px){
+  .ct-act{flex-wrap:nowrap;padding:10px 14px;gap:10px}
+  .ct-act>b{width:auto;white-space:nowrap;text-align:left}
+  .ct-act .ct-row{flex-wrap:nowrap}
+  .ct-raise{width:auto;flex:1;flex-direction:row;align-items:center}
+  .ct-raise input[type=range]{min-width:90px;flex:1}
+  .ct-raise .ct-row button{min-width:0}
+  .ct-act.pk{max-width:1150px}
+}
+
