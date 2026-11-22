@@ -66,6 +66,15 @@
 .ct-res i{font-style:normal;font-size:12px}
 .ct-res.up{background:#1f8f4e}.ct-res.down{background:#9c1626}
 
+/* ป๊อกเด้ง: ไพ่เจ้ามือกลางโต๊ะ • ตอนเปิดไพ่ ไพ่ทุกคนใหญ่ขึ้น */
+.pd-dealer{display:flex;flex-direction:column;align-items:center;gap:5px}
+.pd-dl{font-size:12px;font-weight:700;padding:2px 10px;border-radius:10px;background:#0007;white-space:nowrap}
+.pd-dl b{color:#ffd34d}
+.pd-show .ct-seat{width:auto;min-width:80px}
+.pd-show .ct-mini .pc-xs{--w:40px}
+.pd-show .ct-mini .pc+.pc{margin-left:-12px}
+.pd-show .ct-center>small{display:none}
+
 /* ===== มือของฉัน + ปุ่ม ===== */
 .ct-hand{display:flex;flex-direction:column;align-items:center;gap:6px}
 .ct-cards{display:flex;gap:10px;justify-content:center;padding-top:6px}
@@ -108,6 +117,8 @@
   .ct-nm{font-size:14px;max-width:110px}.ct-ch{font-size:12px}.ct-tag,.ct-res{font-size:12px}.ct-res i{font-size:14px}
   .ct-phase{font-size:20px}.ct-center small{font-size:13px}.ct-pot b{font-size:19px}
   .ct-act{max-width:760px;margin:0 auto;width:100%}
+  .pd-show .ct-mini .pc-xs{--w:62px}.pd-show .ct-mini .pc+.pc{margin-left:-16px}
+  .pd-show .ct-seat{min-width:118px}.pd-dl{font-size:15px}
 }
 
 .ct-bank{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:12px;background:var(--inset);border:1px solid var(--chip);font-size:13px}
