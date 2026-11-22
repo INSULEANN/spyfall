@@ -33,6 +33,20 @@
         }
       }
     },
+    "lbg": {
+      ".read": true,
+      "$gid": {
+        "$period": {
+          ".indexOn": [
+            "wins"
+          ],
+          "$key": {
+            ".write": "$gid.matches(/^[a-z0-9]{2,16}$/) && $period.matches(/^(all|w[0-9]{6})$/) && $key.matches(/^[0-9]{4}$/)",
+            ".validate": "newData.hasChildren(['name','wins','games','pts']) && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('wins').isNumber() && newData.child('games').isNumber() && newData.child('pts').isNumber() && newData.child('wins').val() <= newData.child('games').val()"
+          }
+        }
+      }
+    },
     "lb": {
       ".read": true,
       "$period": {

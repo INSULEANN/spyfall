@@ -17,23 +17,26 @@ export function weekId(ts = Date.now()) {
   return 'w' + d.getFullYear() + String(wk).padStart(2, '0');
 }
 
+// สถิติเก็บที่ lbg/<เกม>/<all|สัปดาห์>/<รหัส> และรวมทุกเกมที่ lbg/all/... (เริ่มนับใหม่ v1.97 • ของเก่าที่ lb/all, lb/wXXXX ไม่ใช้แล้ว)
+export const LB_ALL = 'all';
+const lbPath = (gid, period, pin) => `lbg/${gid}/${period}/${pin}`;
 export function recordResult(db, { pin, name, look, av, gid, won, pts }) {
   if (!isPin(pin) || !name?.trim()) return;
   const add = cur => {
     const c = cur || { wins: 0, games: 0, pts: 0 };
     c.name = name.trim().slice(0, 24); if (look) c.look = look; if (av != null) c.av = av;
     c.games = (c.games || 0) + 1; c.wins = (c.wins || 0) + (won ? 1 : 0); c.pts = (c.pts || 0) + Math.max(0, pts || 0); c.t = Date.now();
-    if (won && gid) c.g = { ...(c.g || {}), [gid]: ((c.g || {})[gid] || 0) + 1 };
     return c;
   };
-  for (const p of ['all', weekId()]) runTransaction(ref(db, `lb/${p}/${pin}`), add).catch(() => {});
+  const games = [LB_ALL, ...(/^[a-z0-9]{2,16}$/.test(gid || '') && gid !== LB_ALL ? [gid] : [])];
+  for (const g of games) for (const p of ['all', weekId()]) runTransaction(ref(db, lbPath(g, p, pin)), add).catch(() => {});
 }
 
 export function PinForm({ db, name, onSet, onCancel }) {
   const [v, setV] = useState(''); const [taken, setTaken] = useState(null); const [busy, setBusy] = useState(false);
   async function go(force) {
     if (!isPin(v) || busy) return;
-    if (!force) { setBusy(true); try { const s = await get(ref(db, `lb/all/${v}`)); if (s.exists()) { setTaken(s.val().name || 'มีคนใช้'); setBusy(false); return; } } catch { } setBusy(false); }
+    if (!force) { setBusy(true); try { for (const p of [lbPath(LB_ALL, 'all', v), `lb/all/${v}`, `lb/chips/${v}`]) { const s = await get(ref(db, p)); if (s.exists()) { setTaken(s.val().name || 'มีคนใช้'); setBusy(false); return; } } } catch { } setBusy(false); }
     onSet(v);
   }
   return <div className="pin-form">
@@ -45,23 +48,28 @@ export function PinForm({ db, name, onSet, onCancel }) {
   </div>;
 }
 
-export function GangBoard({ db, pin, setPin, name }) {
+export function GangBoard({ db, pin, setPin, name, games = [] }) {
   const [period, setPeriod] = useState('week');
+  const [gid, setGid] = useState(() => { try { return localStorage.getItem('sf-lb-game') || LB_ALL; } catch { return LB_ALL; } });
   const [rows, setRows] = useState(null);
   const [more, setMore] = useState(false);
   const [edit, setEdit] = useState(false);
   useEffect(() => {
     setRows(null);
-    const q = query(ref(db, `lb/${period === 'week' ? weekId() : 'all'}`), orderByChild('wins'), limitToLast(20));
+    const q = query(ref(db, lbPath(gid, period === 'week' ? weekId() : 'all', '').replace(/\/$/, '')), orderByChild('wins'), limitToLast(20));
     return onValue(q, s => { const v = s.val() || {}; setRows(Object.entries(v).map(([k, r]) => ({ k, ...r })).sort((a, b) => (b.wins || 0) - (a.wins || 0) || (b.pts || 0) - (a.pts || 0))); }, () => setRows([]));
-  }, [db, period]);
+  }, [db, period, gid]);
+  const pickGame = g => { setGid(g); setMore(false); try { localStorage.setItem('sf-lb-game', g); } catch { } };
+  const gName = games.find(g => g.id === gid);
   const save = p => { savePinLocal(p); setPin(p); setEdit(false); };
   const shown = (rows || []).slice(0, more ? 20 : 5);
   const myIdx = (rows || []).findIndex(r => r.k === pin);
   return <section className="ha-card gang" id="rank">
     <div className="gang-head"><h3><Trophy size={19} /> อันดับแก๊ง</h3>
       <div className="gang-tabs">{[['week', 'สัปดาห์นี้'], ['all', 'ทั้งหมด']].map(([v, l]) => <button key={v} className={period === v ? 'on' : ''} onClick={() => setPeriod(v)}>{l}</button>)}</div></div>
-    {rows === null ? <p className="gang-empty">กำลังโหลด…</p> : rows.length === 0 ? <p className="gang-empty">{period === 'week' ? 'สัปดาห์นี้ยังไม่มีใครชนะ' : 'ยังไม่มีผลการเล่น'} — เล่นจบรอบแรกแล้วชื่อจะขึ้นที่นี่</p> :
+    {games.length > 0 && <select className="gang-game" value={gid} aria-label="เลือกเกม" onChange={e => pickGame(e.target.value)}>
+      <option value={LB_ALL}>🏆 รวมทุกเกม</option>{games.map(g => <option key={g.id} value={g.id}>{g.emoji} {g.name}</option>)}</select>}
+    {rows === null ? <p className="gang-empty">กำลังโหลด…</p> : rows.length === 0 ? <p className="gang-empty">{gName ? `${gName.name}: ` : ''}{period === 'week' ? 'สัปดาห์นี้ยังไม่มีใครชนะ' : 'ยังไม่มีผลการเล่น'} — เล่นจบรอบแรกแล้วชื่อจะขึ้นที่นี่</p> :
       <ol className="gang-list">{shown.map((r, i) => <li key={r.k} className={(r.k === pin ? 'me ' : '') + (i < 3 ? 'top' + (i + 1) : '')}>
         <span className="gr">{i + 1}</span><AvFace i={r.av ?? 0} look={r.look} size={30} /><span className="gn">{r.name}</span>
         <span className="gw"><b>{r.wins || 0}</b> ชนะ<small>เล่น {r.games || 0}</small></span></li>)}</ol>}

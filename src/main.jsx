@@ -51,7 +51,7 @@ import IntroFilm, { INTROS, ENDINGS, INTRO_LEAD } from './intro.jsx';
 import { pick, shuffle, pickBad, readHist } from './rand.js';
 
 // เลขเวอร์ชันที่โชว์บนหน้าเว็บ — เปลี่ยนทุกครั้งที่อัปเดต (1.0 → 1.1 → 1.2 …)
-const APP_VERSION = '1.96';
+const APP_VERSION = '1.97';
 
 // ค่าเริ่มต้นของโปรเจกต์ spyfall-3a10a (ค่า config ของ Firebase Web เป็นข้อมูลสาธารณะ ใส่ในโค้ดได้)
 // ถ้ามีไฟล์ .env ค่าใน .env จะถูกใช้แทน
@@ -611,7 +611,7 @@ function App() {
         </section>
         <aside className="hub-aside">
           <section className="ha-card" id="join"><h3><DoorOpen size={20}/> เข้าห้องของเพื่อน</h3><div className="me-row"><button type="button" className="av-edit big" onClick={openDress} title="แต่งตัวละคร" aria-label="แต่งตัวละคร"><AvFace i={myAv??0} look={myLook} size={44}/><i>✏️</i></button><input value={name} onChange={e=>setName(e.target.value)} maxLength={24} placeholder="ชื่อเล่นของคุณ" aria-label="ชื่อเล่นของคุณ"/></div><div className="join-inline"><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()} maxLength={6} placeholder="ใส่รหัสห้อง…" aria-label="รหัสห้อง"/><button className="ha-join" onClick={joinRoom}>เข้าห้อง <ArrowRight size={16}/></button></div><div className="ha-or"><span>หรือ</span></div><button className="ha-create" onClick={createCta}><Plus size={18}/> สร้างห้องใหม่</button></section>
-          {db&&<GangBoard db={db} pin={pin} setPin={setPin} name={name}/>}
+          {db&&<GangBoard db={db} pin={pin} setPin={setPin} name={name} games={Object.values(GAMES).filter(g=>!g.soon).map(g=>({id:g.id,name:g.name,emoji:g.emoji}))}/>}
           {db&&<RichBoard db={db} pin={pin}/>}
           <section className="ha-card"><h3><Sparkles size={18}/> เริ่มเล่นใน 3 ขั้น</h3><ol className="ha-steps"><li><b>เลือกเกม สร้างห้อง</b><span>คนหนึ่งเป็นหัวหน้าห้อง กด “สร้างห้องใหม่”</span></li><li><b>ชวนเพื่อนเข้าห้อง</b><span>ส่งลิงก์ในแชต หรือบอกรหัสห้อง 5 ตัว</span></li><li><b>เข้าห้องเสียงแล้วเล่น</b><span>คุยกันในเว็บได้เลย แต้มสะสมนับต่อทุกรอบ</span></li></ol><p className="ha-ver">เวอร์ชัน {APP_VERSION}</p></section>
         </aside>
