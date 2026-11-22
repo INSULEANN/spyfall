@@ -9,7 +9,7 @@ import { CatScare } from './boom.jsx';
 import { OpenFx, PassFx } from './checkpoint.jsx';
 import { BombFx } from './clue.jsx';
 import { SnakeFx } from './snake.jsx';
-import { randomLook, Char } from './char.jsx';
+import { randomLook, Char, HATS, FITS, ACCS, HOLDS } from './char.jsx';
 import { WolfFx } from './wolffx.jsx';
 
 const IDS = ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -40,6 +40,9 @@ function Demo() {
 
     <H>🥚 ท่าทางตัวละคร</H>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>{[['idle', 'ยืน'], ['walk', 'เดิน'], ['wave', 'โบกมือ'], ['talk', 'พูด'], ['happy', 'ดีใจ'], ['sad', 'เสียใจ'], ['shock', 'ตกใจ'], ['think', 'คิด'], ['dead', 'ตกรอบ']].map(([m, t], i) => <div key={m} style={{ textAlign: 'center', background: '#ffffff0d', borderRadius: 12, padding: '8px 10px' }}><Char look={av(IDS[i % 6]).look} color={av(IDS[i % 6]).c} full size={70} mood={m} /><small style={{ display: 'block' }}>{t}</small></div>)}</div>
+
+    <H>🎽 ของแต่งทั้งหมด</H>
+    {[['hat', HATS, 'หมวก/ของบนหัว', false], ['fit', FITS, 'ชุด', true], ['acc', ACCS, 'ของบนหน้า', false], ['hold', HOLDS, 'ของถือ', true]].map(([k, L, t, full]) => <div key={k}><b style={{ display: 'block', margin: '10px 0 4px' }}>{t} ({L.length - 1})</b><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{L.map((x, i) => i > 0 && <div key={i} style={{ width: 84, textAlign: 'center', background: '#ffffff0d', borderRadius: 10, padding: 4 }}><Char look={{ hair: 2, hc: 1, eyes: 1, mouth: 0, [k]: i }} color={(i * 5) % 16} full={full} size={full ? 60 : 72} mood="still" /><small style={{ display: 'block', fontSize: 10 }}>{x.n}</small></div>)}</div></div>)}
 
     <H>🐺 มนุษย์หมาป่า — กดเพื่อเล่น (ตัวละคร "บอส")</H>
     {[['bite', 'หมาป่ากัด'], ['save', 'หมอช่วยไว้'], ['vote', 'โหวตประหาร'], ['shot', 'นายพรานยิง'], ['heart', 'คู่รักตายตาม'], ['calm', 'คืนสงบ']].map(([k, t]) => <button key={k} style={btn} onClick={() => playWolf(k)}>{t}</button>)}
