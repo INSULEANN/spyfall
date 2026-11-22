@@ -1,8 +1,8 @@
 // อันดับแก๊ง — ไม่ต้องสมัคร: ใช้ "รหัสประจำตัว 4 หลัก" แทนบัญชี (เปลี่ยนชื่อเล่นได้ตลอด แต้มยังอยู่กับรหัส)
 // จบรอบแล้วแต้มในห้องเพิ่ม = ชนะ 1 ครั้ง • แต่ละเครื่องบันทึกเฉพาะผลของตัวเอง
 import React, { useEffect, useState } from 'react';
-import { ref, get, runTransaction, onValue, query, orderByChild, limitToLast } from 'firebase/database';
-import { Trophy } from 'lucide-react';
+import { ref, get, update, runTransaction, onValue, query, orderByChild, limitToLast } from 'firebase/database';
+import { Trophy, Coins } from 'lucide-react';
 import { AvFace } from './ui.jsx';
 
 export const isPin = p => /^[0-9]{4}$/.test(p || '');
@@ -68,5 +68,43 @@ export function GangBoard({ db, pin, setPin }) {
     {rows && myIdx >= 5 && !more && <p className="gang-me">คุณอยู่อันดับ {myIdx + 1}</p>}
     {!pin || edit ? <PinForm db={db} onSet={save} onCancel={pin ? () => setEdit(false) : null} /> :
       <p className="gang-note">รหัสของคุณ <b className="pin-chip">{pin}</b> <button className="pin-edit" onClick={() => setEdit(true)}>เปลี่ยน</button> · จบรอบแล้วได้แต้ม = ชนะ 1 ครั้ง</p>}
+  </section>;
+}
+
+// ── กระเป๋าชิป (ป๊อกเด้ง/โป๊กเกอร์) ผูกกับรหัส 4 หลัก ──
+// ยอดในกระเป๋า = ชิปบนโต๊ะ (ยอดเดียว: ซื้อเพิ่ม/ชนะ/แพ้/ถูกหัก นับหมด) • เข้าวงใหม่จะเริ่มด้วยยอดนี้
+export const WALLET_CAP = 1000000;
+export function saveWallet(db, { pin, name, look, av, chips }) {
+  if (!isPin(pin) || !name?.trim()) return;
+  const v = { name: name.trim().slice(0, 24), chips: Math.max(0, Math.min(WALLET_CAP, Math.round(chips || 0))), t: Date.now() };
+  if (look) v.look = look; if (av != null) v.av = av;
+  update(ref(db, `lb/chips/${pin}`), v).catch(() => {});
+}
+// กำไร/ขาดทุนจากการเล่น สะสมไว้ที่ profit (ใช้จัดอันดับเศรษฐี)
+export function addProfit(db, { pin, name, look, av, d }) {
+  if (!isPin(pin) || !name?.trim() || !d) return;
+  runTransaction(ref(db, `lb/chips/${pin}`), c => { const v = c || { chips: 0 }; v.name = name.trim().slice(0, 24); if (look) v.look = look; if (av != null) v.av = av; v.profit = Math.round((v.profit || 0) + d); v.t = Date.now(); return v; }).catch(() => {});
+}
+export async function readWallet(db, pin) {
+  if (!isPin(pin)) return null;
+  try { const s = await get(ref(db, `lb/chips/${pin}`)); return s.exists() ? s.val().chips : null; } catch { return null; }
+}
+
+export function RichBoard({ db, pin }) {
+  const [rows, setRows] = useState(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => onValue(query(ref(db, 'lb/chips'), orderByChild('profit'), limitToLast(20)),
+    s => setRows(Object.entries(s.val() || {}).map(([k, r]) => ({ k, ...r })).filter(r => r.profit).sort((a, b) => b.profit - a.profit)), () => setRows([])), [db]);
+  const shown = (rows || []).slice(0, more ? 20 : 5);
+  const mine = (rows || []).findIndex(r => r.k === pin);
+  return <section className="ha-card gang rich" id="rich">
+    <div className="gang-head"><h3><Coins size={19} /> อันดับเศรษฐี</h3><small className="rich-sub">ชิปป๊อกเด้ง · โป๊กเกอร์</small></div>
+    {rows === null ? <p className="gang-empty">กำลังโหลด…</p> : rows.length === 0 ? <p className="gang-empty">ยังไม่มีเศรษฐี — เล่นป๊อกเด้งหรือโป๊กเกอร์ได้กำไรแล้วชื่อจะขึ้นที่นี่</p> :
+      <ol className="gang-list">{shown.map((r, i) => <li key={r.k} className={(r.k === pin ? 'me ' : '') + (i < 3 ? 'top' + (i + 1) : '')}>
+        <span className="gr">{i + 1}</span><AvFace i={r.av ?? 0} look={r.look} size={30} /><span className="gn">{r.name}</span>
+        <span className={'gw rich-n' + (r.profit < 0 ? ' neg' : '')}><b>{r.profit > 0 ? '+' : ''}{r.profit.toLocaleString()}</b> กำไร<small>มี {(r.chips || 0).toLocaleString()}</small></span></li>)}</ol>}
+    {rows && rows.length > 5 && <button className="gang-more" onClick={() => setMore(m => !m)}>{more ? 'ย่อ' : `ดูทั้งหมด (${rows.length})`}</button>}
+    {rows && mine >= 5 && !more && <p className="gang-me">คุณอยู่อันดับ {mine + 1}</p>}
+    <p className="gang-note">{pin ? 'จัดอันดับจากกำไรที่เล่นได้จริง ชิปที่ซื้อเพิ่มหรือที่หัวห้องให้ไม่นับ • ชิปที่มีติดตัวข้ามห้องตามรหัสของคุณ' : 'ตั้งรหัส 4 หลักในอันดับแก๊งก่อน ชิปถึงจะติดตัวข้ามห้อง'}</p>
   </section>;
 }

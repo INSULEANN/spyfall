@@ -42,7 +42,7 @@
 /* ── สองคอลัมน์ ── */
 .hub-cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;align-items:start}
 .hub-aside{position:sticky;top:16px;display:grid;gap:16px}
-#games,#join,#rank,#ceo{scroll-margin-top:16px}
+#games,#join,#rank,#rich,#ceo{scroll-margin-top:16px}
 
 .shelf-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .shelf-head h2{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:var(--display-weight);font-size:22px;margin:0}
@@ -166,3 +166,8 @@
   .hub-random span{font-size:11.5px}
   .hub-random button{padding:9px 12px}
 }
+
+/* อันดับเศรษฐี */
+.rich-sub{font-size:11px;color:var(--dim)}
+.rich-n b{color:#ffc965}
+.rich-n.neg b{color:#ff8f8f}

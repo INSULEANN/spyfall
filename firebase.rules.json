@@ -25,6 +25,16 @@
           ".write": "$period.matches(/^(all|w[0-9]{6})$/) && $key.matches(/^[0-9]{4}$/)",
           ".validate": "newData.hasChildren(['name','wins','games','pts']) && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('wins').isNumber() && newData.child('games').isNumber() && newData.child('pts').isNumber() && newData.child('wins').val() <= newData.child('games').val()"
         }
+      },
+      "chips": {
+        ".indexOn": [
+          "chips",
+          "profit"
+        ],
+        "$key": {
+          ".write": "$key.matches(/^[0-9]{4}$/)",
+          ".validate": "newData.hasChildren(['name','chips']) && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('chips').isNumber() && newData.child('chips').val() >= 0 && newData.child('chips').val() <= 1000000 && (!newData.child('profit').exists() || newData.child('profit').isNumber())"
+        }
       }
     }
   }
