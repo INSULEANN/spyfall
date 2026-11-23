@@ -1,10 +1,10 @@
-// ตรวจคลังคำถาม: ทุกหมวด 100 ข้อ, 4 ตัวเลือกไม่ซ้ำ, ไม่มีคำถามซ้ำ
+// ตรวจคลังคำถาม: ทุกหมวด 300 ข้อ, 4 ตัวเลือกไม่ซ้ำ, ไม่มีคำถามซ้ำ
 import { pathToFileURL } from 'url';
 const cats = process.argv.slice(2).length ? process.argv.slice(2) : ['foot','anime','movie','game','thai','food','sci','world'];
 let bad = 0; const allQ = new Map();
 for (const c of cats) {
   const qs = (await import(pathToFileURL(`src/quiz/${c}.js`).href)).default; const seen = new Set();
-  if (qs.length !== 100) { console.log(`${c}: ${qs.length} ข้อ (ต้อง 100)`); bad++; }
+  if (qs.length !== 300) { console.log(`${c}: ${qs.length} ข้อ (ต้อง 300)`); bad++; }
   qs.forEach((q, i) => {
     const err = m => { console.log(`${c}#${i}: ${m} — ${q[0]}`); bad++; };
     if (!Array.isArray(q) || q.length < 5 || q.length > 6) err('รูปแบบผิด');

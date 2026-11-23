@@ -13,7 +13,7 @@ import './quiz.css';
 
 export const QZ_MIN = 2, QZ_MAX = 12;
 export const QZ_SCORE = [3, 2, 1];          // คะแนนสะสมของห้อง: อันดับ 1–3
-export const QZ_PER = 100;                  // ทุกหมวดมี 100 ข้อ
+export const QZ_PER = 300;                  // ทุกหมวดมี 300 ข้อ
 export const QZ_COUNTS = [5, 10, 15, 20, 30];
 export const ANS_MS = 20000, LEAD_MS = 3500, REV_MS = 6500;
 export const QZ_CATS = [
